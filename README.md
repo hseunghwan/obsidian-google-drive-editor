@@ -75,7 +75,7 @@ npm run build
 https://www.googleapis.com/auth/drive
 ```
 
-Manifest V3 확장 페이지에서는 원격 Google Picker JavaScript를 직접 로드하지 않습니다. MVP에서는 Drive 폴더 URL 또는 폴더 ID를 입력하는 로컬 prompt 방식으로 vault root를 선택합니다.
+Manifest V3 확장 페이지에서는 원격 Google Picker JavaScript를 직접 로드하지 않습니다. Drive vault root는 확장 내부의 Drive 폴더 탐색기에서 선택합니다.
 
 ## 검증 명령
 
@@ -99,5 +99,5 @@ npm run lint
 
 - OAuth client id가 placeholder면 실제 Drive 연결은 실패합니다.
 - Google Drive live save는 Google Cloud credential과 테스트 Drive 폴더가 준비된 뒤 수동 검증해야 합니다.
-- Google Picker 정식 UI는 MVP 범위에서 제외되어 있으며, Drive 폴더 URL/ID 입력 방식으로 대체되어 있습니다.
+- Google Picker 정식 UI는 MVP 범위에서 제외되어 있으며, 확장 내부 Drive 폴더 탐색기로 대체되어 있습니다.
 - Graph view, backlinks, Dataview, canvas, advanced block reference는 MVP 범위에 포함되지 않습니다.

@@ -171,6 +171,143 @@ select:focus-visible {
   background: var(--panel-bg-hover);
 }
 
+.drive-picker-overlay {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 55%);
+}
+
+.drive-picker-dialog {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  width: min(620px, calc(100vw - 32px));
+  max-height: min(680px, calc(100vh - 32px));
+  overflow: hidden;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 38%);
+  text-align: left;
+}
+
+.drive-picker-header,
+.drive-picker-toolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.drive-picker-header {
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.drive-picker-header h2 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drive-picker-toolbar {
+  padding: 8px 10px;
+  background: var(--panel-bg-raised);
+}
+
+.drive-picker-path {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drive-picker-close,
+.drive-picker-back,
+.drive-picker-select-current,
+.drive-picker-select {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  background: var(--control-bg);
+}
+
+.drive-picker-close {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+}
+
+.drive-picker-close:hover,
+.drive-picker-back:hover,
+.drive-picker-select-current:hover,
+.drive-picker-select:hover,
+.drive-picker-folder:hover {
+  color: var(--text-primary);
+  background: var(--panel-bg-hover);
+}
+
+.drive-picker-body {
+  min-height: 240px;
+  overflow: auto;
+  padding: 8px;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.drive-picker-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drive-picker-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.drive-picker-folder {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 0;
+  color: var(--text-secondary);
+  background: transparent;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drive-picker-status,
+.drive-picker-error {
+  margin: 0;
+  padding: 16px 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.drive-picker-error {
+  color: var(--error);
+}
+
 .workspace-shell {
   height: 100vh;
   background: var(--app-bg);

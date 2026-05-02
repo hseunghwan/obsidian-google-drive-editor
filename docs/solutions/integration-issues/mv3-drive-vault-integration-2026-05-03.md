@@ -38,19 +38,12 @@ Use an MV3-compatible folder selection boundary and make the Drive consent model
 export const driveScopes = ['https://www.googleapis.com/auth/drive'] as const;
 ```
 
-The folder selection implementation now avoids remote code and accepts a Drive folder URL or id through a local prompt:
+The folder selection implementation now avoids remote code and opens a local Drive folder explorer backed by `files.list`:
 
 ```ts
 export class BrowserGooglePickerClient implements GooglePickerClient {
-  async pickVaultFolder(_accessToken: string): Promise<PickedFolder> {
-    const rawFolder = window.prompt('Google Drive 폴더 URL 또는 폴더 ID를 입력하세요.');
-    const id = rawFolder ? parseDriveFolderId(rawFolder) : null;
-    if (!id) {
-      throw new Error('Folder selection was cancelled.');
-    }
-
-    const rawName = window.prompt('Vault 이름을 입력하세요.', 'Drive Vault');
-    return { id, name: rawName?.trim() || 'Drive Vault' };
+  pickVaultFolder(accessToken: string): Promise<PickedFolder> {
+    return new DriveFolderExplorer(accessToken, this.messages).open();
   }
 }
 ```

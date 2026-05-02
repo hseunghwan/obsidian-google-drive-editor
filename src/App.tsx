@@ -30,10 +30,17 @@ function AppContent() {
       const nextWorkspace = await loadDriveWorkspace({
         auth: new ChromeIdentityAuthClient(t('errors.chromeIdentityUnavailable')),
         picker: new BrowserGooglePickerClient({
-          folderPrompt: t('picker.folderPrompt'),
-          vaultNamePrompt: t('picker.vaultNamePrompt'),
-          defaultVaultName: t('picker.defaultVaultName'),
-          cancelledMessage: t('picker.cancelled')
+          title: t('picker.title'),
+          rootName: t('picker.rootName'),
+          back: t('picker.back'),
+          close: t('picker.close'),
+          selectCurrent: t('picker.selectCurrent'),
+          selectFolder: t('picker.selectFolder'),
+          openFolder: t('picker.openFolder'),
+          loading: t('picker.loading'),
+          empty: t('picker.empty'),
+          cancelledMessage: t('picker.cancelled'),
+          loadFailedMessage: t('picker.loadFailed')
         }),
         createDriveClient: (accessToken) => new HttpGoogleDriveClient(accessToken),
         drafts: new IndexedDbDraftStore()
