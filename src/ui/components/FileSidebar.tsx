@@ -1,4 +1,5 @@
 import type { VaultFile } from '../../domain/vault/types';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface FileSidebarProps {
   files: VaultFile[];
@@ -19,22 +20,24 @@ export function FileSidebar({
   onCreateFile,
   onCreateFolder
 }: FileSidebarProps) {
+  const { t } = useI18n();
+
   return (
-    <aside className="sidebar" aria-label="Vault files">
+    <aside className="sidebar" aria-label={t('sidebar.aria')}>
       <div className="sidebar-tools">
         <input
-          aria-label="Vault 파일 검색"
+          aria-label={t('sidebar.searchAria')}
           type="search"
           value={query}
           onChange={(event) => onQueryChange(event.currentTarget.value)}
-          placeholder="파일 검색"
+          placeholder={t('sidebar.searchPlaceholder')}
         />
         <div className="sidebar-actions">
           <button type="button" onClick={onCreateFile}>
-            새 파일
+            {t('sidebar.createFile')}
           </button>
           <button type="button" onClick={onCreateFolder}>
-            새 폴더
+            {t('sidebar.createFolder')}
           </button>
         </div>
       </div>
@@ -49,7 +52,7 @@ export function FileSidebar({
           <small>{file.path}</small>
         </button>
       ))}
-      {files.length === 0 ? <p className="sidebar-empty">표시할 Markdown 파일이 없습니다.</p> : null}
+      {files.length === 0 ? <p className="sidebar-empty">{t('sidebar.empty')}</p> : null}
     </aside>
   );
 }

@@ -19,6 +19,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -48,6 +49,24 @@ textarea {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
+}
+
+.language-switcher {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #b9bdc8;
+  font-size: 0.9rem;
+}
+
+.language-switcher select {
+  padding: 6px 8px;
+  border: 1px solid #4c4c4c;
+  color: #f2f2f2;
+  background: #333333;
 }
 
 .app-actions button {

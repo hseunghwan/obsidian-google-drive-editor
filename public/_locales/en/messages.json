@@ -1,0 +1,11 @@
+{
+  "appName": {
+    "message": "Drive Obsidian Editor"
+  },
+  "appDescription": {
+    "message": "Edit Google Drive Markdown vaults with an Obsidian-like workspace."
+  },
+  "actionTitle": {
+    "message": "Drive Obsidian Editor"
+  }
+}

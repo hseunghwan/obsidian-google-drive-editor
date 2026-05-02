@@ -1,6 +1,8 @@
 import { useState } from 'react';
 
 import { loadDriveWorkspace, type DriveWorkspace } from './app/driveWorkspaceLoader';
+import { I18nProvider, useI18n } from './i18n/I18nProvider';
+import type { Locale } from './i18n/messages';
 import { ChromeIdentityAuthClient } from './integrations/google/googleAuth';
 import { HttpGoogleDriveClient } from './integrations/google/httpGoogleDriveClient';
 import { BrowserGooglePickerClient } from './integrations/google/googlePicker';
@@ -9,21 +11,35 @@ import { fixtureFiles, fixtureVaultRoot } from './test/fixtures';
 import { Workspace } from './ui/Workspace';
 
 export default function App() {
+  return (
+    <I18nProvider>
+      <AppContent />
+    </I18nProvider>
+  );
+}
+
+function AppContent() {
+  const { locale, setLocale, t } = useI18n();
   const [workspace, setWorkspace] = useState<DriveWorkspace | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function connectDrive() {
     try {
       const nextWorkspace = await loadDriveWorkspace({
-        auth: new ChromeIdentityAuthClient(),
-        picker: new BrowserGooglePickerClient(),
+        auth: new ChromeIdentityAuthClient(t('errors.chromeIdentityUnavailable')),
+        picker: new BrowserGooglePickerClient({
+          folderPrompt: t('picker.folderPrompt'),
+          vaultNamePrompt: t('picker.vaultNamePrompt'),
+          defaultVaultName: t('picker.defaultVaultName'),
+          cancelledMessage: t('picker.cancelled')
+        }),
         createDriveClient: (accessToken) => new HttpGoogleDriveClient(accessToken),
         drafts: new IndexedDbDraftStore()
       });
       setWorkspace(nextWorkspace);
       setError(null);
     } catch (connectError) {
-      setError(connectError instanceof Error ? connectError.message : 'Drive 연결 실패');
+      setError(connectError instanceof Error ? connectError.message : t('errors.driveConnectFailed'));
     }
   }
 
@@ -69,30 +85,55 @@ See [[Project Note]].`,
 
   if (!workspace) {
     return (
-      <main className="app-shell">
-        <h1>Drive Obsidian Editor</h1>
-        <p>Google Drive 폴더를 vault로 연결해 Markdown 파일을 편집합니다.</p>
-        <div className="app-actions">
-          <button type="button" onClick={() => void connectDrive()}>
-            Google Drive vault 연결
-          </button>
-          <button type="button" onClick={openMockWorkspace}>
-            Mock vault 열기
-          </button>
-        </div>
-        {error ? <p role="alert">{error}</p> : null}
-      </main>
+      <>
+        <LanguageSwitcher locale={locale} setLocale={setLocale} />
+        <main className="app-shell">
+          <h1>{t('app.title')}</h1>
+          <p>{t('app.description')}</p>
+          <div className="app-actions">
+            <button type="button" onClick={() => void connectDrive()}>
+              {t('app.connectDrive')}
+            </button>
+            <button type="button" onClick={openMockWorkspace}>
+              {t('app.openMockVault')}
+            </button>
+          </div>
+          {error ? <p role="alert">{error}</p> : null}
+        </main>
+      </>
     );
   }
 
   return (
-    <Workspace
-      root={workspace.root}
-      files={workspace.files}
-      loadFile={workspace.loadFile}
-      saveDocument={workspace.saveDocument}
-      createFile={workspace.createFile}
-      createFolder={workspace.createFolder}
-    />
+    <>
+      <LanguageSwitcher locale={locale} setLocale={setLocale} />
+      <Workspace
+        root={workspace.root}
+        files={workspace.files}
+        loadFile={workspace.loadFile}
+        saveDocument={workspace.saveDocument}
+        createFile={workspace.createFile}
+        createFolder={workspace.createFolder}
+      />
+    </>
+  );
+}
+
+interface LanguageSwitcherProps {
+  locale: Locale;
+  setLocale(locale: Locale): void;
+}
+
+function LanguageSwitcher({ locale, setLocale }: LanguageSwitcherProps) {
+  const { t } = useI18n();
+
+  return (
+    <label className="language-switcher">
+      <span>{t('language.label')}</span>
+      <select value={locale} onChange={(event) => setLocale(event.currentTarget.value as Locale)}>
+        <option value="ko">{t('language.ko')}</option>
+        <option value="en">{t('language.en')}</option>
+      </select>
+    </label>
   );
 }

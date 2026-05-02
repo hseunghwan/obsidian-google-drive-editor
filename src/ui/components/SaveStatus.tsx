@@ -1,17 +1,19 @@
 import type { SaveStatus as SaveStatusValue } from '../state/workspaceReducer';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface SaveStatusProps {
   status: SaveStatusValue;
-  message: string;
   onSave(): void;
 }
 
-export function SaveStatus({ status, message, onSave }: SaveStatusProps) {
+export function SaveStatus({ status, onSave }: SaveStatusProps) {
+  const { t } = useI18n();
+
   return (
     <div className={`save-status save-status-${status}`}>
-      <span>{message}</span>
+      <span>{t(`save.${status}`)}</span>
       <button type="button" onClick={onSave}>
-        저장
+        {t('save.button')}
       </button>
     </div>
   );

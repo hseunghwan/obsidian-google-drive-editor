@@ -8,7 +8,6 @@ export interface WorkspaceState {
   activeDocument: OpenDocument | null;
   saveState: {
     status: SaveStatus;
-    message: string;
   };
 }
 
@@ -22,8 +21,8 @@ export type WorkspaceAction =
   | { type: 'documentEdited'; content: string }
   | { type: 'saveStarted' }
   | { type: 'saveSucceeded'; modifiedTime: string }
-  | { type: 'saveFailed'; message: string }
-  | { type: 'remoteConflict'; message: string };
+  | { type: 'saveFailed' }
+  | { type: 'remoteConflict' };
 
 export function createInitialWorkspaceState(): WorkspaceState {
   return {
@@ -31,8 +30,7 @@ export function createInitialWorkspaceState(): WorkspaceState {
     files: [],
     activeDocument: null,
     saveState: {
-      status: 'idle',
-      message: 'Vault를 선택하세요.'
+      status: 'idle'
     }
   };
 }
@@ -45,8 +43,7 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         files: action.files,
         activeDocument: action.document,
         saveState: {
-          status: 'saved',
-          message: '저장됨'
+          status: 'saved'
         }
       };
     case 'documentEdited':
@@ -56,23 +53,22 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
           ? { ...state.activeDocument, content: action.content }
           : null,
         saveState: {
-          status: 'dirty',
-          message: '저장되지 않은 변경'
+          status: 'dirty'
         }
       };
     case 'saveStarted':
-      return { ...state, saveState: { status: 'saving', message: '저장 중' } };
+      return { ...state, saveState: { status: 'saving' } };
     case 'saveSucceeded':
       return {
         ...state,
         activeDocument: state.activeDocument
           ? { ...state.activeDocument, baselineModifiedTime: action.modifiedTime }
           : null,
-        saveState: { status: 'saved', message: '저장됨' }
+        saveState: { status: 'saved' }
       };
     case 'saveFailed':
-      return { ...state, saveState: { status: 'failed', message: action.message } };
+      return { ...state, saveState: { status: 'failed' } };
     case 'remoteConflict':
-      return { ...state, saveState: { status: 'conflict', message: action.message } };
+      return { ...state, saveState: { status: 'conflict' } };
   }
 }

@@ -3,6 +3,7 @@ import { type ComponentType, useEffect, useMemo, useReducer, useState } from 're
 import { isVaultError } from '../domain/vault/errors';
 import { VaultIndex } from '../domain/vault/vaultIndex';
 import type { OpenDocument, SaveResult, VaultFile, VaultFolder, VaultRoot } from '../domain/vault/types';
+import { useI18n } from '../i18n/I18nProvider';
 import { Breadcrumb } from './components/Breadcrumb';
 import { FileSidebar } from './components/FileSidebar';
 import { MetadataPanel } from './components/MetadataPanel';
@@ -31,6 +32,7 @@ export function Workspace({
   autosaveDelayMs = 1200,
   EditorComponent = MarkdownEditor
 }: WorkspaceProps) {
+  const { t } = useI18n();
   const [state, dispatch] = useReducer(workspaceReducer, createInitialWorkspaceState());
   const [workspaceFiles, setWorkspaceFiles] = useState(files);
   const [query, setQuery] = useState('');
@@ -75,10 +77,10 @@ export function Workspace({
       dispatch({ type: 'saveSucceeded', modifiedTime: result.modifiedTime });
     } catch (error) {
       if (isVaultError(error, 'RemoteChanged')) {
-        dispatch({ type: 'remoteConflict', message: '원격 변경이 감지되었습니다.' });
+        dispatch({ type: 'remoteConflict' });
         return;
       }
-      dispatch({ type: 'saveFailed', message: '저장 실패. 로컬 초안을 보존했습니다.' });
+      dispatch({ type: 'saveFailed' });
     }
   }
 
@@ -103,7 +105,7 @@ export function Workspace({
   }, [activeDocument, autosaveDelayMs, state.saveState.status]);
 
   async function createMarkdownFile() {
-    const rawName = window.prompt('새 Markdown 파일 이름');
+    const rawName = window.prompt(t('workspace.newMarkdownFilePrompt'));
     const title = rawName?.trim();
     if (!title) {
       return;
@@ -127,14 +129,14 @@ export function Workspace({
   }
 
   async function createVaultFolder() {
-    const rawName = window.prompt('새 폴더 이름');
+    const rawName = window.prompt(t('workspace.newFolderPrompt'));
     const name = rawName?.trim();
     if (!name) {
       return;
     }
 
     await createFolder(root.id, name);
-    setNotice('폴더 생성됨');
+    setNotice(t('workspace.folderCreated'));
   }
 
   return (
@@ -159,20 +161,19 @@ export function Workspace({
             />
             <SaveStatus
               status={state.saveState.status}
-              message={state.saveState.message}
               onSave={() => void saveActiveDocument()}
             />
           </>
         ) : workspaceFiles.length === 0 ? (
           <div className="empty-vault">
-            <p>이 vault에 Markdown 파일이 없습니다.</p>
+            <p>{t('workspace.emptyVault')}</p>
             <button type="button" onClick={() => void createMarkdownFile()}>
-              새 파일
+              {t('workspace.createFile')}
             </button>
           </div>
         ) : (
           <button className="open-first-file" type="button" onClick={() => void openFile(visibleFiles[0] ?? workspaceFiles[0])}>
-            첫 문서 열기
+            {t('workspace.openFirstFile')}
           </button>
         )}
         {notice ? <p className="workspace-notice">{notice}</p> : null}

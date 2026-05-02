@@ -6,10 +6,12 @@ export interface GoogleAuthClient {
 }
 
 export class ChromeIdentityAuthClient implements GoogleAuthClient {
+  constructor(private readonly unavailableMessage = chromeIdentityUnavailableMessage) {}
+
   async getAccessToken(interactive: boolean): Promise<string> {
     const identity = getChromeIdentity();
     if (!identity) {
-      throw new Error(chromeIdentityUnavailableMessage);
+      throw new Error(this.unavailableMessage);
     }
 
     const result = await identity.getAuthToken({
