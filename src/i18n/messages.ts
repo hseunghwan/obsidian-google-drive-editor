@@ -36,9 +36,9 @@ const ko = {
   'save.failed': '저장 실패. 로컬 초안을 보존했습니다.',
   'save.conflict': '원격 변경이 감지되었습니다.',
   'save.button': '저장',
-  'metadata.aria': 'Properties and tags',
-  'metadata.properties': 'Properties',
-  'metadata.tags': 'Tags',
+  'metadata.aria': '프로퍼티와 태그',
+  'metadata.properties': '프로퍼티',
+  'metadata.tags': '태그',
   'metadata.emptyProperties': '등록된 프로퍼티가 없습니다.'
 };
 

@@ -68,6 +68,8 @@ describe('Workspace', () => {
 
     expect(screen.getByText('title')).toBeInTheDocument();
     expect(screen.getByText('#daily')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '프로퍼티' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '태그' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '저장' }));
 
