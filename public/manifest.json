@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Drive Obsidian Editor",
+  "description": "Edit Google Drive markdown vaults with an Obsidian-like workspace.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Drive Obsidian Editor"
+  },
+  "background": {
+    "service_worker": "assets/background.js",
+    "type": "module"
+  },
+  "permissions": ["identity", "storage"],
+  "host_permissions": ["https://www.googleapis.com/*", "https://accounts.google.com/*"],
+  "oauth2": {
+    "client_id": "REPLACE_WITH_CHROME_EXTENSION_OAUTH_CLIENT_ID",
+    "scopes": ["https://www.googleapis.com/auth/drive.file"]
+  }
+}
