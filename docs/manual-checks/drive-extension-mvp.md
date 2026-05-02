@@ -7,8 +7,10 @@
 3. Create a Chrome Extension OAuth client.
 4. Load `dist/` once as an unpacked extension and copy the generated extension id.
 5. Add the unpacked extension id to the OAuth client configuration.
-6. Configure the OAuth client id in `public/manifest.json`.
-7. Copy a test vault folder URL or folder id for the MV3-compatible folder prompt.
+6. Set `VITE_GOOGLE_OAUTH_CLIENT_ID=<Chrome Extension OAuth client id>` in `.env.local`.
+7. Run `npm run build` again so `dist/manifest.json` receives the configured OAuth client id.
+8. Reload the unpacked extension in `chrome://extensions`.
+9. Copy a test vault folder URL or folder id for the MV3-compatible folder prompt.
 
 ## Manual Drive checks
 
@@ -26,7 +28,7 @@
 
 ## Local environment
 
-The OAuth client id for `chrome.identity.getAuthToken` must be configured in `public/manifest.json` under `oauth2.client_id` after creating the Chrome Extension OAuth client in Google Cloud Console.
+The OAuth client id for `chrome.identity.getAuthToken` is configured with `VITE_GOOGLE_OAUTH_CLIENT_ID` in `.env.local`. `npm run build` injects that value into `dist/manifest.json` under `oauth2.client_id`. Do not commit a real OAuth client id to `public/manifest.json`.
 
 This MVP does not load the remote Google Picker JavaScript API from an extension page. Manifest V3 extension pages execute packaged scripts only, so folder selection uses a local prompt for a Drive folder URL or folder id. The requested OAuth scope is `https://www.googleapis.com/auth/drive` because an existing Obsidian vault requires recursive listing and writing of files already present in the selected folder.
 
