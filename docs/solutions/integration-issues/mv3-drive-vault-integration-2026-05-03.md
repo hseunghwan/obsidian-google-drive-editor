@@ -32,10 +32,12 @@ The MVP originally treated Google Picker and `drive.file` as if they could open 
 - Treating tests that covered only upload failure as enough for draft safety. Metadata preflight, conflict detection, and successful recovery cleanup need their own assertions.
 
 ## Solution
-Use an MV3-compatible folder selection boundary and make the Drive consent model explicit:
+Use an MV3-compatible folder selection boundary and make the Drive consent model explicit.
+
+Security follow-up: the default scope was narrowed back to `drive.file` after CSO review so a compromised extension token cannot manage the user's entire Drive by default. That makes arbitrary existing vault-folder traversal a known live-test risk; widen to full Drive scope only after an explicit security review and user-consent copy update.
 
 ```ts
-export const driveScopes = ['https://www.googleapis.com/auth/drive'] as const;
+export const driveScopes = ['https://www.googleapis.com/auth/drive.file'] as const;
 ```
 
 The folder selection implementation now avoids remote code and accepts a Drive folder URL or id through a local prompt:
@@ -80,11 +82,11 @@ try {
 `loadDriveWorkspace()` checks `DraftStore.getDraft()` before downloading Drive content so saved local edits are visible on reopen.
 
 ## Why This Works
-The folder selection path no longer depends on a remote JavaScript runtime from an extension page. The OAuth scope now matches the product model: editing an existing Markdown vault folder requires listing and writing existing descendants. Draft persistence now covers every failed save path that can lose local edits, including metadata preflight failures.
+The folder selection path no longer depends on a remote JavaScript runtime from an extension page. The OAuth scope now matches the safer default security model: Drive access is limited to files and folders opened or created by the app. Draft persistence now covers every failed save path that can lose local edits, including metadata preflight failures.
 
 ## Prevention
 - Check Manifest V3 remote hosted code restrictions before choosing browser SDKs for extension pages.
-- Match OAuth scope to the data model. Existing folder vault traversal needs broader Drive access than per-file access.
+- Match OAuth scope to the data model and threat model. Existing arbitrary folder vault traversal may need broader Drive access than per-file access, but that broader scope must be a deliberate security decision.
 - Add tests for every phase of a save pipeline: metadata preflight failure, remote conflict, upload failure, successful cleanup, and reopen recovery.
 - Keep manual check docs honest about credentials and live Drive testing gaps.
 
