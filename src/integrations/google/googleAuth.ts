@@ -1,4 +1,7 @@
-export const driveScopes = ['https://www.googleapis.com/auth/drive.file'] as const;
+export const driveScopes = [
+  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/drive.metadata.readonly'
+] as const;
 export const chromeIdentityUnavailableMessage = 'Google Drive 연결은 Chrome 확장으로 로드한 뒤 사용할 수 있습니다.';
 export const chromeOAuthClientIdMissingMessage =
   'Google OAuth client id가 설정되지 않았습니다. .env.local에 VITE_GOOGLE_OAUTH_CLIENT_ID를 설정하고 npm run build를 다시 실행한 뒤 확장을 Reload하세요.';

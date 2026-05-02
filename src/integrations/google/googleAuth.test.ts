@@ -12,8 +12,11 @@ describe('ChromeIdentityAuthClient', () => {
     vi.unstubAllGlobals();
   });
 
-  it('uses the least-privilege Drive file scope', () => {
-    expect(driveScopes).toEqual(['https://www.googleapis.com/auth/drive.file']);
+  it('uses file access plus metadata access for the Drive folder explorer', () => {
+    expect(driveScopes).toEqual([
+      'https://www.googleapis.com/auth/drive.file',
+      'https://www.googleapis.com/auth/drive.metadata.readonly'
+    ]);
   });
 
   it('fails with setup guidance before requesting a token when the manifest keeps the OAuth placeholder', async () => {

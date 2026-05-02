@@ -73,9 +73,10 @@ npm run build
 
 ```text
 https://www.googleapis.com/auth/drive.file
+https://www.googleapis.com/auth/drive.metadata.readonly
 ```
 
-이 scope는 앱이 열었거나 생성한 Drive 파일/폴더로 권한 범위를 제한합니다. 임의의 기존 Drive 폴더 vault를 재귀적으로 읽고 쓰는 흐름은 이 scope만으로 실패할 수 있으므로, live Drive 검증 시 테스트 폴더가 앱 권한 범위에 포함되는지 먼저 확인해야 합니다. 전체 Drive scope(`https://www.googleapis.com/auth/drive`)로 넓히는 변경은 보안 리뷰와 사용자 동의 문구 갱신 후에만 수행하세요.
+`drive.metadata.readonly`는 확장 내부 폴더 탐색기에서 My Drive 폴더 목록을 표시하는 데 사용하고, `drive.file`은 앱이 열었거나 생성한 파일/폴더의 내용 접근을 제한하는 데 사용합니다. 임의의 기존 Drive 폴더 vault를 재귀적으로 읽고 쓰는 흐름은 `drive.file` 권한 경계 밖에서는 실패할 수 있으므로, live Drive 검증 시 테스트 폴더가 앱 권한 범위에 포함되는지 먼저 확인해야 합니다. 전체 Drive scope(`https://www.googleapis.com/auth/drive`)로 넓히는 변경은 보안 리뷰와 사용자 동의 문구 갱신 후에만 수행하세요.
 
 Manifest V3 확장 페이지에서는 원격 Google Picker JavaScript를 직접 로드하지 않습니다. Drive vault root는 확장 내부의 Drive 폴더 탐색기에서 선택합니다.
 

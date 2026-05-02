@@ -34,10 +34,13 @@ The MVP originally treated Google Picker and `drive.file` as if they could open 
 ## Solution
 Use an MV3-compatible folder selection boundary and make the Drive consent model explicit.
 
-Security follow-up: the default scope was narrowed back to `drive.file` after CSO review so a compromised extension token cannot manage the user's entire Drive by default. That makes arbitrary existing vault-folder traversal a known live-test risk; widen to full Drive scope only after an explicit security review and user-consent copy update.
+Security follow-up: the default content-access scope was narrowed back to `drive.file` after CSO review so a compromised extension token cannot manage the user's entire Drive by default. The local folder explorer still needs `drive.metadata.readonly` to show My Drive folders. Arbitrary existing vault content remains a known live-test risk when files are outside the app's `drive.file` access boundary; widen to full Drive scope only after an explicit security review and user-consent copy update.
 
 ```ts
-export const driveScopes = ['https://www.googleapis.com/auth/drive.file'] as const;
+export const driveScopes = [
+  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/drive.metadata.readonly'
+] as const;
 ```
 
 The folder selection implementation now avoids remote code and opens a local Drive folder explorer backed by `files.list`:
@@ -75,7 +78,7 @@ try {
 `loadDriveWorkspace()` checks `DraftStore.getDraft()` before downloading Drive content so saved local edits are visible on reopen.
 
 ## Why This Works
-The folder selection path no longer depends on a remote JavaScript runtime from an extension page. The OAuth scope now matches the safer default security model: Drive access is limited to files and folders opened or created by the app. Draft persistence now covers every failed save path that can lose local edits, including metadata preflight failures.
+The folder selection path no longer depends on a remote JavaScript runtime from an extension page. The OAuth scope now matches the safer default security model: metadata can be listed for navigation, while file content access stays limited to files and folders opened or created by the app. Draft persistence now covers every failed save path that can lose local edits, including metadata preflight failures.
 
 ## Prevention
 - Check Manifest V3 remote hosted code restrictions before choosing browser SDKs for extension pages.
