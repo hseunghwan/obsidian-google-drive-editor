@@ -1,4 +1,4 @@
-import type { OpenDocument, SaveResult, VaultFile, VaultRoot } from '../domain/vault/types';
+import type { OpenDocument, SaveResult, VaultFile, VaultFolder, VaultRoot } from '../domain/vault/types';
 import { DriveVaultAdapter } from '../integrations/google/driveVaultAdapter';
 import type { GoogleAuthClient } from '../integrations/google/googleAuth';
 import type { GoogleDriveClient } from '../integrations/google/googleDriveClient';
@@ -10,6 +10,8 @@ export interface DriveWorkspace {
   files: VaultFile[];
   loadFile(file: VaultFile): Promise<OpenDocument>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
+  createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
+  createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
 }
 
 interface LoadDriveWorkspaceDeps {
@@ -29,13 +31,26 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
   return {
     root,
     files,
-    loadFile: async (file) => ({
-      file,
-      content: await adapter.readFile(file.id),
-      baselineModifiedTime: file.modifiedTime
-    }),
+    loadFile: async (file) => {
+      const draft = await deps.drafts.getDraft(root.id, file.id);
+      if (draft) {
+        return {
+          file,
+          content: draft.content,
+          baselineModifiedTime: draft.baselineModifiedTime
+        };
+      }
+
+      return {
+        file,
+        content: await adapter.readFile(file.id),
+        baselineModifiedTime: file.modifiedTime
+      };
+    },
     saveDocument: (document) =>
-      adapter.saveFile(root.id, document.file.id, document.content, document.baselineModifiedTime)
+      adapter.saveFile(root.id, document.file.id, document.content, document.baselineModifiedTime),
+    createFile: (parentFolderId, name, content) => adapter.createFile(parentFolderId, name, content),
+    createFolder: (parentFolderId, name) => adapter.createFolder(parentFolderId, name)
   };
 }
 

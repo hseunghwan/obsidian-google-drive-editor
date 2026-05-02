@@ -13,18 +13,10 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   async function connectDrive() {
-    const developerKey = import.meta.env.VITE_GOOGLE_PICKER_DEVELOPER_KEY;
-    const appId = import.meta.env.VITE_GOOGLE_PICKER_APP_ID;
-
-    if (!developerKey || !appId) {
-      setError('Google Picker 설정값이 없습니다. .env.local을 확인하세요.');
-      return;
-    }
-
     try {
       const nextWorkspace = await loadDriveWorkspace({
         auth: new ChromeIdentityAuthClient(),
-        picker: new BrowserGooglePickerClient(developerKey, appId),
+        picker: new BrowserGooglePickerClient(),
         createDriveClient: (accessToken) => new HttpGoogleDriveClient(accessToken),
         drafts: new IndexedDbDraftStore()
       });
@@ -51,6 +43,25 @@ See [[Project Note]].`,
       }),
       saveDocument: async (document) => ({
         fileId: document.file.id,
+        modifiedTime: new Date().toISOString()
+      }),
+      createFile: async (parentFolderId, name, content) => ({
+        id: `mock-${name}`,
+        name,
+        title: name.replace(/\.md$/i, ''),
+        path: name,
+        parentId: parentFolderId,
+        kind: 'markdown',
+        mimeType: 'text/markdown',
+        modifiedTime: new Date().toISOString()
+      }),
+      createFolder: async (parentFolderId, name) => ({
+        id: `mock-folder-${name}`,
+        name,
+        path: name,
+        parentId: parentFolderId,
+        kind: 'folder',
+        mimeType: 'application/vnd.google-apps.folder',
         modifiedTime: new Date().toISOString()
       })
     });
@@ -80,6 +91,8 @@ See [[Project Note]].`,
       files={workspace.files}
       loadFile={workspace.loadFile}
       saveDocument={workspace.saveDocument}
+      createFile={workspace.createFile}
+      createFolder={workspace.createFolder}
     />
   );
 }

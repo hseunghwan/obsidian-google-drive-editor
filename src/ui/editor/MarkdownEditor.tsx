@@ -5,9 +5,10 @@ import { EditorView, keymap } from '@codemirror/view';
 import { useEffect, useRef } from 'react';
 
 import type { VaultIndex } from '../../domain/vault/vaultIndex';
+import { slashCommandAutocomplete } from './slashCommandAutocomplete';
 import { wikiLinkAutocomplete } from './wikiLinkAutocomplete';
 
-interface MarkdownEditorProps {
+export interface MarkdownEditorProps {
   value: string;
   index: VaultIndex;
   onChange(value: string): void;
@@ -16,6 +17,11 @@ interface MarkdownEditorProps {
 export function MarkdownEditor({ value, index, onChange }: MarkdownEditorProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     if (!hostRef.current) {
@@ -27,10 +33,10 @@ export function MarkdownEditor({ value, index, onChange }: MarkdownEditorProps) 
       extensions: [
         markdown(),
         keymap.of([]),
-        autocompletion({ override: [wikiLinkAutocomplete(index)] }),
+        autocompletion({ override: [wikiLinkAutocomplete(index), slashCommandAutocomplete] }),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
-            onChange(update.state.doc.toString());
+            onChangeRef.current(update.state.doc.toString());
           }
         })
       ]
@@ -43,7 +49,22 @@ export function MarkdownEditor({ value, index, onChange }: MarkdownEditorProps) 
       view.destroy();
       viewRef.current = null;
     };
-  }, [index, onChange, value]);
+  }, [index]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || view.state.doc.toString() === value) {
+      return;
+    }
+
+    view.dispatch({
+      changes: {
+        from: 0,
+        to: view.state.doc.length,
+        insert: value
+      }
+    });
+  }, [value]);
 
   return <div className="editor-pane" ref={hostRef} />;
 }

@@ -80,11 +80,51 @@ describe('DriveVaultAdapter', () => {
   });
 
   it('blocks save when remote metadata changed', async () => {
-    const adapter = new DriveVaultAdapter(client(), new IndexedDbDraftStore('adapter-conflict'));
+    const drafts = new IndexedDbDraftStore('adapter-conflict');
+    const adapter = new DriveVaultAdapter(client(), drafts);
 
     await expect(
       adapter.saveFile('root', 'file-home', '# Local', '2026-05-03T00:01:00.000Z')
     ).rejects.toMatchObject({ code: 'RemoteChanged' });
+    await expect(drafts.getDraft('root', 'file-home')).resolves.toMatchObject({
+      content: '# Local',
+      reason: 'RemoteChanged'
+    });
+  });
+
+  it('preserves a local draft when metadata preflight fails', async () => {
+    const drafts = new IndexedDbDraftStore('adapter-metadata-failure');
+    const adapter = new DriveVaultAdapter(
+      client({
+        getMetadata: vi.fn().mockRejectedValue(new Error('metadata unavailable'))
+      }),
+      drafts
+    );
+
+    await expect(
+      adapter.saveFile('root', 'file-home', '# Local', '2026-05-03T00:01:00.000Z')
+    ).rejects.toThrow('metadata unavailable');
+    await expect(drafts.getDraft('root', 'file-home')).resolves.toMatchObject({
+      content: '# Local',
+      reason: 'NetworkFailed'
+    });
+  });
+
+  it('clears a recovered draft after a successful save', async () => {
+    const drafts = new IndexedDbDraftStore('adapter-save-success');
+    await drafts.saveDraft({
+      vaultRootId: 'root',
+      fileId: 'file-home',
+      content: '# Local draft',
+      baselineModifiedTime: '2026-05-03T00:02:00.000Z',
+      savedAt: '2026-05-03T00:09:00.000Z',
+      reason: 'NetworkFailed'
+    });
+    const adapter = new DriveVaultAdapter(driveWithCurrentMetadata(), drafts);
+
+    await adapter.saveFile('root', 'file-home', '# Saved', '2026-05-03T00:02:00.000Z');
+
+    await expect(drafts.getDraft('root', 'file-home')).resolves.toBeNull();
   });
 
   it('creates markdown files when the parent folder has no duplicate name', async () => {
@@ -128,3 +168,14 @@ describe('DriveVaultAdapter', () => {
     });
   });
 });
+
+function driveWithCurrentMetadata() {
+  return client({
+    getMetadata: vi.fn().mockResolvedValue({
+      id: 'file-home',
+      name: 'Home.md',
+      mimeType: 'text/markdown',
+      modifiedTime: '2026-05-03T00:02:00.000Z'
+    })
+  });
+}

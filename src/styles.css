@@ -79,6 +79,35 @@ textarea {
   padding: 12px;
 }
 
+.sidebar-tools {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sidebar-tools input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #3b3b3b;
+  color: #dcddde;
+  background: #1e1e1e;
+}
+
+.sidebar-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.sidebar-actions button,
+.empty-vault button {
+  padding: 7px 8px;
+  border: 1px solid #454545;
+  color: #dcddde;
+  background: #303136;
+}
+
 .metadata-panel {
   border-width: 0 0 0 1px;
   padding: 16px;
@@ -119,7 +148,14 @@ textarea {
   text-overflow: ellipsis;
 }
 
+.sidebar-empty {
+  margin: 10px 0 0;
+  color: #9a9a9a;
+  font-size: 0.88rem;
+}
+
 .workspace-main {
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-width: 0;
@@ -132,6 +168,25 @@ textarea {
   border: 1px solid #454545;
   color: #dcddde;
   background: #2f3036;
+}
+
+.empty-vault {
+  display: grid;
+  justify-items: center;
+  align-self: center;
+  gap: 10px;
+  color: #b9bdc8;
+}
+
+.workspace-notice {
+  position: absolute;
+  right: 300px;
+  bottom: 50px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #3d4f48;
+  color: #baf0dc;
+  background: #1f312b;
 }
 
 .breadcrumb,

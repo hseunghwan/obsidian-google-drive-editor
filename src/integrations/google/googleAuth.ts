@@ -1,4 +1,4 @@
-export const driveScopes = ['https://www.googleapis.com/auth/drive.file'] as const;
+export const driveScopes = ['https://www.googleapis.com/auth/drive'] as const;
 
 export interface GoogleAuthClient {
   getAccessToken(interactive: boolean): Promise<string>;

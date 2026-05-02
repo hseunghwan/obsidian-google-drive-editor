@@ -8,49 +8,32 @@ export interface GooglePickerClient {
 }
 
 export class BrowserGooglePickerClient implements GooglePickerClient {
-  constructor(
-    private readonly developerKey: string,
-    private readonly appId: string
-  ) {}
+  async pickVaultFolder(_accessToken: string): Promise<PickedFolder> {
+    const rawFolder = window.prompt('Google Drive 폴더 URL 또는 폴더 ID를 입력하세요.');
+    const id = rawFolder ? parseDriveFolderId(rawFolder) : null;
+    if (!id) {
+      throw new Error('Folder selection was cancelled.');
+    }
 
-  async pickVaultFolder(accessToken: string): Promise<PickedFolder> {
-    await loadPickerApi();
-
-    return new Promise((resolve, reject) => {
-      const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
-        .setIncludeFolders(true)
-        .setSelectFolderEnabled(true);
-
-      const picker = new google.picker.PickerBuilder()
-        .setOAuthToken(accessToken)
-        .setDeveloperKey(this.developerKey)
-        .setAppId(this.appId)
-        .addView(view)
-        .setCallback((data: google.picker.ResponseObject) => {
-          if (data.action === google.picker.Action.CANCEL) {
-            reject(new Error('Folder selection was cancelled.'));
-            return;
-          }
-
-          if (data.action === google.picker.Action.PICKED) {
-            const document = data.docs[0];
-            if (!document) {
-              reject(new Error('Folder selection did not return a document.'));
-              return;
-            }
-
-            resolve({ id: document.id, name: document.name });
-          }
-        })
-        .build();
-
-      picker.setVisible(true);
-    });
+    const rawName = window.prompt('Vault 이름을 입력하세요.', 'Drive Vault');
+    return {
+      id,
+      name: rawName?.trim() || 'Drive Vault'
+    };
   }
 }
 
-function loadPickerApi(): Promise<void> {
-  return new Promise((resolve) => {
-    gapi.load('picker', () => resolve());
-  });
+export function parseDriveFolderId(input: string): string | null {
+  const value = input.trim();
+  const folderMatch = value.match(/\/folders\/([^/?#]+)/);
+  if (folderMatch) {
+    return folderMatch[1];
+  }
+
+  const idMatch = value.match(/[?&]id=([^&#]+)/);
+  if (idMatch) {
+    return idMatch[1];
+  }
+
+  return /^[A-Za-z0-9_-]+$/.test(value) ? value : null;
 }

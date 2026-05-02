@@ -1,5 +1,5 @@
-import { VaultError } from '../../domain/vault/errors';
-import type { SaveResult, VaultEntry } from '../../domain/vault/types';
+import { isVaultError, VaultError } from '../../domain/vault/errors';
+import type { SaveResult, VaultEntry, VaultFile, VaultFolder } from '../../domain/vault/types';
 import type { DraftStore } from '../../storage/draftStore';
 import type { GoogleDriveClient, GoogleDriveFile } from './googleDriveClient';
 
@@ -36,48 +36,47 @@ export class DriveVaultAdapter {
     content: string,
     expectedModifiedTime: string
   ): Promise<SaveResult> {
-    const metadata = await this.drive.getMetadata(fileId);
-    if (metadata.modifiedTime > expectedModifiedTime) {
-      await this.drafts.saveDraft({
-        vaultRootId,
-        fileId,
-        content,
-        baselineModifiedTime: expectedModifiedTime,
-        savedAt: new Date().toISOString(),
-        reason: 'RemoteChanged'
-      });
-      throw new VaultError('RemoteChanged', 'Remote file changed before save.');
-    }
-
     try {
+      const metadata = await this.drive.getMetadata(fileId);
+      if (metadata.modifiedTime > expectedModifiedTime) {
+        await this.saveDraft(vaultRootId, fileId, content, expectedModifiedTime, 'RemoteChanged');
+        throw new VaultError('RemoteChanged', 'Remote file changed before save.');
+      }
+
       const updated = await this.drive.updateText(fileId, content);
+      await this.drafts.deleteDraft(vaultRootId, fileId);
       return {
         fileId: updated.id,
         modifiedTime: updated.modifiedTime
       };
     } catch (error) {
-      await this.drafts.saveDraft({
-        vaultRootId,
-        fileId,
-        content,
-        baselineModifiedTime: expectedModifiedTime,
-        savedAt: new Date().toISOString(),
-        reason: 'NetworkFailed'
-      });
+      if (isVaultError(error, 'RemoteChanged')) {
+        throw error;
+      }
+
+      await this.saveDraft(vaultRootId, fileId, content, expectedModifiedTime, 'NetworkFailed');
       throw error;
     }
   }
 
-  async createFile(parentFolderId: string, name: string, content: string) {
+  async createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile> {
     await this.assertNameAvailable(parentFolderId, name);
     const file = await this.drive.createTextFile(parentFolderId, name, content);
-    return toVaultItem(file, parentFolderId);
+    const entry = toVaultItem(file, parentFolderId);
+    if (entry.kind !== 'markdown') {
+      throw new VaultError('NetworkFailed', `Created file is not markdown: ${name}`);
+    }
+    return entry;
   }
 
-  async createFolder(parentFolderId: string, name: string) {
+  async createFolder(parentFolderId: string, name: string): Promise<VaultFolder> {
     await this.assertNameAvailable(parentFolderId, name);
     const folder = await this.drive.createFolder(parentFolderId, name);
-    return toVaultItem(folder, parentFolderId);
+    const entry = toVaultItem(folder, parentFolderId);
+    if (entry.kind !== 'folder') {
+      throw new VaultError('NetworkFailed', `Created folder is not a folder: ${name}`);
+    }
+    return entry;
   }
 
   private async assertNameAvailable(parentFolderId: string, name: string) {
@@ -85,6 +84,23 @@ export class DriveVaultAdapter {
     if (children.some((child) => child.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
       throw new VaultError('DuplicateName', `Name already exists in this folder: ${name}`);
     }
+  }
+
+  private saveDraft(
+    vaultRootId: string,
+    fileId: string,
+    content: string,
+    baselineModifiedTime: string,
+    reason: string
+  ) {
+    return this.drafts.saveDraft({
+      vaultRootId,
+      fileId,
+      content,
+      baselineModifiedTime,
+      savedAt: new Date().toISOString(),
+      reason
+    });
   }
 }
 
