@@ -162,6 +162,10 @@ textarea {
   color: var(--muted-text);
 }
 
+.metadata-error {
+  color: var(--notice-text);
+}
+
 .sidebar-item {
   display: grid;
   width: 100%;

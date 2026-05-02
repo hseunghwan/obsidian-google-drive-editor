@@ -45,6 +45,7 @@ next
 
     expect(extractMarkdownMetadata(source)).toEqual({
       frontmatter: {},
+      frontmatterError: expect.stringContaining('Implicit map keys need to be followed by map values'),
       tags: ['daily'],
       wikiLinks: [],
       bodyStart: source.indexOf('# Home')

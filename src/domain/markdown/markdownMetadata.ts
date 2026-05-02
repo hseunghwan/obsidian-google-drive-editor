@@ -2,6 +2,7 @@ import { parse, stringify } from 'yaml';
 
 export interface MarkdownMetadata {
   frontmatter: Record<string, unknown>;
+  frontmatterError?: string;
   tags: string[];
   wikiLinks: string[];
   bodyStart: number;
@@ -13,22 +14,25 @@ const wikiLinkPattern = /\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]/g;
 
 export function extractMarkdownMetadata(source: string): MarkdownMetadata {
   const frontmatterMatch = source.match(frontmatterPattern);
-  const frontmatter = frontmatterMatch ? parseFrontmatterRecord(frontmatterMatch[1]) : {};
+  const parsedFrontmatter = frontmatterMatch ? parseFrontmatterRecord(frontmatterMatch[1]) : { frontmatter: {} };
   const bodyStart = frontmatterMatch ? frontmatterMatch[0].length : 0;
 
   return {
-    frontmatter,
+    ...parsedFrontmatter,
     tags: uniqueMatches(source, tagPattern),
     wikiLinks: uniqueMatches(source, wikiLinkPattern),
     bodyStart
   };
 }
 
-function parseFrontmatterRecord(source: string): Record<string, unknown> {
+function parseFrontmatterRecord(source: string): Pick<MarkdownMetadata, 'frontmatter' | 'frontmatterError'> {
   try {
-    return toRecord(parse(source));
-  } catch {
-    return {};
+    return { frontmatter: toRecord(parse(source)) };
+  } catch (error) {
+    return {
+      frontmatter: {},
+      frontmatterError: error instanceof Error ? error.message : 'Invalid YAML frontmatter.'
+    };
   }
 }
 

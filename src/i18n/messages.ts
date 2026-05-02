@@ -39,7 +39,8 @@ const ko = {
   'metadata.aria': '프로퍼티와 태그',
   'metadata.properties': '프로퍼티',
   'metadata.tags': '태그',
-  'metadata.emptyProperties': '등록된 프로퍼티가 없습니다.'
+  'metadata.emptyProperties': '등록된 프로퍼티가 없습니다.',
+  'metadata.invalidFrontmatter': '프로퍼티 YAML 문법 오류가 있습니다.'
 };
 
 const en: Record<keyof typeof ko, string> = {
@@ -83,7 +84,8 @@ const en: Record<keyof typeof ko, string> = {
   'metadata.aria': 'Properties and tags',
   'metadata.properties': 'Properties',
   'metadata.tags': 'Tags',
-  'metadata.emptyProperties': 'No properties registered.'
+  'metadata.emptyProperties': 'No properties registered.',
+  'metadata.invalidFrontmatter': 'Property YAML has a syntax error.'
 };
 
 export const messages = { ko, en } as const;

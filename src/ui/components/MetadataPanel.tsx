@@ -13,7 +13,11 @@ export function MetadataPanel({ content }: MetadataPanelProps) {
   return (
     <section className="metadata-panel" aria-label={t('metadata.aria')}>
       <h2>{t('metadata.properties')}</h2>
-      {entries.length === 0 ? (
+      {metadata.frontmatterError ? (
+        <p className="metadata-error" role="alert" title={metadata.frontmatterError}>
+          {t('metadata.invalidFrontmatter')}
+        </p>
+      ) : entries.length === 0 ? (
         <p>{t('metadata.emptyProperties')}</p>
       ) : (
         entries.map(([key, value]) => (
