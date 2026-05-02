@@ -23,10 +23,18 @@
     "service_worker": "assets/background.js",
     "type": "module"
   },
-  "permissions": ["identity", "storage"],
-  "host_permissions": ["https://www.googleapis.com/*", "https://accounts.google.com/*"],
+  "permissions": [
+    "identity",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*",
+    "https://accounts.google.com/*"
+  ],
   "oauth2": {
     "client_id": "REPLACE_WITH_CHROME_EXTENSION_OAUTH_CLIENT_ID",
-    "scopes": ["https://www.googleapis.com/auth/drive"]
+    "scopes": [
+      "https://www.googleapis.com/auth/drive"
+    ]
   }
 }

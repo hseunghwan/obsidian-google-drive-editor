@@ -1,6 +1,6 @@
 ---
 version: alpha
-name: Obsidian Drive Editor
+name: Obsidian Vault Editor for Google Drive
 description: "A quiet, dense, Obsidian-inspired dark workspace for editing Markdown files stored in Google Drive."
 colors:
   app-bg: "#1E1E1E"
@@ -200,7 +200,7 @@ components:
     rounded: "{rounded.full}"
 ---
 
-# Obsidian Drive Editor Design
+# Obsidian Vault Editor for Google Drive Design
 
 ## Overview
 
