@@ -24,8 +24,11 @@ function AppContent() {
   const { t } = useI18n();
   const [workspace, setWorkspace] = useState<DriveWorkspace | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
 
   async function connectDrive() {
+    setConnecting(true);
+    setError(null);
     try {
       const nextWorkspace = await loadDriveWorkspace({
         auth: new ChromeIdentityAuthClient(t('errors.chromeIdentityUnavailable')),
@@ -49,6 +52,8 @@ function AppContent() {
       setError(null);
     } catch (connectError) {
       setError(connectError instanceof Error ? connectError.message : t('errors.driveConnectFailed'));
+    } finally {
+      setConnecting(false);
     }
   }
 
@@ -98,13 +103,14 @@ See [[Project Note]].`,
         <h1>{t('app.title')}</h1>
         <p>{t('app.description')}</p>
         <div className="app-actions">
-          <button type="button" onClick={() => void connectDrive()}>
+          <button type="button" disabled={connecting} onClick={() => void connectDrive()}>
             {t('app.connectDrive')}
           </button>
-          <button type="button" onClick={openMockWorkspace}>
+          <button type="button" disabled={connecting} onClick={openMockWorkspace}>
             {t('app.openMockVault')}
           </button>
         </div>
+        {connecting ? <p aria-live="polite">{t('app.loadingDrive')}</p> : null}
         {error ? <p role="alert">{error}</p> : null}
       </main>
     );

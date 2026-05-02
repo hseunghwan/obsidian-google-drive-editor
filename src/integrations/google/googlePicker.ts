@@ -26,6 +26,17 @@ interface DriveFolderListResponse {
   nextPageToken?: string;
 }
 
+interface GoogleApiErrorResponse {
+  error?: {
+    code?: number;
+    message?: string;
+    errors?: Array<{
+      reason?: string;
+      message?: string;
+    }>;
+  };
+}
+
 const driveBaseUrl = 'https://www.googleapis.com/drive/v3/files';
 const folderMimeType = 'application/vnd.google-apps.folder';
 
@@ -97,9 +108,9 @@ class DriveFolderExplorer {
 
     try {
       this.folders = await listDriveFolders(this.accessToken, this.currentFolder().id);
-    } catch {
+    } catch (loadError) {
       this.folders = [];
-      this.error = this.messages.loadFailedMessage;
+      this.error = formatLoadErrorMessage(this.messages.loadFailedMessage, loadError);
     } finally {
       this.loading = false;
       this.render();
@@ -172,7 +183,7 @@ class DriveFolderExplorer {
     const selectCurrentButton = createButton('drive-picker-select-current', this.messages.selectCurrent, () =>
       this.selectFolder(this.currentFolder())
     );
-    selectCurrentButton.disabled = this.loading;
+    selectCurrentButton.disabled = this.loading || this.currentFolder().id === 'root';
     toolbar.append(backButton, currentPath, selectCurrentButton);
 
     const body = createElement('div', 'drive-picker-body');
@@ -239,7 +250,7 @@ async function listDriveFolders(accessToken: string, parentId: string): Promise<
       }
     });
     if (!response.ok) {
-      throw new Error(`Drive folder list failed: ${response.status}`);
+      throw new Error(await readGoogleApiErrorMessage(response));
     }
 
     const page = (await response.json()) as DriveFolderListResponse;
@@ -248,6 +259,30 @@ async function listDriveFolders(accessToken: string, parentId: string): Promise<
   } while (pageToken);
 
   return folders;
+}
+
+async function readGoogleApiErrorMessage(response: Response): Promise<string> {
+  const fallbackMessage = `Drive folder list failed: ${response.status}`;
+
+  try {
+    const body = (await response.json()) as GoogleApiErrorResponse;
+    const reason = body.error?.errors?.find((error) => error.reason)?.reason;
+    const message = body.error?.message ?? body.error?.errors?.find((error) => error.message)?.message;
+    if (message && reason) {
+      return `${message} (${reason})`;
+    }
+    return message ?? fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+}
+
+function formatLoadErrorMessage(prefix: string, error: unknown): string {
+  if (!(error instanceof Error) || !error.message) {
+    return prefix;
+  }
+
+  return `${prefix} ${error.message}`;
 }
 
 function escapeDriveQueryValue(value: string) {

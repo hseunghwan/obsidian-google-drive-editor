@@ -82,6 +82,21 @@ describe('BrowserGooglePickerClient', () => {
     await expect(pickedFolder).resolves.toEqual({ id: 'projects', name: 'Projects' });
   });
 
+  it('does not allow selecting My Drive root as the vault folder', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ files: [] })));
+
+    const client = new BrowserGooglePickerClient(pickerMessages);
+    const pickedFolder = client.pickVaultFolder('access-token');
+    const cancelled = expect(pickedFolder).rejects.toThrow('폴더 선택이 취소되었습니다.');
+
+    expect(await screen.findByText('이 위치에 폴더가 없습니다.')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: '현재 폴더 선택' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: '닫기' }));
+
+    await cancelled;
+  });
+
   it('rejects when the folder explorer is cancelled', async () => {
     const user = userEvent.setup();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ files: [] })));
@@ -94,11 +109,47 @@ describe('BrowserGooglePickerClient', () => {
 
     await cancelled;
   });
+
+  it('shows the Google Drive API error detail when folder loading is forbidden', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse(
+          {
+            error: {
+              code: 403,
+              message:
+                'Google Drive API has not been used in project 123 before or it is disabled.',
+              errors: [
+                {
+                  reason: 'accessNotConfigured',
+                  message:
+                    'Google Drive API has not been used in project 123 before or it is disabled.'
+                }
+              ]
+            }
+          },
+          false,
+          403
+        )
+      )
+    );
+
+    const client = new BrowserGooglePickerClient(pickerMessages);
+    const pickedFolder = client.pickVaultFolder('access-token');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Drive 폴더를 불러오지 못했습니다. Google Drive API has not been used in project 123 before or it is disabled. (accessNotConfigured)'
+    );
+
+    void pickedFolder.catch(() => undefined);
+  });
 });
 
-function jsonResponse(body: unknown): Response {
+function jsonResponse(body: unknown, ok = true, status = 200): Response {
   return {
-    ok: true,
+    ok,
+    status,
     json: async () => body
   } as Response;
 }
