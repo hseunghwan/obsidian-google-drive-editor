@@ -7,12 +7,15 @@ import { HttpGoogleDriveClient } from './integrations/google/httpGoogleDriveClie
 import { BrowserGooglePickerClient } from './integrations/google/googlePicker';
 import { IndexedDbDraftStore } from './storage/draftStore';
 import { fixtureFiles, fixtureVaultRoot } from './test/fixtures';
+import { ThemeProvider } from './theme/ThemeProvider';
 import { Workspace } from './ui/Workspace';
 
 export default function App() {
   return (
     <I18nProvider>
-      <AppContent />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </I18nProvider>
   );
 }

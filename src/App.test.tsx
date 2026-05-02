@@ -7,6 +7,7 @@ import App from './App';
 describe('App', () => {
   beforeEach(() => {
     Reflect.deleteProperty(globalThis, 'chrome');
+    document.documentElement.removeAttribute('data-theme');
   });
 
   it('shows extension loading guidance when Chrome identity is unavailable', async () => {
@@ -56,5 +57,24 @@ describe('App', () => {
     expect(screen.getByRole('searchbox', { name: 'Vault 파일 검색' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '새 파일' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '첫 문서 열기' })).toBeInTheDocument();
+  });
+
+  it('switches between dark and light theme from sidebar settings', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Mock vault 열기' }));
+
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+
+    await user.click(screen.getByRole('button', { name: '설정' }));
+    await user.selectOptions(screen.getByLabelText('테마'), 'light');
+
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+
+    await user.selectOptions(screen.getByLabelText('테마'), 'dark');
+
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
   });
 });

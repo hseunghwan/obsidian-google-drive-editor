@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { VaultFile } from '../../domain/vault/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import type { Locale } from '../../i18n/messages';
+import { useTheme, type ThemeMode } from '../../theme/ThemeProvider';
 
 interface FileSidebarProps {
   files: VaultFile[];
@@ -24,6 +25,7 @@ export function FileSidebar({
   onCreateFolder
 }: FileSidebarProps) {
   const { locale, setLocale, t } = useI18n();
+  const { theme, setTheme } = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
@@ -73,6 +75,13 @@ export function FileSidebar({
               <select value={locale} onChange={(event) => setLocale(event.currentTarget.value as Locale)}>
                 <option value="ko">{t('language.ko')}</option>
                 <option value="en">{t('language.en')}</option>
+              </select>
+            </label>
+            <label className="settings-field">
+              <span>{t('settings.theme')}</span>
+              <select value={theme} onChange={(event) => setTheme(event.currentTarget.value as ThemeMode)}>
+                <option value="dark">{t('theme.dark')}</option>
+                <option value="light">{t('theme.light')}</option>
               </select>
             </label>
           </div>

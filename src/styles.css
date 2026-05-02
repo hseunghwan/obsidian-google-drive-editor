@@ -1,10 +1,43 @@
 :root {
-  color: #edeef2;
-  background: #16171d;
+  --app-bg: #1e1e1e;
+  --app-text: #edeef2;
+  --panel-bg: #252526;
+  --panel-border: #343434;
+  --control-bg: #303136;
+  --control-bg-strong: #333333;
+  --control-border: #454545;
+  --control-text: #dcddde;
+  --muted-text: #9a9a9a;
+  --secondary-text: #b9bdc8;
+  --notice-bg: #1f312b;
+  --notice-border: #3d4f48;
+  --notice-text: #baf0dc;
+  --accent: #8aadf4;
+  --editor-caret: #f2f2f2;
+  color: var(--app-text);
+  background: var(--app-bg);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+html[data-theme='light'] {
+  --app-bg: #f6f5f2;
+  --app-text: #26282f;
+  --panel-bg: #ebe8e1;
+  --panel-border: #d8d2c7;
+  --control-bg: #f4f1ea;
+  --control-bg-strong: #e7e1d6;
+  --control-border: #c9c0b4;
+  --control-text: #2b2d33;
+  --muted-text: #6d6f77;
+  --secondary-text: #555963;
+  --notice-bg: #e4f3eb;
+  --notice-border: #a8d4bd;
+  --notice-text: #1e5b3d;
+  --accent: #2f65b7;
+  --editor-caret: #111318;
 }
 
 * {
@@ -15,6 +48,8 @@ body {
   min-width: 360px;
   min-height: 100vh;
   margin: 0;
+  color: var(--app-text);
+  background: var(--app-bg);
 }
 
 button,
@@ -31,7 +66,7 @@ textarea {
   justify-items: center;
   gap: 14px;
   padding: 24px;
-  background: #1e1e1e;
+  background: var(--app-bg);
   text-align: center;
 }
 
@@ -41,7 +76,7 @@ textarea {
 }
 
 .app-shell p {
-  color: #b9bdc8;
+  color: var(--secondary-text);
 }
 
 .app-actions {
@@ -53,22 +88,22 @@ textarea {
 
 .app-actions button {
   padding: 8px 12px;
-  border: 1px solid #4c4c4c;
-  color: #f2f2f2;
-  background: #333333;
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  background: var(--control-bg-strong);
 }
 
 .workspace {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr) 280px;
   min-height: 100vh;
-  background: #1e1e1e;
+  background: var(--app-bg);
 }
 
 .sidebar,
 .metadata-panel {
-  background: #252526;
-  border-color: #343434;
+  background: var(--panel-bg);
+  border-color: var(--panel-border);
   border-style: solid;
 }
 
@@ -90,9 +125,9 @@ textarea {
   width: 100%;
   min-width: 0;
   padding: 7px 8px;
-  border: 1px solid #3b3b3b;
-  color: #dcddde;
-  background: #1e1e1e;
+  border: 1px solid var(--panel-border);
+  color: var(--control-text);
+  background: var(--app-bg);
 }
 
 .sidebar-actions {
@@ -104,9 +139,9 @@ textarea {
 .sidebar-actions button,
 .empty-vault button {
   padding: 7px 8px;
-  border: 1px solid #454545;
-  color: #dcddde;
-  background: #303136;
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  background: var(--control-bg);
 }
 
 .metadata-panel {
@@ -124,7 +159,7 @@ textarea {
 }
 
 .metadata-panel p {
-  color: #9a9a9a;
+  color: var(--muted-text);
 }
 
 .sidebar-item {
@@ -133,25 +168,25 @@ textarea {
   gap: 3px;
   padding: 8px;
   border: 0;
-  color: #dcddde;
+  color: var(--control-text);
   background: transparent;
   text-align: left;
 }
 
 .sidebar-item.active,
 .sidebar-item:hover {
-  background: #333333;
+  background: var(--control-bg-strong);
 }
 
 .sidebar-item small {
   overflow: hidden;
-  color: #9a9a9a;
+  color: var(--muted-text);
   text-overflow: ellipsis;
 }
 
 .sidebar-empty {
   margin: 10px 0 0;
-  color: #9a9a9a;
+  color: var(--muted-text);
   font-size: 0.88rem;
 }
 
@@ -160,15 +195,15 @@ textarea {
   gap: 8px;
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #343434;
+  border-top: 1px solid var(--panel-border);
 }
 
 .settings-toggle {
   width: 100%;
   padding: 7px 8px;
-  border: 1px solid #454545;
-  color: #dcddde;
-  background: #303136;
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  background: var(--control-bg);
   text-align: left;
 }
 
@@ -180,16 +215,16 @@ textarea {
 .settings-field {
   display: grid;
   gap: 6px;
-  color: #b9bdc8;
+  color: var(--secondary-text);
   font-size: 0.85rem;
 }
 
 .settings-field select {
   width: 100%;
   padding: 7px 8px;
-  border: 1px solid #3b3b3b;
-  color: #dcddde;
-  background: #1e1e1e;
+  border: 1px solid var(--panel-border);
+  color: var(--control-text);
+  background: var(--app-bg);
 }
 
 .workspace-main {
@@ -203,9 +238,9 @@ textarea {
   justify-self: center;
   align-self: center;
   padding: 8px 12px;
-  border: 1px solid #454545;
-  color: #dcddde;
-  background: #2f3036;
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  background: var(--control-bg);
 }
 
 .empty-vault {
@@ -213,7 +248,7 @@ textarea {
   justify-items: center;
   align-self: center;
   gap: 10px;
-  color: #b9bdc8;
+  color: var(--secondary-text);
 }
 
 .workspace-notice {
@@ -222,9 +257,9 @@ textarea {
   bottom: 50px;
   margin: 0;
   padding: 8px 10px;
-  border: 1px solid #3d4f48;
-  color: #baf0dc;
-  background: #1f312b;
+  border: 1px solid var(--notice-border);
+  color: var(--notice-text);
+  background: var(--notice-bg);
 }
 
 .breadcrumb,
@@ -233,20 +268,20 @@ textarea {
   gap: 8px;
   align-items: center;
   padding: 10px 14px;
-  border-bottom: 1px solid #343434;
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .save-status {
   justify-content: space-between;
-  border-top: 1px solid #343434;
+  border-top: 1px solid var(--panel-border);
   border-bottom: 0;
 }
 
 .save-status button {
   padding: 6px 10px;
-  border: 1px solid #4c4c4c;
-  color: #f2f2f2;
-  background: #3a3a3a;
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  background: var(--control-bg-strong);
 }
 
 .editor-pane {
@@ -255,8 +290,18 @@ textarea {
 
 .editor-pane .cm-editor {
   height: 100%;
-  background: #1e1e1e;
-  color: #dcddde;
+  background: var(--app-bg);
+  color: var(--control-text);
+}
+
+.editor-pane .cm-cursor,
+.editor-pane .cm-dropCursor {
+  border-left-color: var(--editor-caret);
+}
+
+.editor-pane .cm-selectionBackground,
+.editor-pane .cm-content ::selection {
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
 }
 
 .property-row {
@@ -272,5 +317,5 @@ textarea {
 }
 
 .tag {
-  color: #8aadf4;
+  color: var(--accent);
 }
