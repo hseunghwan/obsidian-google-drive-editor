@@ -294,6 +294,10 @@ textarea {
   color: var(--control-text);
 }
 
+.editor-pane .cm-content {
+  caret-color: var(--editor-caret);
+}
+
 .editor-pane .cm-cursor,
 .editor-pane .cm-dropCursor {
   border-left-color: var(--editor-caret);
