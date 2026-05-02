@@ -5,7 +5,6 @@ description: "A quiet, dense, Obsidian-inspired dark workspace for editing Markd
 colors:
   app-bg: "#1E1E1E"
   editor-bg: "#1E1E1E"
-  titlebar-bg: "#303030"
   panel-bg: "#252525"
   panel-bg-raised: "#2D2D2D"
   panel-bg-hover: "#333333"
@@ -103,11 +102,6 @@ components:
     backgroundColor: "{colors.app-bg}"
     textColor: "{colors.text-primary}"
     typography: "{typography.body-md}"
-  titlebar:
-    backgroundColor: "{colors.titlebar-bg}"
-    textColor: "{colors.text-secondary}"
-    height: 38px
-    borderColor: "{colors.divider}"
   sidebar:
     backgroundColor: "{colors.panel-bg}"
     textColor: "{colors.text-secondary}"
@@ -210,7 +204,7 @@ components:
 
 ## Overview
 
-This interface should feel like a calm local Markdown workspace, not a web dashboard. The reference screenshot is Obsidian in dark mode: dense navigation on the left, a quiet writing surface in the center, metadata on the right, and thin desktop-style chrome around the edges. The emotional target is focused, low-friction, and familiar to people who already organize notes in folders.
+This interface should feel like a calm local Markdown workspace, not a web dashboard. The reference screenshot is Obsidian in dark mode: dense navigation on the left, a quiet writing surface in the center, metadata on the right, and thin utility rails around the workspace. The emotional target is focused, low-friction, and familiar to people who already organize notes in folders.
 
 Dark mode is the canonical experience. The UI should recede behind the document, using subtle tonal separation instead of decorative color, large cards, gradients, or marketing-style panels. The editor content is the most important element on the screen; navigation, metadata, sync state, and controls should be visible but visually quieter.
 
@@ -222,8 +216,7 @@ The palette is built from neutral dark layers with one restrained blue accent fo
 
 - **App background (`#1E1E1E`):** The main editor canvas and overall workspace foundation.
 - **Panel background (`#252525`):** Sidebars and utility panels. It should be only slightly lighter than the editor.
-- **Titlebar background (`#303030`):** Desktop chrome and tab surfaces.
-- **Active item (`#3A3A3A`):** Current file, selected tab, and active row states.
+- **Active item (`#3A3A3A`):** Current file, selected panel control, and active row states.
 - **Dividers (`#343434`):** Thin one-pixel boundaries between panes, never heavy outlines.
 - **Primary text (`#EDEEF2`):** Headings, active filenames, body content.
 - **Secondary text (`#C7C7C7`):** Standard navigation labels and metadata.
@@ -276,7 +269,7 @@ Use shadows only for temporary overlays such as popovers, autocomplete menus, dr
 The shape language is compact and slightly softened.
 
 - Pane boundaries are square.
-- Sidebar rows, tabs, inputs, and buttons use 3px to 6px radii.
+- Sidebar rows, inputs, and buttons use 3px to 6px radii.
 - Repeated cards are not part of the core workspace pattern.
 - Avoid pill-shaped controls unless representing tags or compact filters.
 
@@ -284,9 +277,9 @@ Corners should never become a dominant visual theme. Obsidian-like utility surfa
 
 ## Components
 
-**Workspace Chrome**
+**Workspace Frame**
 
-The top chrome should be compact, dark, and utility-first. Tabs use the titlebar tone, with the active tab slightly brighter. Icons are monochrome and low contrast by default, brightening on hover or active state.
+Do not add a separate app-level titlebar, tab strip, fake macOS traffic-light controls, or decorative header. The browser or host shell owns window controls. The workspace should begin immediately with the activity rail, sidebar, editor, and metadata panel. Icons are monochrome and low contrast by default, brightening on hover or active state.
 
 **Sidebar**
 
@@ -318,7 +311,7 @@ Use Obsidian-style purple for settings primary actions, enabled toggles, and inl
 
 **Iconography**
 
-Use **Lucide** as the default icon set for app chrome, navigation, toolbar actions, metadata controls, and editor utilities. Its thin rounded outline style matches the Obsidian reference better than filled, duotone, or heavy pictographic sets.
+Use **Lucide** as the default icon set for the activity rail, navigation, toolbar actions, metadata controls, and editor utilities. Its thin rounded outline style matches the Obsidian reference better than filled, duotone, or heavy pictographic sets.
 
 Default icons are 16px with 1.75 stroke width. Toolbar and sidebar controls may use 18px icons when the hit target remains compact. Icon-only buttons should have 28px square hit targets, subtle hover fills, and tooltips or accessible labels. Icons are muted by default and brighten only on hover, focus, active, or selected states.
 
@@ -337,13 +330,14 @@ Markdown tables should use thin grid lines and compact cells. Headers may be sli
 - Do keep the editor and file tree immediately usable on the first screen.
 - Do use thin borders, compact spacing, and muted labels for utility surfaces.
 - Do prioritize keyboard-driven, repeated workflows over presentation-style layouts.
-- Do preserve clear active states for the current file, current tab, focused input, and selected editor text.
+- Do preserve clear active states for the current file, active panel control, focused input, and selected editor text.
 - Do make Korean filenames and headings readable at sidebar density.
 - Do use Lucide icons for icon buttons and toolbar controls.
 - Do present settings as a two-column dialog with grouped navigation and carded setting sections.
 - Do use purple only for settings primary actions, enabled toggles, and inline preference links.
 - Don't add landing-page heroes, decorative gradients, floating page cards, or large empty illustrations.
 - Don't make the UI feel like a generic SaaS dashboard.
+- Don't add fake window controls, a redundant titlebar, or a header that only repeats the active filename.
 - Don't use accent color as broad decoration.
 - Don't mix filled, duotone, emoji, and outline icon styles in the same workspace.
 - Don't make settings rows taller or more spacious than necessary; preserve Obsidian's compact preference density.

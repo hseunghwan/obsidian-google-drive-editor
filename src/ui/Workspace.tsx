@@ -6,8 +6,10 @@ import type { OpenDocument, SaveResult, VaultFile, VaultFolder, VaultRoot } from
 import { useI18n } from '../i18n/I18nProvider';
 import { Breadcrumb } from './components/Breadcrumb';
 import { FileSidebar } from './components/FileSidebar';
+import { Icon } from './components/Icon';
 import { MetadataPanel } from './components/MetadataPanel';
 import { SaveStatus } from './components/SaveStatus';
+import { SettingsDialog } from './components/SettingsDialog';
 import { MarkdownEditor, type MarkdownEditorProps } from './editor/MarkdownEditor';
 import { createInitialWorkspaceState, workspaceReducer } from './state/workspaceReducer';
 
@@ -37,6 +39,9 @@ export function Workspace({
   const [workspaceFiles, setWorkspaceFiles] = useState(files);
   const [query, setQuery] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() => matchesMedia('(min-width: 721px)', true));
+  const [metadataOpen, setMetadataOpen] = useState(() => matchesMedia('(min-width: 1081px)', true));
 
   useEffect(() => {
     setWorkspaceFiles(files);
@@ -139,46 +144,95 @@ export function Workspace({
     setNotice(t('workspace.folderCreated'));
   }
 
+  const workspaceClassNames = [
+    'workspace',
+    sidebarOpen ? 'has-sidebar' : '',
+    activeDocument && metadataOpen ? 'has-metadata' : ''
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div className="workspace">
-      <FileSidebar
-        files={visibleFiles}
-        query={query}
-        activeFileId={activeDocument?.file.id}
-        onQueryChange={setQuery}
-        onOpen={(file) => void openFile(file)}
-        onCreateFile={() => void createMarkdownFile()}
-        onCreateFolder={() => void createVaultFolder()}
-      />
-      <section className="workspace-main">
-        {activeDocument ? (
-          <>
-            <Breadcrumb path={activeDocument.file.path} />
-            <EditorComponent
-              value={activeDocument.content}
-              index={index}
-              onChange={(content) => dispatch({ type: 'documentEdited', content })}
-            />
-            <SaveStatus
-              status={state.saveState.status}
-              onSave={() => void saveActiveDocument()}
-            />
-          </>
-        ) : workspaceFiles.length === 0 ? (
-          <div className="empty-vault">
-            <p>{t('workspace.emptyVault')}</p>
-            <button type="button" onClick={() => void createMarkdownFile()}>
-              {t('workspace.createFile')}
-            </button>
-          </div>
-        ) : (
-          <button className="open-first-file" type="button" onClick={() => void openFile(visibleFiles[0] ?? workspaceFiles[0])}>
-            {t('workspace.openFirstFile')}
+    <div className="workspace-shell">
+      <div className={workspaceClassNames}>
+        <nav className="activity-rail" aria-label="Workspace panels">
+          <button
+            aria-pressed={sidebarOpen}
+            aria-label={t('workspace.toggleSidebar')}
+            className={sidebarOpen ? 'active' : ''}
+            title={t('workspace.toggleSidebar')}
+            type="button"
+            onClick={() => setSidebarOpen((open) => !open)}
+          >
+            <Icon name="panel-left" />
           </button>
-        )}
-        {notice ? <p className="workspace-notice">{notice}</p> : null}
-      </section>
-      {activeDocument ? <MetadataPanel content={activeDocument.content} /> : null}
+          <button
+            aria-pressed={Boolean(activeDocument && metadataOpen)}
+            aria-label={t('workspace.toggleMetadata')}
+            className={activeDocument && metadataOpen ? 'active' : ''}
+            disabled={!activeDocument}
+            title={t('workspace.toggleMetadata')}
+            type="button"
+            onClick={() => setMetadataOpen((open) => !open)}
+          >
+            <Icon name="panel-right" />
+          </button>
+          <button aria-label={t('settings.open')} title={t('settings.open')} type="button" onClick={() => setSettingsOpen(true)}>
+            <Icon name="settings" />
+          </button>
+        </nav>
+        {sidebarOpen ? (
+          <FileSidebar
+            rootName={root.name}
+            files={visibleFiles}
+            query={query}
+            activeFileId={activeDocument?.file.id}
+            onQueryChange={setQuery}
+            onOpen={(file) => void openFile(file)}
+            onCreateFile={() => void createMarkdownFile()}
+            onCreateFolder={() => void createVaultFolder()}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
+        ) : null}
+        <main className="workspace-main">
+          {activeDocument ? (
+            <>
+              <Breadcrumb path={activeDocument.file.path} />
+              <EditorComponent
+                value={activeDocument.content}
+                index={index}
+                onChange={(content) => dispatch({ type: 'documentEdited', content })}
+              />
+              <SaveStatus
+                status={state.saveState.status}
+                onSave={() => void saveActiveDocument()}
+              />
+            </>
+          ) : workspaceFiles.length === 0 ? (
+            <div className="empty-vault">
+              <p>{t('workspace.emptyVault')}</p>
+              <button type="button" onClick={() => void createMarkdownFile()}>
+                {t('workspace.createFile')}
+              </button>
+            </div>
+          ) : (
+            <button className="open-first-file" type="button" onClick={() => void openFile(visibleFiles[0] ?? workspaceFiles[0])}>
+              {t('workspace.openFirstFile')}
+            </button>
+          )}
+          {notice ? <p className="workspace-notice">{notice}</p> : null}
+        </main>
+        {activeDocument && metadataOpen ? <MetadataPanel content={activeDocument.content} /> : null}
+      </div>
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
+}
+
+function matchesMedia(query: string, fallback: boolean) {
+  if (typeof window.matchMedia !== 'function') {
+    return fallback;
+  }
+
+  return window.matchMedia(query).matches;
 }
