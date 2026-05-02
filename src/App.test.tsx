@@ -28,24 +28,28 @@ describe('App', () => {
 
     expect(screen.getByText('Google Drive 폴더를 vault로 연결해 Markdown 파일을 편집합니다.')).toBeInTheDocument();
 
+    await user.click(screen.getByRole('button', { name: 'Mock vault 열기' }));
+    await user.click(screen.getByRole('button', { name: '설정' }));
     await user.selectOptions(screen.getByLabelText('언어'), 'en');
 
-    expect(screen.getByText('Edit Markdown files by connecting a Google Drive folder as a vault.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Connect Google Drive vault' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open mock vault' })).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Search vault files' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'New file' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
   });
 
-  it('keeps the selected language when entering the workspace', async () => {
+  it('keeps language settings in the sidebar menu after entering the workspace', async () => {
     const user = userEvent.setup();
 
     render(<App />);
 
-    await user.selectOptions(screen.getByLabelText('언어'), 'en');
-    await user.click(screen.getByRole('button', { name: 'Open mock vault' }));
+    expect(screen.queryByLabelText('언어')).not.toBeInTheDocument();
 
-    expect(screen.getByRole('searchbox', { name: 'Search vault files' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'New file' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open first document' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Mock vault 열기' }));
+
+    expect(screen.queryByLabelText('언어')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '설정' }));
+    await user.selectOptions(screen.getByLabelText('언어'), 'en');
 
     await user.selectOptions(screen.getByLabelText('Language'), 'ko');
 

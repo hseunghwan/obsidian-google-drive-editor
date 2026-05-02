@@ -51,24 +51,6 @@ textarea {
   justify-content: center;
 }
 
-.language-switcher {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  color: #b9bdc8;
-  font-size: 0.9rem;
-}
-
-.language-switcher select {
-  padding: 6px 8px;
-  border: 1px solid #4c4c4c;
-  color: #f2f2f2;
-  background: #333333;
-}
-
 .app-actions button {
   padding: 8px 12px;
   border: 1px solid #4c4c4c;
@@ -171,6 +153,43 @@ textarea {
   margin: 10px 0 0;
   color: #9a9a9a;
   font-size: 0.88rem;
+}
+
+.sidebar-settings {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #343434;
+}
+
+.settings-toggle {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid #454545;
+  color: #dcddde;
+  background: #303136;
+  text-align: left;
+}
+
+.settings-menu {
+  display: grid;
+  gap: 8px;
+}
+
+.settings-field {
+  display: grid;
+  gap: 6px;
+  color: #b9bdc8;
+  font-size: 0.85rem;
+}
+
+.settings-field select {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid #3b3b3b;
+  color: #dcddde;
+  background: #1e1e1e;
 }
 
 .workspace-main {

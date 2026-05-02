@@ -2,7 +2,6 @@ import { useState } from 'react';
 
 import { loadDriveWorkspace, type DriveWorkspace } from './app/driveWorkspaceLoader';
 import { I18nProvider, useI18n } from './i18n/I18nProvider';
-import type { Locale } from './i18n/messages';
 import { ChromeIdentityAuthClient } from './integrations/google/googleAuth';
 import { HttpGoogleDriveClient } from './integrations/google/httpGoogleDriveClient';
 import { BrowserGooglePickerClient } from './integrations/google/googlePicker';
@@ -19,7 +18,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const { locale, setLocale, t } = useI18n();
+  const { t } = useI18n();
   const [workspace, setWorkspace] = useState<DriveWorkspace | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,55 +84,30 @@ See [[Project Note]].`,
 
   if (!workspace) {
     return (
-      <>
-        <LanguageSwitcher locale={locale} setLocale={setLocale} />
-        <main className="app-shell">
-          <h1>{t('app.title')}</h1>
-          <p>{t('app.description')}</p>
-          <div className="app-actions">
-            <button type="button" onClick={() => void connectDrive()}>
-              {t('app.connectDrive')}
-            </button>
-            <button type="button" onClick={openMockWorkspace}>
-              {t('app.openMockVault')}
-            </button>
-          </div>
-          {error ? <p role="alert">{error}</p> : null}
-        </main>
-      </>
+      <main className="app-shell">
+        <h1>{t('app.title')}</h1>
+        <p>{t('app.description')}</p>
+        <div className="app-actions">
+          <button type="button" onClick={() => void connectDrive()}>
+            {t('app.connectDrive')}
+          </button>
+          <button type="button" onClick={openMockWorkspace}>
+            {t('app.openMockVault')}
+          </button>
+        </div>
+        {error ? <p role="alert">{error}</p> : null}
+      </main>
     );
   }
 
   return (
-    <>
-      <LanguageSwitcher locale={locale} setLocale={setLocale} />
-      <Workspace
-        root={workspace.root}
-        files={workspace.files}
-        loadFile={workspace.loadFile}
-        saveDocument={workspace.saveDocument}
-        createFile={workspace.createFile}
-        createFolder={workspace.createFolder}
-      />
-    </>
-  );
-}
-
-interface LanguageSwitcherProps {
-  locale: Locale;
-  setLocale(locale: Locale): void;
-}
-
-function LanguageSwitcher({ locale, setLocale }: LanguageSwitcherProps) {
-  const { t } = useI18n();
-
-  return (
-    <label className="language-switcher">
-      <span>{t('language.label')}</span>
-      <select value={locale} onChange={(event) => setLocale(event.currentTarget.value as Locale)}>
-        <option value="ko">{t('language.ko')}</option>
-        <option value="en">{t('language.en')}</option>
-      </select>
-    </label>
+    <Workspace
+      root={workspace.root}
+      files={workspace.files}
+      loadFile={workspace.loadFile}
+      saveDocument={workspace.saveDocument}
+      createFile={workspace.createFile}
+      createFolder={workspace.createFolder}
+    />
   );
 }

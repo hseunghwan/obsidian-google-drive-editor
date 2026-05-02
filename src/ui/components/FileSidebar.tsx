@@ -1,5 +1,8 @@
+import { useState } from 'react';
+
 import type { VaultFile } from '../../domain/vault/types';
 import { useI18n } from '../../i18n/I18nProvider';
+import type { Locale } from '../../i18n/messages';
 
 interface FileSidebarProps {
   files: VaultFile[];
@@ -20,7 +23,8 @@ export function FileSidebar({
   onCreateFile,
   onCreateFolder
 }: FileSidebarProps) {
-  const { t } = useI18n();
+  const { locale, setLocale, t } = useI18n();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <aside className="sidebar" aria-label={t('sidebar.aria')}>
@@ -53,6 +57,27 @@ export function FileSidebar({
         </button>
       ))}
       {files.length === 0 ? <p className="sidebar-empty">{t('sidebar.empty')}</p> : null}
+      <div className="sidebar-settings">
+        <button
+          aria-expanded={settingsOpen}
+          className="settings-toggle"
+          type="button"
+          onClick={() => setSettingsOpen((open) => !open)}
+        >
+          {t('settings.label')}
+        </button>
+        {settingsOpen ? (
+          <div className="settings-menu">
+            <label className="settings-field">
+              <span>{t('settings.language')}</span>
+              <select value={locale} onChange={(event) => setLocale(event.currentTarget.value as Locale)}>
+                <option value="ko">{t('language.ko')}</option>
+                <option value="en">{t('language.en')}</option>
+              </select>
+            </label>
+          </div>
+        ) : null}
+      </div>
     </aside>
   );
 }
