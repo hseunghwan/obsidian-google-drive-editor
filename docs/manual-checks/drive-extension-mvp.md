@@ -10,7 +10,7 @@
 6. Set `VITE_GOOGLE_OAUTH_CLIENT_ID=<Chrome Extension OAuth client id>` in `.env.local`.
 7. Run `npm run build` again so `dist/manifest.json` receives the configured OAuth client id.
 8. Reload the unpacked extension in `chrome://extensions`.
-9. Prepare a test vault folder that is visible from My Drive in the test Google account.
+9. Prepare a test vault folder that is visible from My Drive and inside the app's `drive.file` access boundary.
 
 ## Manual Drive checks
 
@@ -18,7 +18,7 @@
 2. Load `dist/` as an unpacked extension in Chrome.
 3. Click the extension icon.
 4. Authenticate with the test Google account.
-5. Select a test Drive folder through Picker.
+5. Select a test Drive folder in the extension Drive folder explorer.
 6. Open `Home.md`.
 7. Edit and save `Home.md`.
 8. Confirm the Drive file content changed in Google Drive.
@@ -30,7 +30,7 @@
 
 The OAuth client id for `chrome.identity.getAuthToken` is configured with `VITE_GOOGLE_OAUTH_CLIENT_ID` in `.env.local`. `npm run build` injects that value into `dist/manifest.json` under `oauth2.client_id`. Do not commit a real OAuth client id to `public/manifest.json`.
 
-This MVP does not load the remote Google Picker JavaScript API from an extension page. Manifest V3 extension pages execute packaged scripts only, so folder selection uses a local Drive folder explorer backed by the Drive REST API. The requested OAuth scope is `https://www.googleapis.com/auth/drive` because an existing Obsidian vault requires recursive listing and writing of files already present in the selected folder.
+This MVP does not load the remote Google Picker JavaScript API from an extension page. Manifest V3 extension pages execute packaged scripts only, so folder selection uses a local Drive folder explorer backed by the Drive REST API. The requested OAuth scope is `https://www.googleapis.com/auth/drive.file` to keep Drive access limited to files and folders the app has opened or created. If a test with an arbitrary existing vault folder fails because Drive does not expose descendants under `drive.file`, do not widen the scope silently. Record the failure, review the blast radius, and update user consent copy before using `https://www.googleapis.com/auth/drive`.
 
 ## Result - 2026-05-03
 
