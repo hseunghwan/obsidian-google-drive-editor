@@ -13,7 +13,7 @@ const wikiLinkPattern = /\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]/g;
 
 export function extractMarkdownMetadata(source: string): MarkdownMetadata {
   const frontmatterMatch = source.match(frontmatterPattern);
-  const frontmatter = frontmatterMatch ? toRecord(parse(frontmatterMatch[1])) : {};
+  const frontmatter = frontmatterMatch ? parseFrontmatterRecord(frontmatterMatch[1]) : {};
   const bodyStart = frontmatterMatch ? frontmatterMatch[0].length : 0;
 
   return {
@@ -22,6 +22,14 @@ export function extractMarkdownMetadata(source: string): MarkdownMetadata {
     wikiLinks: uniqueMatches(source, wikiLinkPattern),
     bodyStart
   };
+}
+
+function parseFrontmatterRecord(source: string): Record<string, unknown> {
+  try {
+    return toRecord(parse(source));
+  } catch {
+    return {};
+  }
 }
 
 export function setFrontmatterProperty(

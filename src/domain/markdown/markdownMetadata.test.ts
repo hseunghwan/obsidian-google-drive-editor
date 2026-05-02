@@ -34,6 +34,22 @@ See [[Project Note]] and #project/alpha.
       bodyStart: 0
     });
   });
+
+  it('does not throw while frontmatter YAML is temporarily invalid during editing', () => {
+    const source = `---
+title:
+next
+---
+# Home #daily
+`;
+
+    expect(extractMarkdownMetadata(source)).toEqual({
+      frontmatter: {},
+      tags: ['daily'],
+      wikiLinks: [],
+      bodyStart: source.indexOf('# Home')
+    });
+  });
 });
 
 describe('setFrontmatterProperty', () => {
