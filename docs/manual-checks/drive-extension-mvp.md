@@ -23,3 +23,14 @@
 9. Edit `Home.md` outside the extension.
 10. Save from the extension and confirm the conflict warning appears before overwrite.
 11. Force network failure and confirm local draft recovery appears when reopening the file.
+
+## Local environment
+
+`VITE_GOOGLE_PICKER_DEVELOPER_KEY` and `VITE_GOOGLE_PICKER_APP_ID` are public browser configuration values for local testing. The OAuth client id for `chrome.identity.getAuthToken` must be configured in `public/manifest.json` under `oauth2.client_id` after creating the Chrome Extension OAuth client in Google Cloud Console.
+
+## Result - 2026-05-03
+
+- Automated verification: `npm run typecheck`, `npm test`, `npm run build`.
+- Unpacked extension load: credential 준비 뒤 Chrome 결과를 여기에 기록한다.
+- OAuth/Picker live Drive test: credential 준비 뒤 Google Cloud configuration과 결과를 여기에 기록한다.
+- 알려진 release blocker: OAuth client id, Picker API key, test Drive folder가 설정될 때까지 live Drive save는 막혀 있다.

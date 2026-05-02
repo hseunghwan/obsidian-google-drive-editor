@@ -23,6 +23,40 @@ textarea {
   font: inherit;
 }
 
+.app-shell {
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 24px;
+  background: #1e1e1e;
+  text-align: center;
+}
+
+.app-shell h1,
+.app-shell p {
+  margin: 0;
+}
+
+.app-shell p {
+  color: #b9bdc8;
+}
+
+.app-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.app-actions button {
+  padding: 8px 12px;
+  border: 1px solid #4c4c4c;
+  color: #f2f2f2;
+  background: #333333;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr) 280px;

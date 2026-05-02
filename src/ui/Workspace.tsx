@@ -1,7 +1,8 @@
 import { useMemo, useReducer } from 'react';
 
+import { isVaultError } from '../domain/vault/errors';
 import { VaultIndex } from '../domain/vault/vaultIndex';
-import type { VaultFile, VaultRoot } from '../domain/vault/types';
+import type { OpenDocument, SaveResult, VaultFile, VaultRoot } from '../domain/vault/types';
 import { Breadcrumb } from './components/Breadcrumb';
 import { FileSidebar } from './components/FileSidebar';
 import { MetadataPanel } from './components/MetadataPanel';
@@ -12,11 +13,11 @@ import { createInitialWorkspaceState, workspaceReducer } from './state/workspace
 interface WorkspaceProps {
   root: VaultRoot;
   files: VaultFile[];
-  initialContent: string;
-  onSave(content: string): void;
+  loadFile(file: VaultFile): Promise<OpenDocument>;
+  saveDocument(document: OpenDocument): Promise<SaveResult>;
 }
 
-export function Workspace({ root, files, initialContent, onSave }: WorkspaceProps) {
+export function Workspace({ root, files, loadFile, saveDocument }: WorkspaceProps) {
   const [state, dispatch] = useReducer(workspaceReducer, createInitialWorkspaceState());
   const index = useMemo(() => {
     const vaultIndex = new VaultIndex();
@@ -26,22 +27,42 @@ export function Workspace({ root, files, initialContent, onSave }: WorkspaceProp
 
   const activeDocument = state.activeDocument;
 
-  function openFile(file: VaultFile) {
+  async function openFile(file: VaultFile) {
+    const document = await loadFile(file);
     dispatch({
       type: 'documentOpened',
       root,
       files,
-      document: {
-        file,
-        content: initialContent,
-        baselineModifiedTime: file.modifiedTime
-      }
+      document
     });
+  }
+
+  async function saveActiveDocument() {
+    if (!activeDocument) {
+      return;
+    }
+
+    dispatch({ type: 'saveStarted' });
+
+    try {
+      const result = await saveDocument(activeDocument);
+      dispatch({ type: 'saveSucceeded', modifiedTime: result.modifiedTime });
+    } catch (error) {
+      if (isVaultError(error, 'RemoteChanged')) {
+        dispatch({ type: 'remoteConflict', message: '원격 변경이 감지되었습니다.' });
+        return;
+      }
+      dispatch({ type: 'saveFailed', message: '저장 실패. 로컬 초안을 보존했습니다.' });
+    }
   }
 
   return (
     <div className="workspace">
-      <FileSidebar files={files} activeFileId={activeDocument?.file.id} onOpen={openFile} />
+      <FileSidebar
+        files={files}
+        activeFileId={activeDocument?.file.id}
+        onOpen={(file) => void openFile(file)}
+      />
       <section className="workspace-main">
         {activeDocument ? (
           <>
@@ -54,11 +75,11 @@ export function Workspace({ root, files, initialContent, onSave }: WorkspaceProp
             <SaveStatus
               status={state.saveState.status}
               message={state.saveState.message}
-              onSave={() => onSave(activeDocument.content)}
+              onSave={() => void saveActiveDocument()}
             />
           </>
         ) : (
-          <button className="open-first-file" type="button" onClick={() => openFile(files[0])}>
+          <button className="open-first-file" type="button" onClick={() => void openFile(files[0])}>
             첫 문서 열기
           </button>
         )}
