@@ -1,14 +1,18 @@
+import { fixtureFiles, fixtureVaultRoot } from './test/fixtures';
+import { Workspace } from './ui/Workspace';
+
 export default function App() {
   return (
-    <main className="app-shell">
-      <section className="empty-state">
-        <p className="eyebrow">Drive vault</p>
-        <h1>Open an Obsidian folder from Google Drive</h1>
-        <p>
-          The workspace shell is ready. Drive selection, markdown editing, and vault navigation
-          are implemented in the next tasks.
-        </p>
-      </section>
-    </main>
+    <Workspace
+      root={fixtureVaultRoot}
+      files={fixtureFiles}
+      initialContent={`---
+title: Home
+---
+# Home #daily
+
+See [[Project Note]].`}
+      onSave={() => undefined}
+    />
   );
 }

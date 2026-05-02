@@ -23,36 +23,127 @@ textarea {
   font: inherit;
 }
 
-.app-shell {
+.workspace {
   display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 280px;
   min-height: 100vh;
-  place-items: center;
-  background:
-    linear-gradient(135deg, rgba(90, 97, 137, 0.22), transparent 42%),
-    #16171d;
+  background: #1e1e1e;
 }
 
-.empty-state {
-  max-width: 560px;
-  padding: 24px;
+.sidebar,
+.metadata-panel {
+  background: #252526;
+  border-color: #343434;
+  border-style: solid;
 }
 
-.empty-state h1 {
-  margin: 0 0 12px;
-  font-size: 2rem;
-  line-height: 1.1;
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-width: 0 1px 0 0;
+  padding: 12px;
 }
 
-.empty-state p {
-  margin: 0;
-  color: #b9bdc8;
+.metadata-panel {
+  border-width: 0 0 0 1px;
+  padding: 16px;
 }
 
-.empty-state .eyebrow {
-  margin-bottom: 10px;
-  color: #8ad7c1;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.metadata-panel h2 {
+  margin: 0 0 10px;
+  font-size: 0.86rem;
+}
+
+.metadata-panel h2 + h2 {
+  margin-top: 20px;
+}
+
+.metadata-panel p {
+  color: #9a9a9a;
+}
+
+.sidebar-item {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+  padding: 8px;
+  border: 0;
+  color: #dcddde;
+  background: transparent;
+  text-align: left;
+}
+
+.sidebar-item.active,
+.sidebar-item:hover {
+  background: #333333;
+}
+
+.sidebar-item small {
+  overflow: hidden;
+  color: #9a9a9a;
+  text-overflow: ellipsis;
+}
+
+.workspace-main {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+}
+
+.open-first-file {
+  justify-self: center;
+  align-self: center;
+  padding: 8px 12px;
+  border: 1px solid #454545;
+  color: #dcddde;
+  background: #2f3036;
+}
+
+.breadcrumb,
+.save-status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #343434;
+}
+
+.save-status {
+  justify-content: space-between;
+  border-top: 1px solid #343434;
+  border-bottom: 0;
+}
+
+.save-status button {
+  padding: 6px 10px;
+  border: 1px solid #4c4c4c;
+  color: #f2f2f2;
+  background: #3a3a3a;
+}
+
+.editor-pane {
+  min-height: 0;
+}
+
+.editor-pane .cm-editor {
+  height: 100%;
+  background: #1e1e1e;
+  color: #dcddde;
+}
+
+.property-row {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  color: #8aadf4;
 }

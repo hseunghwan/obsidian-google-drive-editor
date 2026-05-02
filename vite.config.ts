@@ -15,7 +15,15 @@ export default defineConfig({
       output: {
         entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash][extname]'
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        manualChunks(id) {
+          if (id.includes('/node_modules/@codemirror/')) {
+            return 'codemirror';
+          }
+          if (id.includes('/node_modules/')) {
+            return 'vendor';
+          }
+        }
       }
     }
   },
