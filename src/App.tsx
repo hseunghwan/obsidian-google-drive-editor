@@ -6,7 +6,7 @@ import { ChromeIdentityAuthClient } from './integrations/google/googleAuth';
 import { HttpGoogleDriveClient } from './integrations/google/httpGoogleDriveClient';
 import { BrowserGooglePickerClient } from './integrations/google/googlePicker';
 import { IndexedDbDraftStore } from './storage/draftStore';
-import { fixtureFiles, fixtureVaultRoot } from './test/fixtures';
+import { fixtureFiles, fixtureFolder, fixtureVaultRoot } from './test/fixtures';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { Workspace } from './ui/Workspace';
 
@@ -60,7 +60,9 @@ function AppContent() {
   function openMockWorkspace() {
     setWorkspace({
       root: fixtureVaultRoot,
-      files: fixtureFiles,
+      entries: [fixtureFolder, ...fixtureFiles],
+      loadFolders: async () => [],
+      loadMarkdownFiles: async () => [],
       loadFile: async (file) => ({
         file,
         content: `---
@@ -119,7 +121,9 @@ See [[Project Note]].`,
   return (
     <Workspace
       root={workspace.root}
-      files={workspace.files}
+      entries={workspace.entries}
+      loadFolders={workspace.loadFolders}
+      loadMarkdownFiles={workspace.loadMarkdownFiles}
       loadFile={workspace.loadFile}
       saveDocument={workspace.saveDocument}
       createFile={workspace.createFile}

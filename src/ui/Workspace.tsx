@@ -2,7 +2,7 @@ import { type ComponentType, useEffect, useMemo, useReducer, useState } from 're
 
 import { isVaultError } from '../domain/vault/errors';
 import { VaultIndex } from '../domain/vault/vaultIndex';
-import type { OpenDocument, SaveResult, VaultFile, VaultFolder, VaultRoot } from '../domain/vault/types';
+import type { OpenDocument, SaveResult, VaultEntry, VaultFile, VaultFolder, VaultRoot } from '../domain/vault/types';
 import { useI18n } from '../i18n/I18nProvider';
 import { Breadcrumb } from './components/Breadcrumb';
 import { FileSidebar } from './components/FileSidebar';
@@ -15,7 +15,9 @@ import { createInitialWorkspaceState, workspaceReducer } from './state/workspace
 
 interface WorkspaceProps {
   root: VaultRoot;
-  files: VaultFile[];
+  entries: VaultEntry[];
+  loadFolders(parentFolderId: string, parentPath: string): Promise<VaultFolder[]>;
+  loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
@@ -26,7 +28,9 @@ interface WorkspaceProps {
 
 export function Workspace({
   root,
-  files,
+  entries,
+  loadFolders,
+  loadMarkdownFiles,
   loadFile,
   saveDocument,
   createFile,
@@ -36,7 +40,10 @@ export function Workspace({
 }: WorkspaceProps) {
   const { t } = useI18n();
   const [state, dispatch] = useReducer(workspaceReducer, createInitialWorkspaceState());
-  const [workspaceFiles, setWorkspaceFiles] = useState(files);
+  const [workspaceEntries, setWorkspaceEntries] = useState(entries);
+  const [loadedFolderIds, setLoadedFolderIds] = useState<Set<string>>(() => new Set());
+  const [loadingFolderIds, setLoadingFolderIds] = useState<Set<string>>(() => new Set());
+  const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(() => new Set([root.id]));
   const [query, setQuery] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -44,8 +51,17 @@ export function Workspace({
   const [metadataOpen, setMetadataOpen] = useState(() => matchesMedia('(min-width: 1081px)', true));
 
   useEffect(() => {
-    setWorkspaceFiles(files);
-  }, [files]);
+    setWorkspaceEntries(entries);
+    setLoadedFolderIds(new Set());
+    setLoadingFolderIds(new Set());
+    setExpandedFolderIds(new Set([root.id]));
+  }, [entries, root.id]);
+
+  useEffect(() => {
+    void loadFolderChildren(root.id, '');
+  }, [root.id]);
+
+  const workspaceFiles = useMemo(() => markdownEntries(workspaceEntries), [workspaceEntries]);
 
   const index = useMemo(() => {
     const vaultIndex = new VaultIndex();
@@ -62,7 +78,47 @@ export function Workspace({
     return workspaceFiles.filter((file) => resultIds.has(file.id));
   }, [index, query, workspaceFiles]);
 
+  const visibleEntries = useMemo(() => {
+    if (!query.trim()) {
+      return workspaceEntries;
+    }
+    const visibleFileIds = new Set(visibleFiles.map((file) => file.id));
+    return workspaceEntries.filter((entry) => entry.kind === 'markdown' && visibleFileIds.has(entry.id));
+  }, [query, visibleFiles, workspaceEntries]);
+
   const activeDocument = state.activeDocument;
+
+  async function loadFolderChildren(folderId: string, folderPath: string) {
+    if (loadedFolderIds.has(folderId) || loadingFolderIds.has(folderId)) {
+      return;
+    }
+
+    setLoadingFolderIds((current) => addSetValue(current, folderId));
+
+    try {
+      const folders = await loadFolders(folderId, folderPath);
+      setWorkspaceEntries((current) => mergeEntries(current, folders));
+      const files = await loadMarkdownFiles(folderId, folderPath);
+      setWorkspaceEntries((current) => mergeEntries(current, files));
+      setLoadedFolderIds((current) => addSetValue(current, folderId));
+      setNotice(null);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : t('errors.driveConnectFailed'));
+    } finally {
+      setLoadingFolderIds((current) => removeSetValue(current, folderId));
+    }
+  }
+
+  function toggleFolder(folder: VaultFolder) {
+    const expanded = expandedFolderIds.has(folder.id);
+    setExpandedFolderIds((current) =>
+      expanded ? removeSetValue(current, folder.id) : addSetValue(current, folder.id)
+    );
+
+    if (!expanded) {
+      void loadFolderChildren(folder.id, folder.path);
+    }
+  }
 
   async function openFile(file: VaultFile) {
     const document = await loadFile(file);
@@ -118,8 +174,9 @@ export function Workspace({
 
     const name = title.endsWith('.md') ? title : `${title}.md`;
     const nextFile = await createFile(root.id, name, `# ${name.replace(/\.md$/i, '')}\n`);
-    const nextFiles = [...workspaceFiles, nextFile].sort((left, right) => left.path.localeCompare(right.path));
-    setWorkspaceFiles(nextFiles);
+    const nextEntries = mergeEntries(workspaceEntries, [nextFile]);
+    const nextFiles = markdownEntries(nextEntries);
+    setWorkspaceEntries(nextEntries);
     setNotice(null);
     dispatch({
       type: 'documentOpened',
@@ -140,7 +197,8 @@ export function Workspace({
       return;
     }
 
-    await createFolder(root.id, name);
+    const nextFolder = await createFolder(root.id, name);
+    setWorkspaceEntries((current) => mergeEntries(current, [nextFolder]));
     setNotice(t('workspace.folderCreated'));
   }
 
@@ -183,12 +241,16 @@ export function Workspace({
         </nav>
         {sidebarOpen ? (
           <FileSidebar
+            rootId={root.id}
             rootName={root.name}
-            files={visibleFiles}
+            entries={visibleEntries}
             query={query}
             activeFileId={activeDocument?.file.id}
+            expandedFolderIds={expandedFolderIds}
+            loadingFolderIds={loadingFolderIds}
             onQueryChange={setQuery}
             onOpen={(file) => void openFile(file)}
+            onToggleFolder={toggleFolder}
             onCreateFile={() => void createMarkdownFile()}
             onCreateFolder={() => void createVaultFolder()}
             onOpenSettings={() => setSettingsOpen(true)}
@@ -210,7 +272,7 @@ export function Workspace({
             </>
           ) : workspaceFiles.length === 0 ? (
             <div className="empty-vault">
-              <p>{t('workspace.emptyVault')}</p>
+              <p>{loadingFolderIds.has(root.id) ? t('workspace.loadingFolder') : t('workspace.emptyVault')}</p>
               <button type="button" onClick={() => void createMarkdownFile()}>
                 {t('workspace.createFile')}
               </button>
@@ -235,4 +297,35 @@ function matchesMedia(query: string, fallback: boolean) {
   }
 
   return window.matchMedia(query).matches;
+}
+
+function markdownEntries(entries: VaultEntry[]): VaultFile[] {
+  return entries.filter((entry): entry is VaultFile => entry.kind === 'markdown');
+}
+
+function mergeEntries(current: VaultEntry[], next: VaultEntry[]) {
+  const entriesById = new Map(current.map((entry) => [entry.id, entry]));
+  for (const entry of next) {
+    entriesById.set(entry.id, entry);
+  }
+  return [...entriesById.values()].sort(compareEntries);
+}
+
+function compareEntries(left: VaultEntry, right: VaultEntry) {
+  if (left.kind !== right.kind) {
+    return left.kind === 'folder' ? -1 : 1;
+  }
+  return left.path.localeCompare(right.path, undefined, { sensitivity: 'base' });
+}
+
+function addSetValue<T>(current: Set<T>, value: T) {
+  const next = new Set(current);
+  next.add(value);
+  return next;
+}
+
+function removeSetValue<T>(current: Set<T>, value: T) {
+  const next = new Set(current);
+  next.delete(value);
+  return next;
 }

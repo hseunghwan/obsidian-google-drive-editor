@@ -1,4 +1,4 @@
-import type { OpenDocument, SaveResult, VaultFile, VaultFolder, VaultRoot } from '../domain/vault/types';
+import type { OpenDocument, SaveResult, VaultEntry, VaultFile, VaultFolder, VaultRoot } from '../domain/vault/types';
 import { DriveVaultAdapter } from '../integrations/google/driveVaultAdapter';
 import type { GoogleAuthClient } from '../integrations/google/googleAuth';
 import type { GoogleDriveClient } from '../integrations/google/googleDriveClient';
@@ -7,7 +7,9 @@ import type { DraftStore } from '../storage/draftStore';
 
 export interface DriveWorkspace {
   root: VaultRoot;
-  files: VaultFile[];
+  entries: VaultEntry[];
+  loadFolders(parentFolderId: string, parentPath: string): Promise<VaultFolder[]>;
+  loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
@@ -26,11 +28,13 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
   const pickedFolder = await deps.picker.pickVaultFolder(accessToken);
   const adapter = new DriveVaultAdapter(deps.createDriveClient(accessToken), deps.drafts);
   const root: VaultRoot = { id: pickedFolder.id, name: pickedFolder.name };
-  const files = await collectMarkdownFiles(adapter, root.id);
 
   return {
     root,
-    files,
+    entries: [],
+    loadFolders: (parentFolderId, parentPath) => adapter.listFolders(parentFolderId, parentPath),
+    loadMarkdownFiles: (parentFolderId, parentPath) =>
+      adapter.listMarkdownFiles(parentFolderId, parentPath),
     loadFile: async (file) => {
       const draft = await deps.drafts.getDraft(root.id, file.id);
       if (draft) {
@@ -52,25 +56,4 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
     createFile: (parentFolderId, name, content) => adapter.createFile(parentFolderId, name, content),
     createFolder: (parentFolderId, name) => adapter.createFolder(parentFolderId, name)
   };
-}
-
-async function collectMarkdownFiles(
-  adapter: DriveVaultAdapter,
-  folderId: string,
-  parentPath = ''
-): Promise<VaultFile[]> {
-  const entries = await adapter.listChildren(folderId);
-  const files: VaultFile[] = [];
-
-  for (const entry of entries) {
-    const path = parentPath ? `${parentPath}/${entry.name}` : entry.name;
-    if (entry.kind === 'markdown') {
-      files.push({ ...entry, path });
-    }
-    if (entry.kind === 'folder') {
-      files.push(...(await collectMarkdownFiles(adapter, entry.id, path)));
-    }
-  }
-
-  return files;
 }

@@ -12,7 +12,8 @@ export interface GoogleDriveListResponse {
 }
 
 export interface GoogleDriveClient {
-  listChildren(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse>;
+  listFolders(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse>;
+  listMarkdownFiles(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse>;
   downloadText(fileId: string): Promise<string>;
   updateText(fileId: string, content: string): Promise<GoogleDriveFile>;
   createTextFile(parentFolderId: string, name: string, content: string): Promise<GoogleDriveFile>;

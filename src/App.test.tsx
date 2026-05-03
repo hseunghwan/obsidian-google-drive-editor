@@ -24,7 +24,7 @@ describe('App', () => {
     );
   });
 
-  it('shows a loading state after a Drive folder is selected', async () => {
+  it('switches to the workspace while the selected Drive folder loads', async () => {
     const user = userEvent.setup();
     vi.stubGlobal('chrome', {
       identity: {
@@ -51,8 +51,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Google Drive vault 연결' }));
     await user.click(await screen.findByRole('button', { name: 'Vault 선택' }));
 
-    expect(await screen.findByText('Drive vault를 불러오는 중입니다.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Google Drive vault 연결' })).toBeDisabled();
+    expect(await screen.findByRole('searchbox', { name: 'Vault 파일 검색' })).toBeInTheDocument();
+    expect(screen.getByText('폴더를 불러오는 중입니다.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Google Drive vault 연결' })).not.toBeInTheDocument();
   });
 
   it('switches visible onboarding copy between Korean and English', async () => {

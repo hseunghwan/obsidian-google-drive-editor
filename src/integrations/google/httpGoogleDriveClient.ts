@@ -6,10 +6,25 @@ const uploadBaseUrl = 'https://www.googleapis.com/upload/drive/v3/files';
 export class HttpGoogleDriveClient implements GoogleDriveClient {
   constructor(private readonly accessToken: string) {}
 
-  async listChildren(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse> {
+  async listFolders(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse> {
     const params = new URLSearchParams({
-      q: `'${folderId}' in parents and trashed = false`,
+      q: `'${escapeDriveQueryValue(folderId)}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
       fields: 'nextPageToken, files(id, name, mimeType, modifiedTime, parents)',
+      orderBy: 'name',
+      pageSize: '100'
+    });
+    if (pageToken) {
+      params.set('pageToken', pageToken);
+    }
+
+    return this.request(`${driveBaseUrl}?${params.toString()}`);
+  }
+
+  async listMarkdownFiles(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse> {
+    const params = new URLSearchParams({
+      q: `'${escapeDriveQueryValue(folderId)}' in parents and mimeType != 'application/vnd.google-apps.folder' and name contains '.md' and trashed = false`,
+      fields: 'nextPageToken, files(id, name, mimeType, modifiedTime, parents)',
+      orderBy: 'name',
       pageSize: '100'
     });
     if (pageToken) {
@@ -104,4 +119,8 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
       Authorization: `Bearer ${this.accessToken}`
     };
   }
+}
+
+function escapeDriveQueryValue(value: string) {
+  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }

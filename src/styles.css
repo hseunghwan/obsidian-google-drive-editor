@@ -464,13 +464,29 @@ select:focus-visible {
 
 .sidebar-folder-row {
   display: grid;
+  width: 100%;
   grid-template-columns: 16px 16px minmax(0, 1fr);
   align-items: center;
   gap: 4px;
   min-height: 28px;
   padding: 5px 6px;
+  border: 0;
   color: var(--text-muted);
+  background: transparent;
   font-size: 13px;
+  text-align: left;
+}
+
+button.sidebar-folder-row:hover {
+  color: var(--text-primary);
+  background: var(--panel-bg-hover);
+}
+
+.sidebar-folder-loading {
+  margin: 0;
+  padding: 0 8px 5px 42px;
+  color: var(--text-faint);
+  font-size: 12px;
 }
 
 .sidebar-item {

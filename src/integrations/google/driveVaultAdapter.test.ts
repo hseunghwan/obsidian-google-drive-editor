@@ -7,7 +7,8 @@ import type { GoogleDriveClient } from './googleDriveClient';
 
 function client(overrides: Partial<GoogleDriveClient> = {}): GoogleDriveClient {
   return {
-    listChildren: vi.fn().mockResolvedValue({ files: [] }),
+    listFolders: vi.fn().mockResolvedValue({ files: [] }),
+    listMarkdownFiles: vi.fn().mockResolvedValue({ files: [] }),
     downloadText: vi.fn().mockResolvedValue(''),
     updateText: vi.fn().mockResolvedValue({
       id: 'file-home',
@@ -28,9 +29,9 @@ function client(overrides: Partial<GoogleDriveClient> = {}): GoogleDriveClient {
 }
 
 describe('DriveVaultAdapter', () => {
-  it('lists markdown files and folders with pagination', async () => {
+  it('lists folders with pagination', async () => {
     const drive = client({
-      listChildren: vi
+      listFolders: vi
         .fn()
         .mockResolvedValueOnce({
           nextPageToken: 'page-2',
@@ -46,9 +47,9 @@ describe('DriveVaultAdapter', () => {
         .mockResolvedValueOnce({
           files: [
             {
-              id: 'file-home',
-              name: 'Home.md',
-              mimeType: 'text/markdown',
+              id: 'folder-archive',
+              name: 'Archive',
+              mimeType: 'application/vnd.google-apps.folder',
               modifiedTime: '2026-05-03T00:01:00.000Z'
             }
           ]
@@ -56,7 +57,7 @@ describe('DriveVaultAdapter', () => {
     });
     const adapter = new DriveVaultAdapter(drive, new IndexedDbDraftStore('adapter-list'));
 
-    await expect(adapter.listChildren('root')).resolves.toEqual([
+    await expect(adapter.listFolders('root', '')).resolves.toEqual([
       {
         id: 'folder-projects',
         name: 'Projects',
@@ -66,6 +67,40 @@ describe('DriveVaultAdapter', () => {
         mimeType: 'application/vnd.google-apps.folder',
         modifiedTime: '2026-05-03T00:00:00.000Z'
       },
+      {
+        id: 'folder-archive',
+        name: 'Archive',
+        path: 'Archive',
+        parentId: 'root',
+        kind: 'folder',
+        mimeType: 'application/vnd.google-apps.folder',
+        modifiedTime: '2026-05-03T00:01:00.000Z'
+      }
+    ]);
+  });
+
+  it('lists only markdown files from file candidates', async () => {
+    const drive = client({
+      listMarkdownFiles: vi.fn().mockResolvedValue({
+        files: [
+          {
+            id: 'file-home',
+            name: 'Home.md',
+            mimeType: 'text/markdown',
+            modifiedTime: '2026-05-03T00:01:00.000Z'
+          },
+          {
+            id: 'file-image',
+            name: 'image.md.png',
+            mimeType: 'image/png',
+            modifiedTime: '2026-05-03T00:02:00.000Z'
+          }
+        ]
+      })
+    });
+    const adapter = new DriveVaultAdapter(drive, new IndexedDbDraftStore('adapter-markdown-list'));
+
+    await expect(adapter.listMarkdownFiles('root', '')).resolves.toEqual([
       {
         id: 'file-home',
         name: 'Home.md',
@@ -129,7 +164,8 @@ describe('DriveVaultAdapter', () => {
 
   it('creates markdown files when the parent folder has no duplicate name', async () => {
     const drive = client({
-      listChildren: vi.fn().mockResolvedValue({ files: [] }),
+      listFolders: vi.fn().mockResolvedValue({ files: [] }),
+      listMarkdownFiles: vi.fn().mockResolvedValue({ files: [] }),
       createTextFile: vi.fn().mockResolvedValue({
         id: 'file-new-note',
         name: 'New Note.md',
@@ -149,7 +185,8 @@ describe('DriveVaultAdapter', () => {
   it('rejects duplicate names in the same parent folder', async () => {
     const adapter = new DriveVaultAdapter(
       client({
-        listChildren: vi.fn().mockResolvedValue({
+        listFolders: vi.fn().mockResolvedValue({ files: [] }),
+        listMarkdownFiles: vi.fn().mockResolvedValue({
           files: [
             {
               id: 'file-home',

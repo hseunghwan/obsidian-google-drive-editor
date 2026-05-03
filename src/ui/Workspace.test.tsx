@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fixtureFiles, fixtureVaultRoot } from '../test/fixtures';
+import { fixtureFiles, fixtureFolder, fixtureVaultRoot } from '../test/fixtures';
 import type { MarkdownEditorProps } from './editor/MarkdownEditor';
 import { Workspace } from './Workspace';
 
@@ -36,7 +36,9 @@ function renderWorkspace() {
   return render(
     <Workspace
       root={fixtureVaultRoot}
-      files={fixtureFiles}
+      entries={[fixtureFolder, ...fixtureFiles]}
+      loadFolders={async () => []}
+      loadMarkdownFiles={async () => []}
       loadFile={async (file) => ({
         file,
         content: `---
@@ -81,6 +83,83 @@ describe('Workspace', () => {
     expect(await screen.findByText('저장됨')).toBeInTheDocument();
   });
 
+  it('loads root folders before root markdown files', async () => {
+    const folders = deferred([fixtureFolder]);
+    const markdownFiles = deferred([fixtureFiles[0]]);
+    const loadFolders = vi.fn().mockReturnValue(folders.promise);
+    const loadMarkdownFiles = vi.fn().mockReturnValue(markdownFiles.promise);
+
+    render(
+      <Workspace
+        root={fixtureVaultRoot}
+        entries={[]}
+        loadFolders={loadFolders}
+        loadMarkdownFiles={loadMarkdownFiles}
+        loadFile={async (file) => ({
+          file,
+          content: '# Home',
+          baselineModifiedTime: file.modifiedTime
+        })}
+        saveDocument={saveDocument}
+        createFile={createFile}
+        createFolder={createFolder}
+      />
+    );
+
+    expect(loadFolders).toHaveBeenCalledWith(fixtureVaultRoot.id, '');
+    expect(loadMarkdownFiles).not.toHaveBeenCalled();
+
+    folders.resolve();
+    expect(await screen.findByRole('button', { name: /Projects/ })).toBeInTheDocument();
+    expect(screen.queryByText('표시할 Markdown 파일이 없습니다.')).not.toBeInTheDocument();
+    expect(loadMarkdownFiles).toHaveBeenCalledWith(fixtureVaultRoot.id, '');
+    expect(screen.queryByRole('button', { name: /Home/ })).not.toBeInTheDocument();
+
+    markdownFiles.resolve();
+    expect(await screen.findByRole('button', { name: /Home/ })).toBeInTheDocument();
+  });
+
+  it('loads a folder only when it is expanded and does not reload it', async () => {
+    const user = userEvent.setup();
+    const loadFolders = vi
+      .fn()
+      .mockResolvedValueOnce([fixtureFolder])
+      .mockResolvedValueOnce([]);
+    const loadMarkdownFiles = vi
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([fixtureFiles[1]]);
+
+    render(
+      <Workspace
+        root={fixtureVaultRoot}
+        entries={[]}
+        loadFolders={loadFolders}
+        loadMarkdownFiles={loadMarkdownFiles}
+        loadFile={async (file) => ({
+          file,
+          content: '# Project Note',
+          baselineModifiedTime: file.modifiedTime
+        })}
+        saveDocument={saveDocument}
+        createFile={createFile}
+        createFolder={createFolder}
+      />
+    );
+
+    await user.click(await screen.findByRole('button', { name: /Projects/ }));
+
+    expect(loadFolders).toHaveBeenCalledWith(fixtureFolder.id, 'Projects');
+    expect(loadMarkdownFiles).toHaveBeenCalledWith(fixtureFolder.id, 'Projects');
+    expect(await screen.findByRole('button', { name: /Project Note/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /^Projects$/ }));
+    await user.click(screen.getByRole('button', { name: /^Projects$/ }));
+
+    expect(loadFolders).toHaveBeenCalledTimes(2);
+    expect(loadMarkdownFiles).toHaveBeenCalledTimes(2);
+  });
+
   it('filters sidebar files by title or path', async () => {
     const user = userEvent.setup();
 
@@ -120,7 +199,9 @@ describe('Workspace', () => {
     render(
       <Workspace
         root={fixtureVaultRoot}
-        files={fixtureFiles}
+        entries={[fixtureFolder, ...fixtureFiles]}
+        loadFolders={async () => []}
+        loadMarkdownFiles={async () => []}
         loadFile={async (file) => ({
           file,
           content: '# Home',
@@ -148,11 +229,13 @@ describe('Workspace', () => {
     vi.useRealTimers();
   });
 
-  it('renders an empty vault state without trying to open an undefined file', () => {
+  it('renders an empty vault state without trying to open an undefined file', async () => {
     render(
       <Workspace
         root={fixtureVaultRoot}
-        files={[]}
+        entries={[]}
+        loadFolders={async () => []}
+        loadMarkdownFiles={async () => []}
         loadFile={vi.fn()}
         saveDocument={saveDocument}
         createFile={createFile}
@@ -160,7 +243,7 @@ describe('Workspace', () => {
       />
     );
 
-    expect(screen.getByText('이 vault에 Markdown 파일이 없습니다.')).toBeInTheDocument();
+    expect(await screen.findByText('이 vault에 Markdown 파일이 없습니다.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '첫 문서 열기' })).not.toBeInTheDocument();
   });
 });
@@ -173,4 +256,13 @@ function TestEditor({ value, onChange }: MarkdownEditorProps) {
       onChange={(event) => onChange(event.currentTarget.value)}
     />
   );
+}
+
+function deferred<T>(value: T) {
+  let resolve!: () => void;
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = () => nextResolve(value);
+  });
+
+  return { promise, resolve };
 }

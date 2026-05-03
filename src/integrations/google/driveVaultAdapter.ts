@@ -1,5 +1,5 @@
 import { isVaultError, VaultError } from '../../domain/vault/errors';
-import type { SaveResult, VaultEntry, VaultFile, VaultFolder } from '../../domain/vault/types';
+import type { SaveResult, VaultFile, VaultFolder } from '../../domain/vault/types';
 import type { DraftStore } from '../../storage/draftStore';
 import type { GoogleDriveClient, GoogleDriveFile } from './googleDriveClient';
 
@@ -11,19 +11,33 @@ export class DriveVaultAdapter {
     private readonly drafts: DraftStore
   ) {}
 
-  async listChildren(folderId: string): Promise<VaultEntry[]> {
+  async listFolders(folderId: string, parentPath = ''): Promise<VaultFolder[]> {
+    const files = await this.collectPages((pageToken) => this.drive.listFolders(folderId, pageToken));
+    return files
+      .filter((file) => file.mimeType === folderMimeType)
+      .map((file) => toVaultFolder(file, folderId, parentPath));
+  }
+
+  async listMarkdownFiles(folderId: string, parentPath = ''): Promise<VaultFile[]> {
+    const files = await this.collectPages((pageToken) => this.drive.listMarkdownFiles(folderId, pageToken));
+    return files
+      .filter((file) => file.name.toLocaleLowerCase().endsWith('.md'))
+      .map((file) => toVaultFile(file, folderId, parentPath));
+  }
+
+  private async collectPages(
+    listPage: (pageToken?: string) => Promise<{ files: GoogleDriveFile[]; nextPageToken?: string }>
+  ) {
     const files: GoogleDriveFile[] = [];
     let pageToken: string | undefined;
 
     do {
-      const page = await this.drive.listChildren(folderId, pageToken);
+      const page = await listPage(pageToken);
       files.push(...page.files);
       pageToken = page.nextPageToken;
     } while (pageToken);
 
-    return files
-      .filter((file) => file.mimeType === folderMimeType || file.name.endsWith('.md'))
-      .map((file) => toVaultItem(file, folderId));
+    return files;
   }
 
   async readFile(fileId: string) {
@@ -62,25 +76,26 @@ export class DriveVaultAdapter {
   async createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile> {
     await this.assertNameAvailable(parentFolderId, name);
     const file = await this.drive.createTextFile(parentFolderId, name, content);
-    const entry = toVaultItem(file, parentFolderId);
-    if (entry.kind !== 'markdown') {
+    if (!file.name.toLocaleLowerCase().endsWith('.md')) {
       throw new VaultError('NetworkFailed', `Created file is not markdown: ${name}`);
     }
-    return entry;
+    return toVaultFile(file, parentFolderId, '');
   }
 
   async createFolder(parentFolderId: string, name: string): Promise<VaultFolder> {
     await this.assertNameAvailable(parentFolderId, name);
     const folder = await this.drive.createFolder(parentFolderId, name);
-    const entry = toVaultItem(folder, parentFolderId);
-    if (entry.kind !== 'folder') {
+    if (folder.mimeType !== folderMimeType) {
       throw new VaultError('NetworkFailed', `Created folder is not a folder: ${name}`);
     }
-    return entry;
+    return toVaultFolder(folder, parentFolderId, '');
   }
 
   private async assertNameAvailable(parentFolderId: string, name: string) {
-    const children = await this.listChildren(parentFolderId);
+    const children = [
+      ...(await this.listFolders(parentFolderId)),
+      ...(await this.listMarkdownFiles(parentFolderId))
+    ];
     if (children.some((child) => child.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
       throw new VaultError('DuplicateName', `Name already exists in this folder: ${name}`);
     }
@@ -104,27 +119,31 @@ export class DriveVaultAdapter {
   }
 }
 
-function toVaultItem(file: GoogleDriveFile, parentId: string): VaultEntry {
-  if (file.mimeType === folderMimeType) {
-    return {
-      id: file.id,
-      name: file.name,
-      path: file.name,
-      parentId,
-      kind: 'folder',
-      mimeType: file.mimeType,
-      modifiedTime: file.modifiedTime
-    };
-  }
+function toVaultFolder(file: GoogleDriveFile, parentId: string, parentPath: string): VaultFolder {
+  return {
+    id: file.id,
+    name: file.name,
+    path: entryPath(parentPath, file.name),
+    parentId,
+    kind: 'folder',
+    mimeType: file.mimeType,
+    modifiedTime: file.modifiedTime
+  };
+}
 
+function toVaultFile(file: GoogleDriveFile, parentId: string, parentPath: string): VaultFile {
   return {
     id: file.id,
     name: file.name,
     title: file.name.replace(/\.md$/i, ''),
-    path: file.name,
+    path: entryPath(parentPath, file.name),
     parentId,
     kind: 'markdown',
     mimeType: file.mimeType,
     modifiedTime: file.modifiedTime
   };
+}
+
+function entryPath(parentPath: string, name: string) {
+  return parentPath ? `${parentPath}/${name}` : name;
 }
