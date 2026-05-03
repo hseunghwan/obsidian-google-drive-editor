@@ -7,10 +7,41 @@ import {
   assertManifestReady,
   createZipArchive,
   listPackageFiles,
-  oauthClientIdPlaceholder
+  loadLocalEnv,
+  oauthClientIdPlaceholder,
+  parseEnvFile
 } from './packageChromeExtension.mjs';
 
 describe('packageChromeExtension', () => {
+  it('reads the Chrome OAuth client id from .env.local', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'chrome-package-env-'));
+    try {
+      await writeFile(
+        join(root, '.env.local'),
+        'VITE_GOOGLE_OAUTH_CLIENT_ID=local-client-id.apps.googleusercontent.com\n'
+      );
+
+      await expect(loadLocalEnv(root)).resolves.toMatchObject({
+        VITE_GOOGLE_OAUTH_CLIENT_ID: 'local-client-id.apps.googleusercontent.com'
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('parses quoted and commented .env.local values', () => {
+    expect(
+      parseEnvFile(`
+        # local Chrome extension OAuth config
+        export VITE_GOOGLE_OAUTH_CLIENT_ID="quoted-client-id.apps.googleusercontent.com"
+        IGNORED=value # trailing comment
+      `)
+    ).toMatchObject({
+      VITE_GOOGLE_OAUTH_CLIENT_ID: 'quoted-client-id.apps.googleusercontent.com',
+      IGNORED: 'value'
+    });
+  });
+
   it('fails when the manifest still has the OAuth placeholder', () => {
     expect(() =>
       assertManifestReady({

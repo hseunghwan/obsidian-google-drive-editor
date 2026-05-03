@@ -61,10 +61,10 @@ npm run build
 Workspace Marketplace 등록 없이 Chrome 확장으로 먼저 배포할 때는 Chrome Web Store에 `release/*.zip` 파일을 업로드합니다.
 
 ```bash
-VITE_GOOGLE_OAUTH_CLIENT_ID=<Chrome Extension OAuth client id> npm run package:chrome
+npm run package:chrome
 ```
 
-이 명령은 `npm run build`를 먼저 실행한 뒤 `dist/manifest.json`에 실제 OAuth client id가 들어갔는지 확인하고, 업로드용 zip을 `release/` 아래에 생성합니다. OAuth client id placeholder가 남아 있으면 패키징을 중단합니다.
+이 명령은 `.env.local`의 `VITE_GOOGLE_OAUTH_CLIENT_ID`를 읽어 `npm run build`를 실행한 뒤, `dist/manifest.json`에 실제 OAuth client id가 들어갔는지 확인하고 업로드용 zip을 `release/` 아래에 생성합니다. OAuth client id placeholder가 남아 있으면 패키징을 중단합니다.
 
 Chrome Web Store 제출 전에는 다음 항목을 준비하세요.
 

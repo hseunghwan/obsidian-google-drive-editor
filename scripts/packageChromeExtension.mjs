@@ -1,11 +1,24 @@
+import { spawnSync } from 'node:child_process';
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { deflateRawSync } from 'node:zlib';
 
 export const oauthClientIdPlaceholder = 'REPLACE_WITH_CHROME_EXTENSION_OAUTH_CLIENT_ID';
+const oauthClientIdEnvName = 'VITE_GOOGLE_OAUTH_CLIENT_ID';
 
-export async function packageChromeExtension(projectRoot) {
+export async function packageChromeExtension(projectRoot, options = {}) {
   const root = resolve(projectRoot);
+  const localEnv = await loadLocalEnv(root);
+  const buildEnv = { ...process.env, ...localEnv };
+  const oauthClientId = buildEnv[oauthClientIdEnvName]?.trim();
+  if (!oauthClientId) {
+    throw new Error(`Set ${oauthClientIdEnvName} in .env.local before running npm run package:chrome.`);
+  }
+
+  if (options.build !== false) {
+    runBuild(root, buildEnv);
+  }
+
   const packageJson = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
   const distDir = join(root, 'dist');
   const manifest = JSON.parse(await readFile(join(distDir, 'manifest.json'), 'utf8'));
@@ -29,6 +42,35 @@ export async function packageChromeExtension(projectRoot) {
   console.log(`Chrome extension package created: ${relative(root, zipPath)}`);
 }
 
+export async function loadLocalEnv(projectRoot) {
+  try {
+    return parseEnvFile(await readFile(join(projectRoot, '.env.local'), 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return {};
+    }
+    throw error;
+  }
+}
+
+export function parseEnvFile(content) {
+  const values = {};
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) {
+      continue;
+    }
+
+    const match = trimmed.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match) {
+      continue;
+    }
+
+    values[match[1]] = parseEnvValue(match[2].trim());
+  }
+  return values;
+}
+
 export function assertManifestReady(manifest) {
   if (manifest.manifest_version !== 3) {
     throw new Error('Chrome Web Store package requires Manifest V3.');
@@ -40,6 +82,31 @@ export function assertManifestReady(manifest) {
       'OAuth client id is still a placeholder. Set VITE_GOOGLE_OAUTH_CLIENT_ID and run npm run build before packaging.'
     );
   }
+}
+
+function runBuild(projectRoot, env) {
+  const result = spawnSync('npm', ['run', 'build'], {
+    cwd: projectRoot,
+    env,
+    stdio: 'inherit'
+  });
+
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(`npm run build failed with exit code ${result.status ?? 'unknown'}.`);
+  }
+}
+
+function parseEnvValue(value) {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    return value.slice(1, -1);
+  }
+  return value.replace(/\s+#.*$/, '');
 }
 
 export async function listPackageFiles(rootDir) {

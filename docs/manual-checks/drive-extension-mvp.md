@@ -28,7 +28,7 @@
 
 ## Chrome Web Store package checks
 
-1. Set `VITE_GOOGLE_OAUTH_CLIENT_ID=<Chrome Extension OAuth client id>`.
+1. Set `VITE_GOOGLE_OAUTH_CLIENT_ID=<Chrome Extension OAuth client id>` in `.env.local`.
 2. Run `npm run package:chrome`.
 3. Confirm the command creates `release/obsidian-google-drive-editor-0.1.0-chrome.zip`.
 4. Confirm `dist/manifest.json` contains the real OAuth client id and no `REPLACE_WITH` placeholder.
