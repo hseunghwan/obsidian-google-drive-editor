@@ -462,6 +462,18 @@ select:focus-visible {
   gap: 1px;
 }
 
+.sidebar-folder-children {
+  display: grid;
+  gap: 1px;
+  margin-left: 13px;
+  padding-left: 8px;
+  border-left: 1px solid var(--divider);
+}
+
+.sidebar-folder-children .sidebar-folder-children {
+  margin-left: 12px;
+}
+
 .sidebar-folder-row {
   display: grid;
   width: 100%;
@@ -484,7 +496,7 @@ button.sidebar-folder-row:hover {
 
 .sidebar-folder-loading {
   margin: 0;
-  padding: 0 8px 5px 42px;
+  padding: 0 8px 5px 6px;
   color: var(--text-faint);
   font-size: 12px;
 }
@@ -505,10 +517,6 @@ button.sidebar-folder-row:hover {
   color: var(--text-secondary);
   background: transparent;
   text-align: left;
-}
-
-.sidebar-item[data-nested='true'] {
-  padding-left: 22px;
 }
 
 .sidebar-item .icon {

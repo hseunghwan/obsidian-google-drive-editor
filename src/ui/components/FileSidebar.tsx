@@ -72,6 +72,7 @@ export function FileSidebar({
           ? renderSearchTree(fileTree, activeFileId, onOpen)
           : renderEntryChildren({
               parentId: rootId,
+              depth: 0,
               childrenByParentId,
               expandedFolderIds,
               loadingFolderIds,
@@ -100,16 +101,16 @@ export function FileSidebar({
 
 interface SidebarFileButtonProps {
   activeFileId?: string;
+  depth: number;
   file: VaultFile;
-  nested?: boolean;
   onOpen(file: VaultFile): void;
 }
 
-function SidebarFileButton({ activeFileId, file, nested = false, onOpen }: SidebarFileButtonProps) {
+function SidebarFileButton({ activeFileId, depth, file, onOpen }: SidebarFileButtonProps) {
   return (
     <button
       className={file.id === activeFileId ? 'sidebar-item active' : 'sidebar-item'}
-      data-nested={nested}
+      data-depth={depth}
       type="button"
       onClick={() => onOpen(file)}
     >
@@ -121,16 +122,18 @@ function SidebarFileButton({ activeFileId, file, nested = false, onOpen }: Sideb
 }
 
 interface SidebarFolderButtonProps {
+  depth: number;
   folder: VaultFolder;
   expanded: boolean;
   onToggleFolder(folder: VaultFolder): void;
 }
 
-function SidebarFolderButton({ folder, expanded, onToggleFolder }: SidebarFolderButtonProps) {
+function SidebarFolderButton({ depth, folder, expanded, onToggleFolder }: SidebarFolderButtonProps) {
   return (
     <button
       aria-expanded={expanded}
       className="sidebar-folder-row"
+      data-depth={depth}
       type="button"
       onClick={() => onToggleFolder(folder)}
     >
@@ -143,6 +146,7 @@ function SidebarFolderButton({ folder, expanded, onToggleFolder }: SidebarFolder
 
 interface RenderEntryChildrenOptions {
   parentId: string;
+  depth: number;
   childrenByParentId: Map<string | null, VaultEntry[]>;
   expandedFolderIds: Set<string>;
   loadingFolderIds: Set<string>;
@@ -154,6 +158,7 @@ interface RenderEntryChildrenOptions {
 
 function renderEntryChildren({
   parentId,
+  depth,
   childrenByParentId,
   expandedFolderIds,
   loadingFolderIds,
@@ -169,35 +174,42 @@ function renderEntryChildren({
       return (
         <SidebarFileButton
           activeFileId={activeFileId}
+          depth={depth}
           file={entry}
           key={entry.id}
-          nested={entry.parentId !== parentId}
           onOpen={onOpen}
         />
       );
     }
 
     const expanded = expandedFolderIds.has(entry.id);
+    const loading = loadingFolderIds.has(entry.id);
     return (
       <div className="sidebar-folder" key={entry.id}>
         <SidebarFolderButton
+          depth={depth}
           expanded={expanded}
           folder={entry}
           onToggleFolder={onToggleFolder}
         />
-        {loadingFolderIds.has(entry.id) ? <p className="sidebar-folder-loading">{loadingMessage}</p> : null}
-        {expanded
-          ? renderEntryChildren({
-              parentId: entry.id,
-              childrenByParentId,
-              expandedFolderIds,
-              loadingFolderIds,
-              loadingMessage,
-              activeFileId,
-              onOpen,
-              onToggleFolder
-            })
-          : null}
+        {loading || expanded ? (
+          <div className="sidebar-folder-children" data-depth={depth + 1}>
+            {loading ? <p className="sidebar-folder-loading">{loadingMessage}</p> : null}
+            {expanded
+              ? renderEntryChildren({
+                  parentId: entry.id,
+                  depth: depth + 1,
+                  childrenByParentId,
+                  expandedFolderIds,
+                  loadingFolderIds,
+                  loadingMessage,
+                  activeFileId,
+                  onOpen,
+                  onToggleFolder
+                })
+              : null}
+          </div>
+        ) : null}
       </div>
     );
   });
@@ -207,18 +219,20 @@ function renderSearchTree(fileTree: FileTree, activeFileId: string | undefined, 
   return (
     <>
       {fileTree.rootFiles.map((file) => (
-        <SidebarFileButton activeFileId={activeFileId} file={file} key={file.id} onOpen={onOpen} />
+        <SidebarFileButton activeFileId={activeFileId} depth={0} file={file} key={file.id} onOpen={onOpen} />
       ))}
       {fileTree.folders.map((folder) => (
         <div className="sidebar-folder" key={folder.path}>
-          <div className="sidebar-folder-row">
+          <div className="sidebar-folder-row" data-depth={0}>
             <Icon name="chevron-down" />
             <Icon name="folder" />
             <span>{folder.path}</span>
           </div>
-          {folder.files.map((file) => (
-            <SidebarFileButton activeFileId={activeFileId} file={file} key={file.id} nested onOpen={onOpen} />
-          ))}
+          <div className="sidebar-folder-children" data-depth={1}>
+            {folder.files.map((file) => (
+              <SidebarFileButton activeFileId={activeFileId} depth={1} file={file} key={file.id} onOpen={onOpen} />
+            ))}
+          </div>
         </div>
       ))}
     </>
