@@ -8,9 +8,10 @@ import { Icon } from './Icon';
 interface SettingsDialogProps {
   open: boolean;
   onClose(): void;
+  onSwitchGoogleAccount?(): void;
 }
 
-export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
+export function SettingsDialog({ open, onClose, onSwitchGoogleAccount }: SettingsDialogProps) {
   const { locale, setLocale, t } = useI18n();
   const { theme, setTheme } = useTheme();
 
@@ -69,6 +70,18 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                 <option value="light">{t('theme.light')}</option>
               </select>
             </label>
+            {onSwitchGoogleAccount ? (
+              <div className="setting-row">
+                <span className="setting-copy">
+                  <span className="setting-title">{t('settings.googleAccount')}</span>
+                  <span className="setting-helper">{t('settings.googleAccountHelp')}</span>
+                </span>
+                <button className="settings-action-button" type="button" onClick={onSwitchGoogleAccount}>
+                  <Icon name="refresh-cw" />
+                  {t('settings.switchGoogleAccount')}
+                </button>
+              </div>
+            ) : null}
           </section>
         </div>
       </section>

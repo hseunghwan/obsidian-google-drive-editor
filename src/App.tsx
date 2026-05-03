@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { loadDriveWorkspace, type DriveWorkspace } from './app/driveWorkspaceLoader';
+import { clearStoredVaultRoot, readStoredVaultRoot, writeStoredVaultRoot } from './app/vaultConnectionStore';
+import type { VaultRoot } from './domain/vault/types';
 import { I18nProvider, useI18n } from './i18n/I18nProvider';
 import { ChromeIdentityAuthClient } from './integrations/google/googleAuth';
 import { HttpGoogleDriveClient } from './integrations/google/httpGoogleDriveClient';
@@ -26,32 +28,87 @@ function AppContent() {
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreDriveConnection() {
+      const storedRoot = await readStoredVaultRoot();
+      if (!storedRoot) {
+        return;
+      }
+
+      setConnecting(true);
+      try {
+        const nextWorkspace = await openDriveWorkspace(storedRoot);
+        if (!cancelled) {
+          setWorkspace(nextWorkspace);
+          setError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setWorkspace(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setConnecting(false);
+        }
+      }
+    }
+
+    void restoreDriveConnection();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function openDriveWorkspace(savedRoot?: VaultRoot) {
+    const nextWorkspace = await loadDriveWorkspace({
+      auth: new ChromeIdentityAuthClient(t('errors.chromeIdentityUnavailable')),
+      picker: new BrowserGooglePickerClient({
+        title: t('picker.title'),
+        rootName: t('picker.rootName'),
+        back: t('picker.back'),
+        close: t('picker.close'),
+        selectCurrent: t('picker.selectCurrent'),
+        selectFolder: t('picker.selectFolder'),
+        openFolder: t('picker.openFolder'),
+        loading: t('picker.loading'),
+        empty: t('picker.empty'),
+        cancelledMessage: t('picker.cancelled'),
+        loadFailedMessage: t('picker.loadFailed')
+      }),
+      createDriveClient: (accessToken) => new HttpGoogleDriveClient(accessToken),
+      drafts: new IndexedDbDraftStore(),
+      savedRoot
+    });
+    await writeStoredVaultRoot(nextWorkspace.root);
+    return nextWorkspace;
+  }
+
   async function connectDrive() {
     setConnecting(true);
     setError(null);
     try {
-      const nextWorkspace = await loadDriveWorkspace({
-        auth: new ChromeIdentityAuthClient(t('errors.chromeIdentityUnavailable')),
-        picker: new BrowserGooglePickerClient({
-          title: t('picker.title'),
-          rootName: t('picker.rootName'),
-          back: t('picker.back'),
-          close: t('picker.close'),
-          selectCurrent: t('picker.selectCurrent'),
-          selectFolder: t('picker.selectFolder'),
-          openFolder: t('picker.openFolder'),
-          loading: t('picker.loading'),
-          empty: t('picker.empty'),
-          cancelledMessage: t('picker.cancelled'),
-          loadFailedMessage: t('picker.loadFailed')
-        }),
-        createDriveClient: (accessToken) => new HttpGoogleDriveClient(accessToken),
-        drafts: new IndexedDbDraftStore()
-      });
+      const nextWorkspace = await openDriveWorkspace();
       setWorkspace(nextWorkspace);
       setError(null);
     } catch (connectError) {
       setError(connectError instanceof Error ? connectError.message : t('errors.driveConnectFailed'));
+    } finally {
+      setConnecting(false);
+    }
+  }
+
+  async function switchGoogleAccount() {
+    setConnecting(true);
+    setError(null);
+    try {
+      await new ChromeIdentityAuthClient(t('errors.chromeIdentityUnavailable')).clearCachedAccessToken();
+      await clearStoredVaultRoot();
+      setWorkspace(null);
+    } catch (switchError) {
+      setError(switchError instanceof Error ? switchError.message : t('errors.driveConnectFailed'));
     } finally {
       setConnecting(false);
     }
@@ -130,6 +187,7 @@ See [[Project Note]].`,
       saveDocument={workspace.saveDocument}
       createFile={workspace.createFile}
       createFolder={workspace.createFolder}
+      onSwitchGoogleAccount={() => void switchGoogleAccount()}
     />
   );
 }
