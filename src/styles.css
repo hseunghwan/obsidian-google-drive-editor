@@ -742,15 +742,69 @@ button.sidebar-folder-row:hover {
 }
 
 .editor-pane .cm-tooltip {
+  overflow: hidden;
   border: 1px solid var(--control-border);
-  background: var(--panel-bg-raised);
+  border-radius: 7px;
+  background: #1f1f1f;
   color: var(--text-secondary);
-  box-shadow: 0 10px 26px rgb(0 0 0 / 28%);
+  box-shadow:
+    0 14px 36px rgb(0 0 0 / 36%),
+    inset 0 1px 0 rgb(255 255 255 / 3%);
+}
+
+.editor-pane .cm-tooltip-autocomplete {
+  min-width: 320px;
+  max-width: min(420px, calc(100vw - 24px));
+}
+
+.editor-pane .cm-tooltip-autocomplete ul {
+  max-height: 300px;
+  padding: 4px;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.editor-pane .cm-tooltip-autocomplete ul li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 28px;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.editor-pane .cm-tooltip-autocomplete .cm-completionLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-pane .cm-tooltip-autocomplete .cm-completionDetail {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  margin-left: 0;
+  padding: 1px 7px;
+  border-radius: 5px;
+  color: var(--text-primary);
+  background: #2b2b2b;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 1;
 }
 
 .editor-pane .cm-tooltip-autocomplete ul li[aria-selected] {
-  background: var(--panel-bg-active);
+  background: #3a3a3a;
   color: var(--text-primary);
+}
+
+.editor-pane .cm-tooltip-autocomplete ul li[aria-selected] .cm-completionDetail {
+  background: #303030;
 }
 
 .metadata-panel {
