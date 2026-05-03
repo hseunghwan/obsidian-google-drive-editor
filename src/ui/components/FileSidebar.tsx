@@ -36,9 +36,8 @@ export function FileSidebar({
   onOpenSettings
 }: FileSidebarProps) {
   const { t } = useI18n();
-  const files = markdownEntries(entries);
   const searchActive = Boolean(query.trim());
-  const fileTree = searchActive ? buildFileTree(files) : null;
+  const searchTree = searchActive ? buildSearchTree(entries) : null;
   const childrenByParentId = searchActive ? new Map<string | null, VaultEntry[]>() : groupEntriesByParent(entries);
 
   return (
@@ -68,8 +67,8 @@ export function FileSidebar({
         </div>
       </div>
       <div className="sidebar-tree">
-        {fileTree
-          ? renderSearchTree(fileTree, activeFileId, onOpen)
+        {searchTree
+          ? renderSearchTree(searchTree, activeFileId, onOpen, onToggleFolder)
           : renderEntryChildren({
               parentId: rootId,
               depth: 0,
@@ -82,7 +81,7 @@ export function FileSidebar({
               onToggleFolder
             })}
       </div>
-      {(searchActive ? files.length === 0 : entries.length === 0) ? (
+      {entries.length === 0 ? (
         <p className="sidebar-empty">{t('sidebar.empty')}</p>
       ) : null}
       <div className="sidebar-settings">
@@ -215,13 +214,23 @@ function renderEntryChildren({
   });
 }
 
-function renderSearchTree(fileTree: FileTree, activeFileId: string | undefined, onOpen: (file: VaultFile) => void) {
+function renderSearchTree(
+  fileTree: FileTree,
+  activeFileId: string | undefined,
+  onOpen: (file: VaultFile) => void,
+  onToggleFolder: (folder: VaultFolder) => void
+) {
   return (
     <>
+      {fileTree.folders.map((folder) => (
+        <div className="sidebar-folder" key={folder.id}>
+          <SidebarFolderButton depth={0} expanded={true} folder={folder} onToggleFolder={onToggleFolder} />
+        </div>
+      ))}
       {fileTree.rootFiles.map((file) => (
         <SidebarFileButton activeFileId={activeFileId} depth={0} file={file} key={file.id} onOpen={onOpen} />
       ))}
-      {fileTree.folders.map((folder) => (
+      {fileTree.fileGroups.map((folder) => (
         <div className="sidebar-folder" key={folder.path}>
           <div className="sidebar-folder-row" data-depth={0}>
             <Icon name="chevron-down" />
@@ -240,18 +249,22 @@ function renderSearchTree(fileTree: FileTree, activeFileId: string | undefined, 
 }
 
 interface FileTree {
+  folders: VaultFolder[];
   rootFiles: VaultFile[];
-  folders: Array<{
+  fileGroups: Array<{
     path: string;
     files: VaultFile[];
   }>;
 }
 
-function buildFileTree(files: VaultFile[]): FileTree {
-  const folders = new Map<string, VaultFile[]>();
+function buildSearchTree(entries: VaultEntry[]): FileTree {
+  const fileGroups = new Map<string, VaultFile[]>();
   const rootFiles: VaultFile[] = [];
+  const folders = entries
+    .filter((entry): entry is VaultFolder => entry.kind === 'folder')
+    .sort((left, right) => left.path.localeCompare(right.path));
 
-  for (const file of files) {
+  for (const file of markdownEntries(entries)) {
     const pathParts = file.path.split('/');
     if (pathParts.length === 1) {
       rootFiles.push(file);
@@ -259,12 +272,13 @@ function buildFileTree(files: VaultFile[]): FileTree {
     }
 
     const folderPath = pathParts.slice(0, -1).join('/');
-    folders.set(folderPath, [...(folders.get(folderPath) ?? []), file]);
+    fileGroups.set(folderPath, [...(fileGroups.get(folderPath) ?? []), file]);
   }
 
   return {
+    folders,
     rootFiles,
-    folders: Array.from(folders.entries())
+    fileGroups: Array.from(fileGroups.entries())
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([path, folderFiles]) => ({
         path,

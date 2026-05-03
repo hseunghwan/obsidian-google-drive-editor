@@ -8,6 +8,7 @@ describe('loadDriveWorkspace', () => {
     const drive = {
       listFolders: vi.fn().mockResolvedValue({ files: [] }),
       listMarkdownFiles: vi.fn().mockResolvedValue({ files: [] }),
+      searchByName: vi.fn().mockResolvedValue({ files: [] }),
       downloadText: vi.fn().mockResolvedValue('# Remote'),
       updateText: vi.fn(),
       createTextFile: vi.fn(),
@@ -58,6 +59,7 @@ describe('loadDriveWorkspace', () => {
             }
           ]
         }),
+        searchByName: vi.fn().mockResolvedValue({ files: [] }),
         downloadText: vi.fn().mockResolvedValue('# Remote'),
         updateText: vi.fn(),
         createTextFile: vi.fn(),

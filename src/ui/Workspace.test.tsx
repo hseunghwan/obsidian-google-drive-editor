@@ -39,6 +39,7 @@ function renderWorkspace() {
       entries={[fixtureFolder, ...fixtureFiles]}
       loadFolders={async () => []}
       loadMarkdownFiles={async () => []}
+      searchEntries={async () => []}
       loadFile={async (file) => ({
         file,
         content: `---
@@ -95,6 +96,7 @@ describe('Workspace', () => {
         entries={[]}
         loadFolders={loadFolders}
         loadMarkdownFiles={loadMarkdownFiles}
+        searchEntries={async () => []}
         loadFile={async (file) => ({
           file,
           content: '# Home',
@@ -136,6 +138,7 @@ describe('Workspace', () => {
         entries={[]}
         loadFolders={loadFolders}
         loadMarkdownFiles={loadMarkdownFiles}
+        searchEntries={async () => []}
         loadFile={async (file) => ({
           file,
           content: '# Project Note',
@@ -171,6 +174,56 @@ describe('Workspace', () => {
     expect(screen.queryByRole('button', { name: /Home/ })).not.toBeInTheDocument();
   });
 
+  it('searches Drive for unloaded folder and markdown names', async () => {
+    const user = userEvent.setup();
+    const searchEntries = vi.fn().mockResolvedValue([
+      {
+        id: 'folder-archive',
+        name: 'Archive',
+        path: 'Archive',
+        parentId: fixtureVaultRoot.id,
+        kind: 'folder',
+        mimeType: 'application/vnd.google-apps.folder',
+        modifiedTime: '2026-05-03T00:14:00.000Z'
+      },
+      {
+        id: 'file-archive-project',
+        name: 'Archive Project.md',
+        title: 'Archive Project',
+        path: 'Archive/Archive Project.md',
+        parentId: 'folder-archive',
+        kind: 'markdown',
+        mimeType: 'text/markdown',
+        modifiedTime: '2026-05-03T00:15:00.000Z'
+      }
+    ]);
+
+    render(
+      <Workspace
+        root={fixtureVaultRoot}
+        entries={[fixtureFiles[0]]}
+        loadFolders={async () => []}
+        loadMarkdownFiles={async () => []}
+        searchEntries={searchEntries}
+        loadFile={async (file) => ({
+          file,
+          content: '# Archive Project',
+          baselineModifiedTime: file.modifiedTime
+        })}
+        saveDocument={saveDocument}
+        createFile={createFile}
+        createFolder={createFolder}
+      />
+    );
+
+    await user.type(screen.getByRole('searchbox', { name: 'Vault 파일 검색' }), 'archive');
+
+    expect(searchEntries).toHaveBeenCalledWith(fixtureVaultRoot.id, 'archive');
+    expect(await screen.findByRole('button', { name: /^Archive$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Archive Project/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Home/ })).not.toBeInTheDocument();
+  });
+
   it('creates a markdown file from the sidebar', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'prompt').mockReturnValue('New Note');
@@ -202,6 +255,7 @@ describe('Workspace', () => {
         entries={[fixtureFolder, ...fixtureFiles]}
         loadFolders={async () => []}
         loadMarkdownFiles={async () => []}
+        searchEntries={async () => []}
         loadFile={async (file) => ({
           file,
           content: '# Home',
@@ -236,6 +290,7 @@ describe('Workspace', () => {
         entries={[]}
         loadFolders={async () => []}
         loadMarkdownFiles={async () => []}
+        searchEntries={async () => []}
         loadFile={vi.fn()}
         saveDocument={saveDocument}
         createFile={createFile}

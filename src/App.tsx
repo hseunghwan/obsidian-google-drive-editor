@@ -63,6 +63,7 @@ function AppContent() {
       entries: [fixtureFolder, ...fixtureFiles],
       loadFolders: async () => [],
       loadMarkdownFiles: async () => [],
+      searchEntries: async () => [],
       loadFile: async (file) => ({
         file,
         content: `---
@@ -124,6 +125,7 @@ See [[Project Note]].`,
       entries={workspace.entries}
       loadFolders={workspace.loadFolders}
       loadMarkdownFiles={workspace.loadMarkdownFiles}
+      searchEntries={workspace.searchEntries}
       loadFile={workspace.loadFile}
       saveDocument={workspace.saveDocument}
       createFile={workspace.createFile}

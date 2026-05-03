@@ -9,6 +9,7 @@ function client(overrides: Partial<GoogleDriveClient> = {}): GoogleDriveClient {
   return {
     listFolders: vi.fn().mockResolvedValue({ files: [] }),
     listMarkdownFiles: vi.fn().mockResolvedValue({ files: [] }),
+    searchByName: vi.fn().mockResolvedValue({ files: [] }),
     downloadText: vi.fn().mockResolvedValue(''),
     updateText: vi.fn().mockResolvedValue({
       id: 'file-home',
@@ -203,6 +204,83 @@ describe('DriveVaultAdapter', () => {
     await expect(adapter.createFile('root', 'Home.md', '# Home')).rejects.toMatchObject({
       code: 'DuplicateName'
     });
+  });
+
+  it('searches unloaded Drive descendants for folders and markdown file names', async () => {
+    const drive = client({
+      searchByName: vi.fn().mockResolvedValue({
+        files: [
+          {
+            id: 'folder-projects',
+            name: 'Projects',
+            mimeType: 'application/vnd.google-apps.folder',
+            modifiedTime: '2026-05-03T00:01:00.000Z',
+            parents: ['root']
+          },
+          {
+            id: 'file-plan',
+            name: 'Project Plan.md',
+            mimeType: 'text/markdown',
+            modifiedTime: '2026-05-03T00:02:00.000Z',
+            parents: ['folder-projects']
+          },
+          {
+            id: 'file-outside',
+            name: 'Project Outside.md',
+            mimeType: 'text/markdown',
+            modifiedTime: '2026-05-03T00:03:00.000Z',
+            parents: ['other-root']
+          }
+        ]
+      }),
+      getMetadata: vi.fn(async (fileId: string) => {
+        const metadata = {
+          root: {
+            id: 'root',
+            name: 'Vault',
+            mimeType: 'application/vnd.google-apps.folder',
+            modifiedTime: '2026-05-03T00:00:00.000Z'
+          },
+          'folder-projects': {
+            id: 'folder-projects',
+            name: 'Projects',
+            mimeType: 'application/vnd.google-apps.folder',
+            modifiedTime: '2026-05-03T00:01:00.000Z',
+            parents: ['root']
+          },
+          'other-root': {
+            id: 'other-root',
+            name: 'Other',
+            mimeType: 'application/vnd.google-apps.folder',
+            modifiedTime: '2026-05-03T00:04:00.000Z'
+          }
+        };
+        return metadata[fileId as keyof typeof metadata];
+      })
+    });
+    const adapter = new DriveVaultAdapter(drive, new IndexedDbDraftStore('adapter-search'));
+
+    await expect(adapter.searchEntries('root', 'project')).resolves.toEqual([
+      {
+        id: 'folder-projects',
+        name: 'Projects',
+        path: 'Projects',
+        parentId: 'root',
+        kind: 'folder',
+        mimeType: 'application/vnd.google-apps.folder',
+        modifiedTime: '2026-05-03T00:01:00.000Z'
+      },
+      {
+        id: 'file-plan',
+        name: 'Project Plan.md',
+        title: 'Project Plan',
+        path: 'Projects/Project Plan.md',
+        parentId: 'folder-projects',
+        kind: 'markdown',
+        mimeType: 'text/markdown',
+        modifiedTime: '2026-05-03T00:02:00.000Z'
+      }
+    ]);
   });
 });
 

@@ -18,6 +18,7 @@ interface WorkspaceProps {
   entries: VaultEntry[];
   loadFolders(parentFolderId: string, parentPath: string): Promise<VaultFolder[]>;
   loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
+  searchEntries(rootFolderId: string, query: string): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
@@ -31,6 +32,7 @@ export function Workspace({
   entries,
   loadFolders,
   loadMarkdownFiles,
+  searchEntries,
   loadFile,
   saveDocument,
   createFile,
@@ -45,6 +47,7 @@ export function Workspace({
   const [loadingFolderIds, setLoadingFolderIds] = useState<Set<string>>(() => new Set());
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(() => new Set([root.id]));
   const [query, setQuery] = useState('');
+  const [driveSearchEntries, setDriveSearchEntries] = useState<VaultEntry[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() => matchesMedia('(min-width: 721px)', true));
@@ -55,6 +58,7 @@ export function Workspace({
     setLoadedFolderIds(new Set());
     setLoadingFolderIds(new Set());
     setExpandedFolderIds(new Set([root.id]));
+    setDriveSearchEntries([]);
   }, [entries, root.id]);
 
   useEffect(() => {
@@ -69,22 +73,29 @@ export function Workspace({
     return vaultIndex;
   }, [workspaceFiles]);
 
+  const visibleEntries = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    if (!normalizedQuery) {
+      return workspaceEntries;
+    }
+    const visibleFileIds = new Set(index.searchFiles(normalizedQuery).map((file) => file.id));
+    const localEntries = workspaceEntries.filter((entry) => {
+      if (entry.kind === 'folder') {
+        return entry.name.toLocaleLowerCase().includes(normalizedQuery) ||
+          entry.path.toLocaleLowerCase().includes(normalizedQuery);
+      }
+      return visibleFileIds.has(entry.id);
+    });
+    return mergeEntries(localEntries, driveSearchEntries);
+  }, [driveSearchEntries, index, query, workspaceEntries]);
+
   const visibleFiles = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
     if (!normalizedQuery) {
       return workspaceFiles;
     }
-    const resultIds = new Set(index.searchFiles(normalizedQuery).map((file) => file.id));
-    return workspaceFiles.filter((file) => resultIds.has(file.id));
-  }, [index, query, workspaceFiles]);
-
-  const visibleEntries = useMemo(() => {
-    if (!query.trim()) {
-      return workspaceEntries;
-    }
-    const visibleFileIds = new Set(visibleFiles.map((file) => file.id));
-    return workspaceEntries.filter((entry) => entry.kind === 'markdown' && visibleFileIds.has(entry.id));
-  }, [query, visibleFiles, workspaceEntries]);
+    return markdownEntries(visibleEntries);
+  }, [query, visibleEntries, workspaceFiles]);
 
   const activeDocument = state.activeDocument;
 
@@ -110,6 +121,7 @@ export function Workspace({
   }
 
   function toggleFolder(folder: VaultFolder) {
+    setWorkspaceEntries((current) => mergeEntries(current, [folder]));
     const expanded = expandedFolderIds.has(folder.id);
     setExpandedFolderIds((current) =>
       expanded ? removeSetValue(current, folder.id) : addSetValue(current, folder.id)
@@ -121,14 +133,42 @@ export function Workspace({
   }
 
   async function openFile(file: VaultFile) {
+    setWorkspaceEntries((current) => mergeEntries(current, [file]));
     const document = await loadFile(file);
     dispatch({
       type: 'documentOpened',
       root,
-      files: workspaceFiles,
+      files: mergeEntries(workspaceFiles, [file]).filter((entry): entry is VaultFile => entry.kind === 'markdown'),
       document
     });
   }
+
+  useEffect(() => {
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) {
+      setDriveSearchEntries((current) => (current.length === 0 ? current : []));
+      return;
+    }
+
+    let cancelled = false;
+    searchEntries(root.id, normalizedQuery)
+      .then((entries) => {
+        if (!cancelled) {
+          setDriveSearchEntries(entries);
+          setNotice(null);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setDriveSearchEntries([]);
+          setNotice(error instanceof Error ? error.message : t('errors.driveConnectFailed'));
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [query, root.id, searchEntries, t]);
 
   async function saveDocumentWithState(document: OpenDocument) {
     dispatch({ type: 'saveStarted' });

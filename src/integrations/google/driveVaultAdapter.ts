@@ -1,5 +1,5 @@
 import { isVaultError, VaultError } from '../../domain/vault/errors';
-import type { SaveResult, VaultFile, VaultFolder } from '../../domain/vault/types';
+import type { SaveResult, VaultEntry, VaultFile, VaultFolder } from '../../domain/vault/types';
 import type { DraftStore } from '../../storage/draftStore';
 import type { GoogleDriveClient, GoogleDriveFile } from './googleDriveClient';
 
@@ -23,6 +23,24 @@ export class DriveVaultAdapter {
     return files
       .filter((file) => file.name.toLocaleLowerCase().endsWith('.md'))
       .map((file) => toVaultFile(file, folderId, parentPath));
+  }
+
+  async searchEntries(rootFolderId: string, query: string): Promise<VaultEntry[]> {
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) {
+      return [];
+    }
+
+    const files = await this.collectPages((pageToken) => this.drive.searchByName(normalizedQuery, pageToken));
+    const entries = await Promise.all(
+      files
+        .filter((file) => isFolder(file) || isMarkdownFile(file))
+        .map((file) => this.toRootDescendantEntry(rootFolderId, file))
+    );
+
+    return entries
+      .filter((entry): entry is VaultEntry => Boolean(entry))
+      .sort(compareEntries);
   }
 
   private async collectPages(
@@ -117,6 +135,48 @@ export class DriveVaultAdapter {
       reason
     });
   }
+
+  private async toRootDescendantEntry(rootFolderId: string, file: GoogleDriveFile): Promise<VaultEntry | null> {
+    const parentId = file.parents?.[0] ?? null;
+    if (!parentId) {
+      return null;
+    }
+
+    const ancestors = await this.collectAncestors(rootFolderId, parentId);
+    if (!ancestors) {
+      return null;
+    }
+
+    const parentPath = ancestors.map((ancestor) => ancestor.name).join('/');
+    return isFolder(file)
+      ? toVaultFolder(file, parentId, parentPath)
+      : toVaultFile(file, parentId, parentPath);
+  }
+
+  private async collectAncestors(rootFolderId: string, parentId: string): Promise<GoogleDriveFile[] | null> {
+    if (parentId === rootFolderId) {
+      return [];
+    }
+
+    const ancestors: GoogleDriveFile[] = [];
+    let currentId: string | undefined = parentId;
+
+    while (currentId && currentId !== rootFolderId) {
+      const parent = await this.drive.getMetadata(currentId);
+      ancestors.unshift(parent);
+      currentId = parent.parents?.[0];
+    }
+
+    return currentId === rootFolderId ? ancestors : null;
+  }
+}
+
+function isFolder(file: GoogleDriveFile) {
+  return file.mimeType === folderMimeType;
+}
+
+function isMarkdownFile(file: GoogleDriveFile) {
+  return file.name.toLocaleLowerCase().endsWith('.md');
 }
 
 function toVaultFolder(file: GoogleDriveFile, parentId: string, parentPath: string): VaultFolder {
@@ -146,4 +206,11 @@ function toVaultFile(file: GoogleDriveFile, parentId: string, parentPath: string
 
 function entryPath(parentPath: string, name: string) {
   return parentPath ? `${parentPath}/${name}` : name;
+}
+
+function compareEntries(left: VaultEntry, right: VaultEntry) {
+  if (left.kind !== right.kind) {
+    return left.kind === 'folder' ? -1 : 1;
+  }
+  return left.path.localeCompare(right.path, undefined, { sensitivity: 'base' });
 }
