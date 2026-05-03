@@ -966,6 +966,25 @@ button.sidebar-folder-row:hover {
   background: var(--control-bg);
 }
 
+.settings-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--control-border);
+  color: var(--text-primary);
+  background: var(--control-bg);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.settings-action-button:hover {
+  border-color: var(--settings-accent);
+  color: var(--text-primary);
+}
+
 @media (max-width: 1080px) {
   .workspace.has-sidebar,
   .workspace.has-sidebar.has-metadata {

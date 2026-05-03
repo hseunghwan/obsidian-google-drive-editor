@@ -22,6 +22,7 @@ interface WorkspaceProps {
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
+  onSwitchGoogleAccount?(): void;
   autosaveDelayMs?: number;
   EditorComponent?: ComponentType<MarkdownEditorProps>;
 }
@@ -35,6 +36,7 @@ export function Workspace({
   saveDocument,
   createFile,
   createFolder,
+  onSwitchGoogleAccount,
   autosaveDelayMs = 1200,
   EditorComponent = MarkdownEditor
 }: WorkspaceProps) {
@@ -286,7 +288,7 @@ export function Workspace({
         </main>
         {activeDocument && metadataOpen ? <MetadataPanel content={activeDocument.content} /> : null}
       </div>
-      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} onSwitchGoogleAccount={onSwitchGoogleAccount} />
     </div>
   );
 }

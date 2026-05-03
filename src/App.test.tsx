@@ -3,12 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import App from './App';
+import { vaultConnectionStorageKey } from './app/vaultConnectionStore';
 
 describe('App', () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     Reflect.deleteProperty(globalThis, 'chrome');
+    vi.stubGlobal('localStorage', createMemoryStorage());
     document.documentElement.removeAttribute('data-theme');
   });
 
@@ -52,8 +54,48 @@ describe('App', () => {
     await user.click(await screen.findByRole('button', { name: 'Vault 선택' }));
 
     expect(await screen.findByRole('searchbox', { name: 'Vault 파일 검색' })).toBeInTheDocument();
-    expect(screen.getByText('폴더를 불러오는 중입니다.')).toBeInTheDocument();
+    expect(await screen.findByText('폴더를 불러오는 중입니다.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Google Drive vault 연결' })).not.toBeInTheDocument();
+  });
+
+  it('restores the authenticated Drive vault after a refresh without showing the folder picker', async () => {
+    const getAuthToken = vi.fn().mockResolvedValue({ token: 'cached-access-token' });
+    stubChromeIdentity(getAuthToken);
+    localStorage.setItem(vaultConnectionStorageKey, JSON.stringify({ id: 'vault-folder', name: 'Vault' }));
+    vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise<Response>(() => undefined)));
+
+    render(<App />);
+
+    expect(await screen.findByRole('searchbox', { name: 'Vault 파일 검색' })).toBeInTheDocument();
+    expect(await screen.findByText('폴더를 불러오는 중입니다.')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Google Drive 폴더 선택' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Google Drive vault 연결' })).not.toBeInTheDocument();
+    expect(getAuthToken).toHaveBeenCalledWith({
+      interactive: false,
+      scopes: ['https://www.googleapis.com/auth/drive']
+    });
+  });
+
+  it('switches Google accounts from settings and requires choosing a new vault', async () => {
+    const user = userEvent.setup();
+    const getAuthToken = vi
+      .fn()
+      .mockResolvedValueOnce({ token: 'cached-access-token' })
+      .mockResolvedValueOnce({ token: 'cached-access-token' });
+    const removeCachedAuthToken = vi.fn().mockResolvedValue(undefined);
+    stubChromeIdentity(getAuthToken, removeCachedAuthToken);
+    localStorage.setItem(vaultConnectionStorageKey, JSON.stringify({ id: 'vault-folder', name: 'Vault' }));
+    vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise<Response>(() => undefined)));
+
+    render(<App />);
+
+    await screen.findByRole('searchbox', { name: 'Vault 파일 검색' });
+    await user.click(screen.getByRole('button', { name: '설정' }));
+    await user.click(screen.getByRole('button', { name: '다른 Google 계정으로 전환' }));
+
+    expect(removeCachedAuthToken).toHaveBeenCalledWith({ token: 'cached-access-token' });
+    expect(localStorage.getItem(vaultConnectionStorageKey)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Google Drive vault 연결' })).toBeInTheDocument();
   });
 
   it('switches visible onboarding copy between Korean and English', async () => {
@@ -112,6 +154,37 @@ describe('App', () => {
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
   });
 });
+
+function stubChromeIdentity(getAuthToken: ReturnType<typeof vi.fn>, removeCachedAuthToken = vi.fn()) {
+  vi.stubGlobal('chrome', {
+    identity: {
+      getAuthToken,
+      removeCachedAuthToken
+    },
+    runtime: {
+      getManifest: () => ({
+        oauth2: {
+          client_id: 'valid-client-id.apps.googleusercontent.com'
+        }
+      })
+    }
+  });
+}
+
+function createMemoryStorage(): Storage {
+  const values = new Map<string, string>();
+
+  return {
+    get length() {
+      return values.size;
+    },
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => [...values.keys()][index] ?? null,
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, value)
+  };
+}
 
 function jsonResponse(body: unknown): Response {
   return {

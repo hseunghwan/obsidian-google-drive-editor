@@ -21,11 +21,12 @@ interface LoadDriveWorkspaceDeps {
   picker: GooglePickerClient;
   createDriveClient(accessToken: string): GoogleDriveClient;
   drafts: DraftStore;
+  savedRoot?: VaultRoot;
 }
 
 export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<DriveWorkspace> {
-  const accessToken = await deps.auth.getAccessToken(true);
-  const pickedFolder = await deps.picker.pickVaultFolder(accessToken);
+  const accessToken = await deps.auth.getAccessToken(!deps.savedRoot);
+  const pickedFolder = deps.savedRoot ?? (await deps.picker.pickVaultFolder(accessToken));
   const adapter = new DriveVaultAdapter(deps.createDriveClient(accessToken), deps.drafts);
   const root: VaultRoot = { id: pickedFolder.id, name: pickedFolder.name };
 

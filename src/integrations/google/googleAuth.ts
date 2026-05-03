@@ -30,6 +30,23 @@ export class ChromeIdentityAuthClient implements GoogleAuthClient {
 
     return result.token;
   }
+
+  async clearCachedAccessToken(): Promise<void> {
+    const identity = getChromeIdentity();
+    if (!identity) {
+      throw new Error(this.unavailableMessage);
+    }
+
+    validateOAuthClientId();
+
+    const result = await getAuthToken(identity, false).catch(() => null);
+    if (result?.token && typeof identity.removeCachedAuthToken === 'function') {
+      await identity.removeCachedAuthToken({ token: result.token });
+    }
+    if (typeof identity.clearAllCachedAuthTokens === 'function') {
+      await identity.clearAllCachedAuthTokens();
+    }
+  }
 }
 
 function getChromeIdentity(): typeof chrome.identity | null {
