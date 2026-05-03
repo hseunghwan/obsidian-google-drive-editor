@@ -14,4 +14,11 @@ describe('styles', () => {
     expect(styles).toContain('caret-color: var(--editor-caret)');
     expect(styles).toContain('border-left-color: var(--editor-caret)');
   });
+
+  it('styles the slash command autocomplete popup like a compact command menu', () => {
+    expect(styles).toContain('.editor-pane .cm-tooltip-autocomplete');
+    expect(styles).toContain('grid-template-columns: minmax(0, 1fr) auto');
+    expect(styles).toContain('.editor-pane .cm-tooltip-autocomplete .cm-completionDetail');
+    expect(styles).toContain('.editor-pane .cm-tooltip-autocomplete ul li[aria-selected]');
+  });
 });

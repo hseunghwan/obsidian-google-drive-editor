@@ -56,7 +56,11 @@ const ko = {
   'metadata.properties': '프로퍼티',
   'metadata.tags': '태그',
   'metadata.emptyProperties': '등록된 프로퍼티가 없습니다.',
-  'metadata.invalidFrontmatter': '프로퍼티 YAML 문법 오류가 있습니다.'
+  'metadata.invalidFrontmatter': '프로퍼티 YAML 문법 오류가 있습니다.',
+  'slashCommand.link': '마크다운 링크',
+  'slashCommand.wikilink': '위키 링크',
+  'slashCommand.tag': '태그',
+  'slashCommand.property': '프로퍼티'
 };
 
 const en: Record<keyof typeof ko, string> = {
@@ -117,7 +121,11 @@ const en: Record<keyof typeof ko, string> = {
   'metadata.properties': 'Properties',
   'metadata.tags': 'Tags',
   'metadata.emptyProperties': 'No properties registered.',
-  'metadata.invalidFrontmatter': 'Property YAML has a syntax error.'
+  'metadata.invalidFrontmatter': 'Property YAML has a syntax error.',
+  'slashCommand.link': 'Markdown link',
+  'slashCommand.wikilink': 'Wiki link',
+  'slashCommand.tag': 'Tag',
+  'slashCommand.property': 'Property'
 };
 
 export const messages = { ko, en } as const;

@@ -5,6 +5,8 @@ import { EditorView, keymap } from '@codemirror/view';
 import { useEffect, useRef } from 'react';
 
 import type { VaultIndex } from '../../domain/vault/vaultIndex';
+import { useI18n } from '../../i18n/I18nProvider';
+import { messages } from '../../i18n/messages';
 import { slashCommandAutocomplete } from './slashCommandAutocomplete';
 import { wikiLinkAutocomplete } from './wikiLinkAutocomplete';
 
@@ -15,6 +17,7 @@ export interface MarkdownEditorProps {
 }
 
 export function MarkdownEditor({ value, index, onChange }: MarkdownEditorProps) {
+  const { locale } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
@@ -33,7 +36,7 @@ export function MarkdownEditor({ value, index, onChange }: MarkdownEditorProps) 
       extensions: [
         markdown(),
         keymap.of([]),
-        autocompletion({ override: [wikiLinkAutocomplete(index), slashCommandAutocomplete] }),
+        autocompletion({ override: [wikiLinkAutocomplete(index), slashCommandAutocomplete(messages[locale])] }),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChangeRef.current(update.state.doc.toString());
@@ -49,7 +52,7 @@ export function MarkdownEditor({ value, index, onChange }: MarkdownEditorProps) 
       view.destroy();
       viewRef.current = null;
     };
-  }, [index]);
+  }, [index, locale]);
 
   useEffect(() => {
     const view = viewRef.current;
