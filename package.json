@@ -10,7 +10,8 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
-    "lint": "tsc -p tsconfig.json --noEmit --pretty false && tsc -p tsconfig.node.json --noEmit --pretty false"
+    "lint": "tsc -p tsconfig.json --noEmit --pretty false && tsc -p tsconfig.node.json --noEmit --pretty false",
+    "package:chrome": "npm run build && node scripts/packageChromeExtension.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",

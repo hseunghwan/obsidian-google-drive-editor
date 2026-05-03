@@ -56,6 +56,26 @@ npm run build
 4. 이 저장소의 `dist/` 폴더 선택
 5. 확장 아이콘을 눌러 workspace 열기
 
+## Chrome Web Store 배포 패키지 만들기
+
+Workspace Marketplace 등록 없이 Chrome 확장으로 먼저 배포할 때는 Chrome Web Store에 `release/*.zip` 파일을 업로드합니다.
+
+```bash
+VITE_GOOGLE_OAUTH_CLIENT_ID=<Chrome Extension OAuth client id> npm run package:chrome
+```
+
+이 명령은 `npm run build`를 먼저 실행한 뒤 `dist/manifest.json`에 실제 OAuth client id가 들어갔는지 확인하고, 업로드용 zip을 `release/` 아래에 생성합니다. OAuth client id placeholder가 남아 있으면 패키징을 중단합니다.
+
+Chrome Web Store 제출 전에는 다음 항목을 준비하세요.
+
+- 확장 이름/설명/아이콘
+- 개인정보 처리방침 URL
+- Google Drive 권한 사용 사유
+- 수동 테스트 결과
+- 스토어 스크린샷과 소개 문구
+
+Google Workspace Marketplace와 Drive UI `Open with` 등록은 이 릴리스 범위에서 제외합니다.
+
 ## Google Drive OAuth 설정
 
 실제 Drive vault 연결을 테스트하려면 Google Cloud 설정이 필요합니다.
@@ -65,8 +85,8 @@ npm run build
 3. Chrome Extension OAuth client 생성
 4. `dist/`를 unpacked extension으로 한 번 로드한 뒤 extension id 확인
 5. OAuth client 설정에 extension id 등록
-6. 발급받은 client id를 `public/manifest.json`의 `oauth2.client_id`에 입력
-7. 다시 `npm run build`
+6. 발급받은 client id를 `.env.local`의 `VITE_GOOGLE_OAUTH_CLIENT_ID`에 입력
+7. 다시 `npm run build` 또는 `npm run package:chrome`
 8. Chrome 확장 화면에서 Reload
 
 현재 확장은 기존 Drive 폴더 vault를 재귀적으로 읽고 저장하기 위해 다음 scope를 사용합니다.

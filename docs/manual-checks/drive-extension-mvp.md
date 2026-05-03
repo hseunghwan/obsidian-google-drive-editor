@@ -26,6 +26,17 @@
 10. Save from the extension and confirm the conflict warning appears before overwrite.
 11. Force network failure and confirm local draft recovery appears when reopening the file.
 
+## Chrome Web Store package checks
+
+1. Set `VITE_GOOGLE_OAUTH_CLIENT_ID=<Chrome Extension OAuth client id>`.
+2. Run `npm run package:chrome`.
+3. Confirm the command creates `release/obsidian-google-drive-editor-0.1.0-chrome.zip`.
+4. Confirm `dist/manifest.json` contains the real OAuth client id and no `REPLACE_WITH` placeholder.
+5. Upload the zip in the Chrome Web Store Developer Dashboard.
+6. Record the submitted version, review status, and any policy feedback.
+
+Do not configure Google Workspace Marketplace or Drive UI "Open with" for this release. That is a separate Drive app integration path.
+
 ## Local environment
 
 The OAuth client id for `chrome.identity.getAuthToken` is configured with `VITE_GOOGLE_OAUTH_CLIENT_ID` in `.env.local`. `npm run build` injects that value into `dist/manifest.json` under `oauth2.client_id`. Do not commit a real OAuth client id to `public/manifest.json`.
@@ -37,4 +48,5 @@ This MVP does not load the remote Google Picker JavaScript API from an extension
 - Automated verification: `npm run typecheck`, `npm test`, `npm run build`.
 - Unpacked extension load: credential 준비 뒤 Chrome 결과를 여기에 기록한다.
 - OAuth/live Drive test: credential 준비 뒤 Google Cloud configuration과 결과를 여기에 기록한다.
+- Chrome Web Store package: credential 준비 뒤 `npm run package:chrome` 결과를 여기에 기록한다.
 - 알려진 release blocker: OAuth client id와 test Drive folder가 설정될 때까지 live Drive save는 막혀 있다.
