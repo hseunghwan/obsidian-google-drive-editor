@@ -34,13 +34,10 @@ The MVP originally treated Google Picker and `drive.file` as if they could open 
 ## Solution
 Use an MV3-compatible folder selection boundary and make the Drive consent model explicit.
 
-Security follow-up: the default content-access scope was narrowed back to `drive.file` after CSO review so a compromised extension token cannot manage the user's entire Drive by default. The local folder explorer still needs `drive.metadata.readonly` to show My Drive folders. Arbitrary existing vault content remains a known live-test risk when files are outside the app's `drive.file` access boundary; widen to full Drive scope only after an explicit security review and user-consent copy update.
+Live Drive testing confirmed that arbitrary existing vault content can fail with `appNotAuthorizedToFile` under `drive.file`, even when the folder is visible through metadata listing. The extension now uses full Drive scope so a user-selected existing vault can be recursively listed, read, and saved.
 
 ```ts
-export const driveScopes = [
-  'https://www.googleapis.com/auth/drive.file',
-  'https://www.googleapis.com/auth/drive.metadata.readonly'
-] as const;
+export const driveScopes = ['https://www.googleapis.com/auth/drive'] as const;
 ```
 
 The folder selection implementation now avoids remote code and opens a local Drive folder explorer backed by `files.list`:

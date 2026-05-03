@@ -69,14 +69,13 @@ npm run build
 7. 다시 `npm run build`
 8. Chrome 확장 화면에서 Reload
 
-현재 확장은 기본 보안 posture를 위해 다음 최소 scope를 사용합니다.
+현재 확장은 기존 Drive 폴더 vault를 재귀적으로 읽고 저장하기 위해 다음 scope를 사용합니다.
 
 ```text
-https://www.googleapis.com/auth/drive.file
-https://www.googleapis.com/auth/drive.metadata.readonly
+https://www.googleapis.com/auth/drive
 ```
 
-`drive.metadata.readonly`는 확장 내부 폴더 탐색기에서 My Drive 폴더 목록을 표시하는 데 사용하고, `drive.file`은 앱이 열었거나 생성한 파일/폴더의 내용 접근을 제한하는 데 사용합니다. 임의의 기존 Drive 폴더 vault를 재귀적으로 읽고 쓰는 흐름은 `drive.file` 권한 경계 밖에서는 실패할 수 있으므로, live Drive 검증 시 테스트 폴더가 앱 권한 범위에 포함되는지 먼저 확인해야 합니다. 전체 Drive scope(`https://www.googleapis.com/auth/drive`)로 넓히는 변경은 보안 리뷰와 사용자 동의 문구 갱신 후에만 수행하세요.
+`drive.file`은 앱이 열었거나 생성한 파일 중심으로 접근을 제한하기 때문에, 이미 존재하는 임의의 Obsidian vault 폴더 안 Markdown 파일을 읽을 때 `appNotAuthorizedToFile` 오류가 발생할 수 있습니다. 이 MVP는 사용자가 선택한 기존 vault 전체를 편집하는 흐름을 우선하므로 full Drive scope를 사용합니다.
 
 Manifest V3 확장 페이지에서는 원격 Google Picker JavaScript를 직접 로드하지 않습니다. Drive vault root는 확장 내부의 Drive 폴더 탐색기에서 선택합니다.
 

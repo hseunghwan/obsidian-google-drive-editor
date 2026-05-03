@@ -30,7 +30,7 @@
 
 The OAuth client id for `chrome.identity.getAuthToken` is configured with `VITE_GOOGLE_OAUTH_CLIENT_ID` in `.env.local`. `npm run build` injects that value into `dist/manifest.json` under `oauth2.client_id`. Do not commit a real OAuth client id to `public/manifest.json`.
 
-This MVP does not load the remote Google Picker JavaScript API from an extension page. Manifest V3 extension pages execute packaged scripts only, so folder selection uses a local Drive folder explorer backed by the Drive REST API. The requested OAuth scopes are `https://www.googleapis.com/auth/drive.metadata.readonly` for folder listing and `https://www.googleapis.com/auth/drive.file` to keep content access limited to files and folders the app has opened or created. If a test with an arbitrary existing vault folder fails because Drive does not expose descendants under `drive.file`, do not widen the scope silently. Record the failure, review the blast radius, and update user consent copy before using `https://www.googleapis.com/auth/drive`.
+This MVP does not load the remote Google Picker JavaScript API from an extension page. Manifest V3 extension pages execute packaged scripts only, so folder selection uses a local Drive folder explorer backed by the Drive REST API. The requested OAuth scope is `https://www.googleapis.com/auth/drive` because an existing Obsidian vault requires recursive listing, reading, and writing of files that were not created by this app. `drive.file` is not sufficient for arbitrary existing vault content and can fail with `appNotAuthorizedToFile`.
 
 ## Result - 2026-05-03
 

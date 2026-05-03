@@ -12,11 +12,8 @@ describe('ChromeIdentityAuthClient', () => {
     vi.unstubAllGlobals();
   });
 
-  it('uses file access plus metadata access for the Drive folder explorer', () => {
-    expect(driveScopes).toEqual([
-      'https://www.googleapis.com/auth/drive.file',
-      'https://www.googleapis.com/auth/drive.metadata.readonly'
-    ]);
+  it('uses full Drive access for existing vault folder content', () => {
+    expect(driveScopes).toEqual(['https://www.googleapis.com/auth/drive']);
   });
 
   it('fails with setup guidance before requesting a token when the manifest keeps the OAuth placeholder', async () => {
