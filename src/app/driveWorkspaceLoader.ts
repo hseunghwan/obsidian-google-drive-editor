@@ -10,7 +10,7 @@ export interface DriveWorkspace {
   entries: VaultEntry[];
   loadFolders(parentFolderId: string, parentPath: string): Promise<VaultFolder[]>;
   loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
-  searchEntries(rootFolderId: string, query: string): Promise<VaultEntry[]>;
+  searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
@@ -37,7 +37,7 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
     loadFolders: (parentFolderId, parentPath) => adapter.listFolders(parentFolderId, parentPath),
     loadMarkdownFiles: (parentFolderId, parentPath) =>
       adapter.listMarkdownFiles(parentFolderId, parentPath),
-    searchEntries: (rootFolderId, query) => adapter.searchEntries(rootFolderId, query),
+    searchEntries: (rootFolderId, query, signal) => adapter.searchEntries(rootFolderId, query, signal),
     loadFile: async (file) => {
       const draft = await deps.drafts.getDraft(root.id, file.id);
       if (draft) {

@@ -6,6 +6,9 @@ import type { GoogleDriveClient, GoogleDriveFile } from './googleDriveClient';
 const folderMimeType = 'application/vnd.google-apps.folder';
 
 export class DriveVaultAdapter {
+  private readonly ancestorRequests = new Map<string, Promise<GoogleDriveFile[] | null>>();
+  private readonly metadataRequests = new Map<string, Promise<GoogleDriveFile>>();
+
   constructor(
     private readonly drive: GoogleDriveClient,
     private readonly drafts: DraftStore
@@ -25,17 +28,17 @@ export class DriveVaultAdapter {
       .map((file) => toVaultFile(file, folderId, parentPath));
   }
 
-  async searchEntries(rootFolderId: string, query: string): Promise<VaultEntry[]> {
+  async searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]> {
     const normalizedQuery = query.trim();
     if (!normalizedQuery) {
       return [];
     }
 
-    const files = await this.collectPages((pageToken) => this.drive.searchByName(normalizedQuery, pageToken));
+    const files = await this.collectPages((pageToken) => this.drive.searchByName(normalizedQuery, pageToken, signal));
     const entries = await Promise.all(
       files
         .filter((file) => isFolder(file) || isMarkdownFile(file))
-        .map((file) => this.toRootDescendantEntry(rootFolderId, file))
+        .map((file) => this.toRootDescendantEntry(rootFolderId, file, signal))
     );
 
     return entries
@@ -136,13 +139,17 @@ export class DriveVaultAdapter {
     });
   }
 
-  private async toRootDescendantEntry(rootFolderId: string, file: GoogleDriveFile): Promise<VaultEntry | null> {
+  private async toRootDescendantEntry(
+    rootFolderId: string,
+    file: GoogleDriveFile,
+    signal?: AbortSignal
+  ): Promise<VaultEntry | null> {
     const parentId = file.parents?.[0] ?? null;
     if (!parentId) {
       return null;
     }
 
-    const ancestors = await this.collectAncestors(rootFolderId, parentId);
+    const ancestors = await this.collectAncestors(rootFolderId, parentId, signal);
     if (!ancestors) {
       return null;
     }
@@ -153,21 +160,58 @@ export class DriveVaultAdapter {
       : toVaultFile(file, parentId, parentPath);
   }
 
-  private async collectAncestors(rootFolderId: string, parentId: string): Promise<GoogleDriveFile[] | null> {
+  private collectAncestors(
+    rootFolderId: string,
+    parentId: string,
+    signal?: AbortSignal
+  ): Promise<GoogleDriveFile[] | null> {
     if (parentId === rootFolderId) {
-      return [];
+      return Promise.resolve([]);
     }
 
+    const cacheKey = `${rootFolderId}:${parentId}`;
+    const cached = this.ancestorRequests.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const request = this.resolveAncestors(rootFolderId, parentId, signal).catch((error) => {
+      this.ancestorRequests.delete(cacheKey);
+      throw error;
+    });
+    this.ancestorRequests.set(cacheKey, request);
+    return request;
+  }
+
+  private async resolveAncestors(
+    rootFolderId: string,
+    parentId: string,
+    signal?: AbortSignal
+  ): Promise<GoogleDriveFile[] | null> {
     const ancestors: GoogleDriveFile[] = [];
     let currentId: string | undefined = parentId;
 
     while (currentId && currentId !== rootFolderId) {
-      const parent = await this.drive.getMetadata(currentId);
+      const parent = await this.getCachedMetadata(currentId, signal);
       ancestors.unshift(parent);
       currentId = parent.parents?.[0];
     }
 
     return currentId === rootFolderId ? ancestors : null;
+  }
+
+  private getCachedMetadata(fileId: string, signal?: AbortSignal) {
+    const cached = this.metadataRequests.get(fileId);
+    if (cached) {
+      return cached;
+    }
+
+    const request = this.drive.getMetadata(fileId, signal).catch((error) => {
+      this.metadataRequests.delete(fileId);
+      throw error;
+    });
+    this.metadataRequests.set(fileId, request);
+    return request;
   }
 }
 

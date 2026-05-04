@@ -282,6 +282,43 @@ describe('DriveVaultAdapter', () => {
       }
     ]);
   });
+
+  it('reuses ancestor metadata for search results in the same folder', async () => {
+    const getMetadata = vi.fn().mockResolvedValue({
+      id: 'folder-projects',
+      name: 'Projects',
+      mimeType: 'application/vnd.google-apps.folder',
+      modifiedTime: '2026-05-03T00:01:00.000Z',
+      parents: ['root']
+    });
+    const drive = client({
+      searchByName: vi.fn().mockResolvedValue({
+        files: [
+          {
+            id: 'file-alpha',
+            name: 'Alpha.md',
+            mimeType: 'text/markdown',
+            modifiedTime: '2026-05-03T00:02:00.000Z',
+            parents: ['folder-projects']
+          },
+          {
+            id: 'file-archive',
+            name: 'Archive.md',
+            mimeType: 'text/markdown',
+            modifiedTime: '2026-05-03T00:03:00.000Z',
+            parents: ['folder-projects']
+          }
+        ]
+      }),
+      getMetadata
+    });
+    const adapter = new DriveVaultAdapter(drive, new IndexedDbDraftStore('adapter-search-cache'));
+
+    await expect(adapter.searchEntries('root', 'a')).resolves.toHaveLength(2);
+
+    expect(getMetadata).toHaveBeenCalledTimes(1);
+    expect(getMetadata).toHaveBeenCalledWith('folder-projects', undefined);
+  });
 });
 
 function driveWithCurrentMetadata() {

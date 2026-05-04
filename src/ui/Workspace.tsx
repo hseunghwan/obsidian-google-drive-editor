@@ -18,13 +18,14 @@ interface WorkspaceProps {
   entries: VaultEntry[];
   loadFolders(parentFolderId: string, parentPath: string): Promise<VaultFolder[]>;
   loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
-  searchEntries(rootFolderId: string, query: string): Promise<VaultEntry[]>;
+  searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
   onSwitchGoogleAccount?(): void;
   autosaveDelayMs?: number;
+  searchDebounceMs?: number;
   EditorComponent?: ComponentType<MarkdownEditorProps>;
 }
 
@@ -40,6 +41,7 @@ export function Workspace({
   createFolder,
   onSwitchGoogleAccount,
   autosaveDelayMs = 1200,
+  searchDebounceMs = 350,
   EditorComponent = MarkdownEditor
 }: WorkspaceProps) {
   const { t } = useI18n();
@@ -152,25 +154,28 @@ export function Workspace({
       return;
     }
 
-    let cancelled = false;
-    searchEntries(root.id, normalizedQuery)
-      .then((entries) => {
-        if (!cancelled) {
-          setDriveSearchEntries(entries);
-          setNotice(null);
-        }
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          setDriveSearchEntries([]);
-          setNotice(error instanceof Error ? error.message : t('errors.driveConnectFailed'));
-        }
-      });
+    const abortController = new AbortController();
+    const timer = window.setTimeout(() => {
+      searchEntries(root.id, normalizedQuery, abortController.signal)
+        .then((entries) => {
+          if (!abortController.signal.aborted) {
+            setDriveSearchEntries(entries);
+            setNotice(null);
+          }
+        })
+        .catch((error) => {
+          if (!abortController.signal.aborted) {
+            setDriveSearchEntries([]);
+            setNotice(error instanceof Error ? error.message : t('errors.driveConnectFailed'));
+          }
+        });
+    }, searchDebounceMs);
 
     return () => {
-      cancelled = true;
+      window.clearTimeout(timer);
+      abortController.abort();
     };
-  }, [query, root.id, searchEntries, t]);
+  }, [query, root.id, searchDebounceMs, searchEntries, t]);
 
   async function saveDocumentWithState(document: OpenDocument) {
     dispatch({ type: 'saveStarted' });

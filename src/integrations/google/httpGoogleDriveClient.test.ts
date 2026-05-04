@@ -42,6 +42,31 @@ describe('HttpGoogleDriveClient', () => {
       "name contains 'project plan' and (mimeType = 'application/vnd.google-apps.folder' or (mimeType != 'application/vnd.google-apps.folder' and name contains '.md')) and trashed = false"
     );
   });
+
+  it('passes an abort signal to Drive search requests', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ files: [] }));
+    const signal = new AbortController().signal;
+    vi.stubGlobal('fetch', fetchMock);
+
+    await new HttpGoogleDriveClient('access-token').searchByName('a', undefined, signal);
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ signal });
+  });
+
+  it('passes an abort signal to metadata requests', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
+      id: 'folder-projects',
+      name: 'Projects',
+      mimeType: 'application/vnd.google-apps.folder',
+      modifiedTime: '2026-05-03T00:01:00.000Z'
+    }));
+    const signal = new AbortController().signal;
+    vi.stubGlobal('fetch', fetchMock);
+
+    await new HttpGoogleDriveClient('access-token').getMetadata('folder-projects', signal);
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ signal });
+  });
 });
 
 function jsonResponse(body: unknown): Response {

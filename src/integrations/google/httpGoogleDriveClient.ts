@@ -34,7 +34,7 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
     return this.request(`${driveBaseUrl}?${params.toString()}`);
   }
 
-  async searchByName(query: string, pageToken?: string): Promise<GoogleDriveListResponse> {
+  async searchByName(query: string, pageToken?: string, signal?: AbortSignal): Promise<GoogleDriveListResponse> {
     const params = new URLSearchParams({
       q: `name contains '${escapeDriveQueryValue(query)}' and (mimeType = 'application/vnd.google-apps.folder' or (mimeType != 'application/vnd.google-apps.folder' and name contains '.md')) and trashed = false`,
       fields: 'nextPageToken, files(id, name, mimeType, modifiedTime, parents)',
@@ -45,7 +45,7 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
       params.set('pageToken', pageToken);
     }
 
-    return this.request(`${driveBaseUrl}?${params.toString()}`);
+    return this.request(`${driveBaseUrl}?${params.toString()}`, { signal });
   }
 
   async downloadText(fileId: string): Promise<string> {
@@ -110,8 +110,8 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
     });
   }
 
-  async getMetadata(fileId: string): Promise<GoogleDriveFile> {
-    return this.request(`${driveBaseUrl}/${fileId}?fields=id,name,mimeType,modifiedTime,parents`);
+  async getMetadata(fileId: string, signal?: AbortSignal): Promise<GoogleDriveFile> {
+    return this.request(`${driveBaseUrl}/${fileId}?fields=id,name,mimeType,modifiedTime,parents`, { signal });
   }
 
   private async request<T>(url: string, init: RequestInit = {}): Promise<T> {

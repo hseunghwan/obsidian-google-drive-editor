@@ -14,10 +14,10 @@ export interface GoogleDriveListResponse {
 export interface GoogleDriveClient {
   listFolders(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse>;
   listMarkdownFiles(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse>;
-  searchByName(query: string, pageToken?: string): Promise<GoogleDriveListResponse>;
+  searchByName(query: string, pageToken?: string, signal?: AbortSignal): Promise<GoogleDriveListResponse>;
   downloadText(fileId: string): Promise<string>;
   updateText(fileId: string, content: string): Promise<GoogleDriveFile>;
   createTextFile(parentFolderId: string, name: string, content: string): Promise<GoogleDriveFile>;
   createFolder(parentFolderId: string, name: string): Promise<GoogleDriveFile>;
-  getMetadata(fileId: string): Promise<GoogleDriveFile>;
+  getMetadata(fileId: string, signal?: AbortSignal): Promise<GoogleDriveFile>;
 }

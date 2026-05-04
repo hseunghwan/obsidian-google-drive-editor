@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { VaultEntry } from '../domain/vault/types';
 import { fixtureFiles, fixtureFolder, fixtureVaultRoot } from '../test/fixtures';
 import type { MarkdownEditorProps } from './editor/MarkdownEditor';
 import { Workspace } from './Workspace';
@@ -60,6 +61,10 @@ describe('Workspace', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('opens a file, shows metadata, and saves the active document', async () => {
@@ -213,15 +218,94 @@ describe('Workspace', () => {
         saveDocument={saveDocument}
         createFile={createFile}
         createFolder={createFolder}
+        searchDebounceMs={0}
       />
     );
 
-    await user.type(screen.getByRole('searchbox', { name: 'Vault 파일 검색' }), 'archive');
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Vault 파일 검색' }), {
+      target: { value: 'archive' }
+    });
 
-    expect(searchEntries).toHaveBeenCalledWith(fixtureVaultRoot.id, 'archive');
     expect(await screen.findByRole('button', { name: /^Archive$/ })).toBeInTheDocument();
+    expect(searchEntries).toHaveBeenCalledWith(fixtureVaultRoot.id, 'archive', expect.any(AbortSignal));
     expect(screen.getByRole('button', { name: /Archive Project/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Home/ })).not.toBeInTheDocument();
+  });
+
+  it('debounces Drive searches while allowing one-character queries', async () => {
+    vi.useFakeTimers();
+    const searchEntries = vi.fn().mockResolvedValue([]);
+
+    render(
+      <Workspace
+        root={fixtureVaultRoot}
+        entries={[]}
+        loadFolders={async () => []}
+        loadMarkdownFiles={async () => []}
+        searchEntries={searchEntries}
+        loadFile={vi.fn()}
+        saveDocument={saveDocument}
+        createFile={createFile}
+        createFolder={createFolder}
+        searchDebounceMs={350}
+      />
+    );
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Vault 파일 검색' }), {
+      target: { value: 'a' }
+    });
+
+    expect(searchEntries).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(349);
+    expect(searchEntries).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    await vi.runAllTimersAsync();
+
+    expect(searchEntries).toHaveBeenCalledTimes(1);
+    expect(searchEntries).toHaveBeenCalledWith(fixtureVaultRoot.id, 'a', expect.any(AbortSignal));
+  });
+
+  it('aborts the in-flight Drive search when the query changes', () => {
+    vi.useFakeTimers();
+    const signals: AbortSignal[] = [];
+    const searchEntries = vi.fn((_: string, __: string, signal?: AbortSignal) => {
+      if (signal) {
+        signals.push(signal);
+      }
+      return new Promise<VaultEntry[]>(() => undefined);
+    });
+
+    render(
+      <Workspace
+        root={fixtureVaultRoot}
+        entries={[]}
+        loadFolders={async () => []}
+        loadMarkdownFiles={async () => []}
+        searchEntries={searchEntries}
+        loadFile={vi.fn()}
+        saveDocument={saveDocument}
+        createFile={createFile}
+        createFolder={createFolder}
+        searchDebounceMs={50}
+      />
+    );
+
+    const searchbox = screen.getByRole('searchbox', { name: 'Vault 파일 검색' });
+    fireEvent.change(searchbox, { target: { value: 'a' } });
+    vi.advanceTimersByTime(50);
+
+    expect(searchEntries).toHaveBeenCalledTimes(1);
+    expect(signals[0].aborted).toBe(false);
+
+    fireEvent.change(searchbox, { target: { value: 'ab' } });
+
+    expect(signals[0].aborted).toBe(true);
+
+    vi.advanceTimersByTime(50);
+
+    expect(searchEntries).toHaveBeenCalledTimes(2);
+    expect(signals[1].aborted).toBe(false);
   });
 
   it('creates a markdown file from the sidebar', async () => {
