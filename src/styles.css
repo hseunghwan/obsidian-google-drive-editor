@@ -777,6 +777,10 @@ button.sidebar-folder-row:hover {
   line-height: 1.35;
 }
 
+.editor-pane .cm-tooltip-autocomplete .cm-completionIcon {
+  display: none;
+}
+
 .editor-pane .cm-tooltip-autocomplete .cm-completionLabel {
   min-width: 0;
   overflow: hidden;

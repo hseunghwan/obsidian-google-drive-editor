@@ -44,6 +44,7 @@ export function slashCommandAutocomplete(messages: MessageLookup): CompletionSou
 
     return {
       from: word.from,
+      filter: false,
       options: buildSlashCommandOptions(query, messages)
     };
   };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { messages } from '../../i18n/messages';
-import { buildSlashCommandOptions, slashCommandPattern } from './slashCommandAutocomplete';
+import { slashCommandAutocomplete, buildSlashCommandOptions, slashCommandPattern } from './slashCommandAutocomplete';
 
 describe('buildSlashCommandOptions', () => {
   it('localizes slash command labels to Korean', () => {
@@ -34,5 +34,24 @@ describe('buildSlashCommandOptions', () => {
 
   it('matches localized slash command queries', () => {
     expect('/위키'.match(slashCommandPattern)?.[0]).toBe('/위키');
+  });
+
+  it('keeps slash trigger results visible when labels are localized', () => {
+    const source = slashCommandAutocomplete(messages.ko);
+    const result = source({
+      explicit: false,
+      matchBefore: () => ({ from: 0, to: 1, text: '/' })
+    } as never);
+
+    expect(result).toMatchObject({
+      from: 0,
+      filter: false,
+      options: expect.arrayContaining([
+        expect.objectContaining({
+          label: '마크다운 링크',
+          detail: '/link'
+        })
+      ])
+    });
   });
 });
