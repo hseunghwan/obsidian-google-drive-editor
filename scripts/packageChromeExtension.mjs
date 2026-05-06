@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { deflateRawSync } from 'node:zlib';
 
 export const oauthClientIdPlaceholder = 'REPLACE_WITH_CHROME_EXTENSION_OAUTH_CLIENT_ID';
@@ -12,7 +13,7 @@ export async function packageChromeExtension(projectRoot, options = {}) {
   const buildEnv = { ...process.env, ...localEnv };
   const oauthClientId = buildEnv[oauthClientIdEnvName]?.trim();
   if (!oauthClientId) {
-    throw new Error(`Set ${oauthClientIdEnvName} in .env.local before running npm run package:chrome.`);
+    throw new Error(`Set ${oauthClientIdEnvName} in .env or .env.local before running npm run package:chrome.`);
   }
 
   if (options.build !== false) {
@@ -43,8 +44,16 @@ export async function packageChromeExtension(projectRoot, options = {}) {
 }
 
 export async function loadLocalEnv(projectRoot) {
+  const env = {
+    ...(await readEnvFileIfExists(join(projectRoot, '.env'))),
+    ...(await readEnvFileIfExists(join(projectRoot, '.env.local')))
+  };
+  return env;
+}
+
+async function readEnvFileIfExists(path) {
   try {
-    return parseEnvFile(await readFile(join(projectRoot, '.env.local'), 'utf8'));
+    return parseEnvFile(await readFile(path, 'utf8'));
   } catch (error) {
     if (error?.code === 'ENOENT') {
       return {};
@@ -84,10 +93,23 @@ export function assertManifestReady(manifest) {
   }
 }
 
+export function getNpmCommand(platform = process.platform) {
+  return 'npm';
+}
+
+export function shouldRunNpmThroughShell(platform = process.platform) {
+  return platform === 'win32';
+}
+
+export function isCliEntrypoint(moduleUrl, argvPath = process.argv[1]) {
+  return Boolean(argvPath) && resolve(fileURLToPath(moduleUrl)) === resolve(argvPath);
+}
+
 function runBuild(projectRoot, env) {
-  const result = spawnSync('npm', ['run', 'build'], {
+  const result = spawnSync(getNpmCommand(), ['run', 'build'], {
     cwd: projectRoot,
     env,
+    shell: shouldRunNpmThroughShell(),
     stdio: 'inherit'
   });
 
@@ -224,6 +246,6 @@ const crcTable = Array.from({ length: 256 }, (_, index) => {
   return value >>> 0;
 });
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isCliEntrypoint(import.meta.url)) {
   await packageChromeExtension(process.cwd());
 }

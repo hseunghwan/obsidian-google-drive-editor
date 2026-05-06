@@ -1,125 +1,119 @@
-# Obsidian Google Drive Editor
+# Drive Obsidian Editor
 
-Google Drive 폴더를 Obsidian-lite vault처럼 열어 Markdown 파일을 편집하는 Chrome 확장 MVP입니다. Obsidian이 설치되어 있지 않은 PC에서도 브라우저 기반 확장 화면에서 Drive의 Markdown vault를 탐색하고 편집하는 흐름을 목표로 합니다.
+Google Drive에 보관해 둔 Markdown 노트를 브라우저에서 바로 열고 편집하는 Chrome 확장입니다.
+
+Obsidian을 설치하지 않은 PC에서도 Drive 폴더를 하나의 vault처럼 연결해 문서를 찾고, 쓰고, 저장할 수 있습니다. 개인 노트, 업무 메모, 회의록, 기술 문서처럼 이미 Markdown으로 관리하고 있는 파일을 Google Drive 안에서 계속 유지하면서 가볍게 편집하는 경험을 목표로 합니다.
+
+## 이런 상황에 어울립니다
+
+- 회사나 공용 PC처럼 Obsidian을 설치하기 어려운 환경에서 노트를 열어야 할 때
+- Google Drive에 저장된 Markdown 폴더를 그대로 유지하면서 브라우저에서 편집하고 싶을 때
+- 여러 기기에서 같은 노트 폴더를 사용하지만, 별도의 동기화 앱 설치를 줄이고 싶을 때
+- 복잡한 플러그인보다 파일 탐색, 작성, 저장, 태그 확인 같은 기본 흐름이 더 중요할 때
+- Obsidian vault 구조는 좋아하지만 더 가벼운 웹 기반 작업 공간이 필요할 때
+
+## 제품이 제공하는 경험
+
+Drive Obsidian Editor는 Google Drive 폴더 하나를 작업 공간으로 연결합니다. 연결한 폴더 안의 Markdown 파일과 하위 폴더를 탐색하고, 원하는 문서를 열어 바로 편집할 수 있습니다.
+
+왼쪽에는 vault 파일 탐색기가 있고, 가운데에는 Markdown 편집기가 있으며, 오른쪽에는 문서의 프로퍼티와 태그가 표시됩니다. 전체 화면은 Obsidian에 익숙한 사용자가 바로 적응할 수 있도록 차분하고 밀도 있는 노트 편집 환경으로 구성되어 있습니다.
 
 ## 주요 기능
 
-- Google Drive 폴더를 vault root로 연결
-- Markdown 파일 탐색, 열기, 저장
-- 사이드바 파일 검색과 breadcrumb 이동
-- 파일/폴더 생성
-- YAML frontmatter 프로퍼티와 태그 표시
-- 내부 링크 후보 검색과 slash command 자동완성
-- 저장 실패 시 IndexedDB 기반 local draft 보존
-- 원격 변경 충돌 감지
-- 한국어/영어 UI 전환
-- 라이트/다크 테마 전환
+### Google Drive 폴더를 vault로 연결
 
-## 기술 스택
+사용자가 선택한 Google Drive 폴더를 노트 vault처럼 엽니다. 기존 폴더 구조를 유지하므로 파일을 다른 서비스로 옮기거나 별도 포맷으로 변환할 필요가 없습니다.
 
-- React 19
-- TypeScript
-- Vite
-- Chrome Extension Manifest V3
-- CodeMirror 6
-- Google Drive API
-- Vitest
+### Markdown 문서 탐색과 편집
 
-## 시작하기
+사이드바에서 폴더를 열고 Markdown 파일을 선택해 편집할 수 있습니다. 새 Markdown 파일을 만들거나 새 폴더를 추가하는 기본 정리 작업도 지원합니다.
 
-```bash
-npm ci
-npm run dev
-```
+### 빠른 파일 검색
 
-로컬 웹 테스트 URL:
+파일 이름과 경로를 기준으로 vault 안의 문서를 검색할 수 있습니다. 폴더가 많은 Drive vault에서도 필요한 문서를 빠르게 찾는 데 초점을 맞췄습니다.
 
-```text
-http://127.0.0.1:5173/
-```
+### 자동 저장과 수동 저장
 
-로컬 웹 화면에서는 Chrome extension API가 없기 때문에 실제 Google Drive 연결은 동작하지 않습니다. UI를 빠르게 확인하려면 `Mock vault 열기`를 사용하세요.
+문서를 수정하면 변경 상태를 표시하고 저장합니다. 필요할 때 직접 저장 버튼으로 저장을 요청할 수도 있습니다.
 
-## Chrome 확장으로 로드하기
+### 저장 실패 시 로컬 초안 보존
 
-먼저 production bundle을 생성합니다.
+네트워크 문제나 Drive 저장 실패가 발생해도 작성 중이던 내용을 바로 잃지 않도록 로컬 초안을 보존합니다. 문서 편집 도중 연결 상태가 흔들릴 수 있다는 현실을 전제로 만든 안전장치입니다.
 
-```bash
-npm run build
-```
+### 원격 변경 충돌 감지
 
-그 다음 Chrome에서:
+다른 위치에서 같은 파일이 바뀐 경우 원격 변경을 감지합니다. 같은 Drive 파일을 여러 기기에서 다룰 때 생길 수 있는 덮어쓰기 위험을 줄이는 데 도움을 줍니다.
 
-1. `chrome://extensions` 열기
-2. 우측 상단 `Developer mode` 켜기
-3. `Load unpacked` 클릭
-4. 이 저장소의 `dist/` 폴더 선택
-5. 확장 아이콘을 눌러 workspace 열기
+### 프로퍼티와 태그 확인
 
-## Chrome Web Store 배포 패키지 만들기
+Markdown 문서의 YAML frontmatter 프로퍼티와 태그를 오른쪽 패널에서 확인할 수 있습니다. 문서의 상태, 분류, 메타데이터를 편집 화면 옆에서 바로 살펴볼 수 있습니다.
 
-Workspace Marketplace 등록 없이 Chrome 확장으로 먼저 배포할 때는 Chrome Web Store에 `release/*.zip` 파일을 업로드합니다.
+### 링크와 작성 보조
 
-```bash
-npm run package:chrome
-```
+내부 링크 후보 검색, wiki link, Markdown link, 태그, 프로퍼티 입력을 돕는 slash command 자동완성을 제공합니다. 무거운 지식 관리 기능보다 작성 중 자주 필요한 작은 도움에 집중합니다.
 
-이 명령은 `.env.local`의 `VITE_GOOGLE_OAUTH_CLIENT_ID`를 읽어 `npm run build`를 실행한 뒤, `dist/manifest.json`에 실제 OAuth client id가 들어갔는지 확인하고 업로드용 zip을 `release/` 아래에 생성합니다. OAuth client id placeholder가 남아 있으면 패키징을 중단합니다.
+### 한국어와 영어, 라이트와 다크 테마
 
-Chrome Web Store 제출 전에는 다음 항목을 준비하세요.
+작업 공간 언어는 한국어와 영어를 지원합니다. 화면 테마는 라이트/다크 모드로 전환할 수 있어 작업 환경에 맞게 사용할 수 있습니다.
 
-- 확장 이름/설명/아이콘
-- 개인정보 처리방침 URL
-- Google Drive 권한 사용 사유
-- 수동 테스트 결과
-- 스토어 스크린샷과 소개 문구
+## 사용 흐름
 
-Google Workspace Marketplace와 Drive UI `Open with` 등록은 이 릴리스 범위에서 제외합니다.
+1. Chrome 확장을 엽니다.
+2. Google Drive vault를 연결합니다.
+3. Drive 폴더 탐색기에서 Markdown 노트가 들어 있는 폴더를 선택합니다.
+4. 왼쪽 파일 탐색기에서 문서를 찾거나 검색합니다.
+5. 가운데 편집기에서 내용을 작성합니다.
+6. 오른쪽 패널에서 프로퍼티와 태그를 확인합니다.
+7. 변경 사항은 Drive 파일에 저장됩니다.
 
-## Google Drive OAuth 설정
+## 화면 구성
 
-실제 Drive vault 연결을 테스트하려면 Google Cloud 설정이 필요합니다.
+- 활동 레일: 파일 탐색기, 메타데이터 패널, 설정을 여닫는 작은 도구 영역
+- 파일 탐색기: vault의 폴더와 Markdown 파일을 탐색하고 검색하는 영역
+- 편집기: Markdown 문서를 작성하는 중심 작업 공간
+- 저장 상태: 저장됨, 저장 중, 저장 실패, 원격 변경 감지 같은 상태 표시
+- 메타데이터 패널: 문서의 frontmatter 프로퍼티와 태그 표시
+- 설정: 언어, 테마, Google 계정 전환
 
-1. Google Cloud project 생성
-2. Google Drive API 활성화
-3. Chrome Extension OAuth client 생성
-4. `dist/`를 unpacked extension으로 한 번 로드한 뒤 extension id 확인
-5. OAuth client 설정에 extension id 등록
-6. 발급받은 client id를 `.env.local`의 `VITE_GOOGLE_OAUTH_CLIENT_ID`에 입력
-7. 다시 `npm run build` 또는 `npm run package:chrome`
-8. Chrome 확장 화면에서 Reload
+## 현재 제품 범위
 
-현재 확장은 기존 Drive 폴더 vault를 재귀적으로 읽고 저장하기 위해 다음 scope를 사용합니다.
+이 제품은 Google Drive에 있는 기존 Markdown vault를 브라우저에서 편집하는 MVP입니다. 핵심은 "Drive 폴더 선택 -> Markdown 탐색 -> 편집 -> 저장" 흐름을 안정적으로 만드는 것입니다.
 
-```text
-https://www.googleapis.com/auth/drive
-```
+현재 포함된 범위:
 
-`drive.file`은 앱이 열었거나 생성한 파일 중심으로 접근을 제한하기 때문에, 이미 존재하는 임의의 Obsidian vault 폴더 안 Markdown 파일을 읽을 때 `appNotAuthorizedToFile` 오류가 발생할 수 있습니다. 이 MVP는 사용자가 선택한 기존 vault 전체를 편집하는 흐름을 우선하므로 full Drive scope를 사용합니다.
+- Google Drive 폴더 기반 vault 연결
+- Markdown 파일 읽기와 저장
+- 폴더/파일 생성
+- 파일 검색
+- frontmatter와 태그 표시
+- 기본 작성 자동완성
+- 저장 실패 보호와 충돌 감지
+- Chrome 확장 기반 사용
 
-Manifest V3 확장 페이지에서는 원격 Google Picker JavaScript를 직접 로드하지 않습니다. Drive vault root는 확장 내부의 Drive 폴더 탐색기에서 선택합니다.
+현재 포함하지 않는 범위:
 
-## 검증 명령
+- Obsidian 플러그인 호환
+- graph view
+- backlinks 전용 화면
+- Dataview
+- canvas
+- 고급 block reference
+- Google Workspace Marketplace의 Drive `Open with` 통합
 
-```bash
-npm run typecheck
-npm test
-npm run build
-npm run lint
-```
+## 권한과 데이터
 
-## 프로젝트 문서
+Drive Obsidian Editor는 사용자가 선택한 Google Drive 폴더 안의 Markdown vault를 읽고 저장하기 위해 Google Drive 접근 권한을 사용합니다. 이 MVP는 이미 존재하는 Drive 폴더 전체를 vault로 다루는 흐름을 우선하므로, 앱이 직접 만든 파일뿐 아니라 사용자가 선택한 기존 Markdown 파일에도 접근해야 합니다.
 
-- 설계 문서: `docs/superpowers/specs/2026-05-03-drive-backed-obsidian-lite-design.md`
-- 한국어 설계 문서: `docs/superpowers/specs/2026-05-03-drive-backed-obsidian-lite-design.ko.md`
-- 구현 계획: `docs/superpowers/plans/2026-05-03-drive-backed-obsidian-lite-mvp.md`
-- 한국어 구현 계획: `docs/superpowers/plans/2026-05-03-drive-backed-obsidian-lite-mvp.ko.md`
-- 수동 검증 체크리스트: `docs/manual-checks/drive-extension-mvp.md`
-- MV3/Drive 통합 이슈 기록: `docs/solutions/integration-issues/mv3-drive-vault-integration-2026-05-03.md`
+문서 내용은 Google Drive 파일로 저장됩니다. 저장 실패 시 작성 중인 내용을 보호하기 위해 브라우저 로컬 저장소에 초안이 보존될 수 있습니다.
 
-## 현재 제약
+## 제품 방향
 
-- OAuth client id가 placeholder면 실제 Drive 연결은 실패합니다.
-- Google Drive live save는 Google Cloud credential과 테스트 Drive 폴더가 준비된 뒤 수동 검증해야 합니다.
-- Google Picker 정식 UI는 MVP 범위에서 제외되어 있으며, 확장 내부 Drive 폴더 탐색기로 대체되어 있습니다.
-- Graph view, backlinks, Dataview, canvas, advanced block reference는 MVP 범위에 포함되지 않습니다.
+Drive Obsidian Editor는 Obsidian을 대체하는 거대한 지식 관리 도구가 아니라, Drive에 있는 Markdown 노트를 어디서든 열 수 있게 해 주는 가벼운 편집 공간을 지향합니다.
+
+중요하게 보는 가치는 세 가지입니다.
+
+- 기존 파일을 그대로 쓴다.
+- 작성 흐름을 방해하지 않는다.
+- 저장 실패나 충돌처럼 사용자가 실제로 겪는 위험을 먼저 줄인다.
+
+복잡한 기능을 많이 얹기보다, Drive 안의 Markdown vault를 믿고 열고 편집할 수 있는 기본 경험을 단단하게 만드는 것이 현재의 우선순위입니다.

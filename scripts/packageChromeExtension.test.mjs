@@ -1,21 +1,42 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import {
   assertManifestReady,
   createZipArchive,
+  getNpmCommand,
+  isCliEntrypoint,
   listPackageFiles,
   loadLocalEnv,
   oauthClientIdPlaceholder,
-  parseEnvFile
+  parseEnvFile,
+  shouldRunNpmThroughShell
 } from './packageChromeExtension.mjs';
 
 describe('packageChromeExtension', () => {
   it('reads the Chrome OAuth client id from .env.local', async () => {
     const root = await mkdtemp(join(tmpdir(), 'chrome-package-env-'));
     try {
+      await writeFile(
+        join(root, '.env.local'),
+        'VITE_GOOGLE_OAUTH_CLIENT_ID=local-client-id.apps.googleusercontent.com\n'
+      );
+
+      await expect(loadLocalEnv(root)).resolves.toMatchObject({
+        VITE_GOOGLE_OAUTH_CLIENT_ID: 'local-client-id.apps.googleusercontent.com'
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('reads .env and lets .env.local override it', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'chrome-package-env-'));
+    try {
+      await writeFile(join(root, '.env'), 'VITE_GOOGLE_OAUTH_CLIENT_ID=env-client-id\n');
       await writeFile(
         join(root, '.env.local'),
         'VITE_GOOGLE_OAUTH_CLIENT_ID=local-client-id.apps.googleusercontent.com\n'
@@ -49,6 +70,20 @@ describe('packageChromeExtension', () => {
         oauth2: { client_id: oauthClientIdPlaceholder }
       })
     ).toThrow('OAuth client id is still a placeholder');
+  });
+
+  it('runs npm through the shell on Windows', () => {
+    expect(getNpmCommand('win32')).toBe('npm');
+    expect(getNpmCommand('linux')).toBe('npm');
+    expect(shouldRunNpmThroughShell('win32')).toBe(true);
+    expect(shouldRunNpmThroughShell('linux')).toBe(false);
+  });
+
+  it('detects direct CLI execution from file URLs and filesystem paths', () => {
+    const scriptPath = join(tmpdir(), 'packageChromeExtension.mjs');
+
+    expect(isCliEntrypoint(pathToFileURL(scriptPath).href, scriptPath)).toBe(true);
+    expect(isCliEntrypoint(pathToFileURL(scriptPath).href, join(tmpdir(), 'other.mjs'))).toBe(false);
   });
 
   it('lists package files in deterministic order without macOS metadata files', async () => {
