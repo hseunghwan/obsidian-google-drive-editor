@@ -110,6 +110,28 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
     });
   }
 
+  async renameFile(fileId: string, name: string): Promise<GoogleDriveFile> {
+    return this.request(`${driveBaseUrl}/${fileId}?fields=id,name,mimeType,modifiedTime,parents`, {
+      method: 'PATCH',
+      headers: {
+        ...this.headers(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name })
+    });
+  }
+
+  async trashFile(fileId: string): Promise<void> {
+    await this.request(`${driveBaseUrl}/${fileId}?fields=id`, {
+      method: 'PATCH',
+      headers: {
+        ...this.headers(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ trashed: true })
+    });
+  }
+
   async getMetadata(fileId: string, signal?: AbortSignal): Promise<GoogleDriveFile> {
     return this.request(`${driveBaseUrl}/${fileId}?fields=id,name,mimeType,modifiedTime,parents`, { signal });
   }

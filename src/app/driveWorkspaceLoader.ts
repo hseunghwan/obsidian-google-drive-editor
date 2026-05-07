@@ -15,6 +15,8 @@ export interface DriveWorkspace {
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
+  renameEntry(entry: VaultEntry, name: string): Promise<VaultEntry>;
+  deleteEntry(entry: VaultEntry): Promise<void>;
 }
 
 interface LoadDriveWorkspaceDeps {
@@ -57,6 +59,8 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
     saveDocument: (document) =>
       adapter.saveFile(root.id, document.file.id, document.content, document.baselineModifiedTime),
     createFile: (parentFolderId, name, content) => adapter.createFile(parentFolderId, name, content),
-    createFolder: (parentFolderId, name) => adapter.createFolder(parentFolderId, name)
+    createFolder: (parentFolderId, name) => adapter.createFolder(parentFolderId, name),
+    renameEntry: (entry, name) => adapter.renameEntry(entry, name),
+    deleteEntry: (entry) => adapter.deleteEntry(root.id, entry)
   };
 }

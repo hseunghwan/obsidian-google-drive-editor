@@ -67,6 +67,42 @@ describe('HttpGoogleDriveClient', () => {
 
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ signal });
   });
+
+  it('renames files through Drive metadata patch', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
+      id: 'file-home',
+      name: 'Renamed.md',
+      mimeType: 'text/markdown',
+      modifiedTime: '2026-05-03T00:02:00.000Z',
+      parents: ['root']
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await new HttpGoogleDriveClient('access-token').renameFile('file-home', 'Renamed.md');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://www.googleapis.com/drive/v3/files/file-home?fields=id,name,mimeType,modifiedTime,parents',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'Renamed.md' })
+      })
+    );
+  });
+
+  it('moves files to trash instead of permanently deleting them', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ id: 'file-home' }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await new HttpGoogleDriveClient('access-token').trashFile('file-home');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://www.googleapis.com/drive/v3/files/file-home?fields=id',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ trashed: true })
+      })
+    );
+  });
 });
 
 function jsonResponse(body: unknown): Response {

@@ -20,6 +20,7 @@ See [[Project Note]] and #project/alpha.
       },
       tags: ['daily', 'project/alpha'],
       wikiLinks: ['Project Note'],
+      headings: [{ level: 1, lineNumber: 5, text: 'Home #daily' }],
       bodyStart: source.indexOf('# Home')
     });
   });
@@ -31,6 +32,7 @@ See [[Project Note]] and #project/alpha.
       frontmatter: {},
       tags: [],
       wikiLinks: ['Link'],
+      headings: [{ level: 1, lineNumber: 1, text: 'Untitled' }],
       bodyStart: 0
     });
   });
@@ -48,8 +50,30 @@ next
       frontmatterError: expect.stringContaining('Implicit map keys need to be followed by map values'),
       tags: ['daily'],
       wikiLinks: [],
+      headings: [{ level: 1, lineNumber: 5, text: 'Home #daily' }],
       bodyStart: source.indexOf('# Home')
     });
+  });
+
+  it('extracts document headings while ignoring frontmatter and fenced code blocks', () => {
+    const source = `---
+title: "# Not a heading"
+---
+# Title
+
+\`\`\`md
+## Not in outline
+\`\`\`
+
+## Section ##
+#### Deep note
+`;
+
+    expect(extractMarkdownMetadata(source).headings).toEqual([
+      { level: 1, lineNumber: 4, text: 'Title' },
+      { level: 2, lineNumber: 10, text: 'Section' },
+      { level: 4, lineNumber: 11, text: 'Deep note' }
+    ]);
   });
 });
 

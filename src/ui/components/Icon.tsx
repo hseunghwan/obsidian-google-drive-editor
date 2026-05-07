@@ -10,6 +10,7 @@ type IconName =
   | 'folder'
   | 'folder-plus'
   | 'hash'
+  | 'list'
   | 'panel-left'
   | 'panel-right'
   | 'plus'
@@ -33,6 +34,7 @@ const iconPaths: Record<IconName, string[]> = {
   folder: ['M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2L10.8 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z'],
   'folder-plus': ['M12 10v6', 'M9 13h6', 'M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2L10.8 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z'],
   hash: ['M4 9h16', 'M4 15h16', 'M10 3 8 21', 'M16 3l-2 18'],
+  list: ['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'],
   'panel-left': ['M3 4h18v16H3z', 'M9 4v16'],
   'panel-right': ['M3 4h18v16H3z', 'M15 4v16'],
   plus: ['M12 5v14', 'M5 12h14'],

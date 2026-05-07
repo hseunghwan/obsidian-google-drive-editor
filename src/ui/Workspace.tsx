@@ -1,7 +1,8 @@
-import { type ComponentType, useEffect, useMemo, useReducer, useState } from 'react';
+import { type ComponentType, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import { isVaultError } from '../domain/vault/errors';
 import { VaultIndex } from '../domain/vault/vaultIndex';
+import type { MarkdownHeading } from '../domain/markdown/markdownMetadata';
 import type { OpenDocument, SaveResult, VaultEntry, VaultFile, VaultFolder, VaultRoot } from '../domain/vault/types';
 import { useI18n } from '../i18n/I18nProvider';
 import { Breadcrumb } from './components/Breadcrumb';
@@ -23,7 +24,10 @@ interface WorkspaceProps {
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
+  renameEntry?(entry: VaultEntry, name: string): Promise<VaultEntry>;
+  deleteEntry?(entry: VaultEntry): Promise<void>;
   onSwitchGoogleAccount?(): void;
+  onChangeRootFolder?(): void;
   autosaveDelayMs?: number;
   searchDebounceMs?: number;
   EditorComponent?: ComponentType<MarkdownEditorProps>;
@@ -39,13 +43,17 @@ export function Workspace({
   saveDocument,
   createFile,
   createFolder,
+  renameEntry = renameEntryLocally,
+  deleteEntry = async () => undefined,
   onSwitchGoogleAccount,
+  onChangeRootFolder = () => undefined,
   autosaveDelayMs = 1200,
   searchDebounceMs = 350,
   EditorComponent = MarkdownEditor
 }: WorkspaceProps) {
   const { t } = useI18n();
   const [state, dispatch] = useReducer(workspaceReducer, createInitialWorkspaceState());
+  const previousRootId = useRef(root.id);
   const [workspaceEntries, setWorkspaceEntries] = useState(entries);
   const [loadedFolderIds, setLoadedFolderIds] = useState<Set<string>>(() => new Set());
   const [loadingFolderIds, setLoadingFolderIds] = useState<Set<string>>(() => new Set());
@@ -54,11 +62,17 @@ export function Workspace({
   const [driveSearchEntries, setDriveSearchEntries] = useState<VaultEntry[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [scrollTarget, setScrollTarget] = useState<MarkdownEditorProps['scrollTarget']>(null);
+  const scrollRequestId = useRef(0);
   const [sidebarOpen, setSidebarOpen] = useState(() => matchesMedia('(min-width: 721px)', true));
   const [metadataOpen, setMetadataOpen] = useState(() => matchesMedia('(min-width: 1081px)', true));
 
   useEffect(() => {
     setWorkspaceEntries(entries);
+    if (previousRootId.current !== root.id) {
+      dispatch({ type: 'workspaceReset' });
+      previousRootId.current = root.id;
+    }
     setLoadedFolderIds(new Set());
     setLoadingFolderIds(new Set());
     setExpandedFolderIds(new Set([root.id]));
@@ -212,15 +226,20 @@ export function Workspace({
     return () => window.clearTimeout(timer);
   }, [activeDocument, autosaveDelayMs, state.saveState.status]);
 
-  async function createMarkdownFile() {
+  async function createMarkdownFile(parentFolderId = root.id) {
     const rawName = window.prompt(t('workspace.newMarkdownFilePrompt'));
     const title = rawName?.trim();
     if (!title) {
       return;
     }
 
-    const name = title.endsWith('.md') ? title : `${title}.md`;
-    const nextFile = await createFile(root.id, name, `# ${name.replace(/\.md$/i, '')}\n`);
+    const name = normalizeMarkdownName(title);
+    const parentPath = parentPathForFolderId(parentFolderId, root.id, visibleEntries);
+    const nextFile = applyParentPath(
+      await createFile(parentFolderId, name, `# ${name.replace(/\.md$/i, '')}\n`),
+      parentFolderId,
+      parentPath
+    );
     const nextEntries = mergeEntries(workspaceEntries, [nextFile]);
     const nextFiles = markdownEntries(nextEntries);
     setWorkspaceEntries(nextEntries);
@@ -237,16 +256,57 @@ export function Workspace({
     });
   }
 
-  async function createVaultFolder() {
+  async function createVaultFolderIn(parentFolderId: string) {
     const rawName = window.prompt(t('workspace.newFolderPrompt'));
     const name = rawName?.trim();
     if (!name) {
       return;
     }
 
-    const nextFolder = await createFolder(root.id, name);
+    const parentPath = parentPathForFolderId(parentFolderId, root.id, visibleEntries);
+    const nextFolder = applyParentPath(
+      await createFolder(parentFolderId, name),
+      parentFolderId,
+      parentPath
+    );
     setWorkspaceEntries((current) => mergeEntries(current, [nextFolder]));
     setNotice(t('workspace.folderCreated'));
+  }
+
+  async function renameVaultEntry(entry: VaultEntry) {
+    const rawName = window.prompt(t('workspace.renamePrompt'), entry.name);
+    const trimmedName = rawName?.trim();
+    if (!trimmedName) {
+      return;
+    }
+
+    const nextName = entry.kind === 'markdown' ? normalizeMarkdownName(trimmedName) : trimmedName;
+    const renamedEntry = applyParentPath(
+      await renameEntry(entry, nextName),
+      entry.parentId ?? root.id,
+      parentPathForEntry(entry)
+    );
+    setWorkspaceEntries((current) => replaceRenamedEntry(current, entry, renamedEntry));
+    setDriveSearchEntries((current) => replaceRenamedEntry(current, entry, renamedEntry));
+    dispatch({ type: 'entryRenamed', previous: entry, entry: renamedEntry });
+    setNotice(null);
+  }
+
+  async function deleteVaultEntry(entry: VaultEntry) {
+    if (!window.confirm(t('workspace.deleteConfirm'))) {
+      return;
+    }
+
+    await deleteEntry(entry);
+    setWorkspaceEntries((current) => removeEntryTree(current, entry));
+    setDriveSearchEntries((current) => removeEntryTree(current, entry));
+    dispatch({ type: 'entryDeleted', entry });
+    setNotice(null);
+  }
+
+  function scrollToHeading(heading: MarkdownHeading) {
+    scrollRequestId.current += 1;
+    setScrollTarget({ lineNumber: heading.lineNumber, requestId: scrollRequestId.current });
   }
 
   const workspaceClassNames = [
@@ -295,8 +355,11 @@ export function Workspace({
             onQueryChange={setQuery}
             onOpen={(file) => void openFile(file)}
             onToggleFolder={toggleFolder}
-            onCreateFile={() => void createMarkdownFile()}
-            onCreateFolder={() => void createVaultFolder()}
+            onCreateFile={(parentFolderId) => void createMarkdownFile(parentFolderId)}
+            onCreateFolder={(parentFolderId) => void createVaultFolderIn(parentFolderId)}
+            onRename={(entry) => void renameVaultEntry(entry)}
+            onDelete={(entry) => void deleteVaultEntry(entry)}
+            onChangeRootFolder={onChangeRootFolder}
             onOpenSettings={() => setSettingsOpen(true)}
           />
         ) : null}
@@ -307,6 +370,7 @@ export function Workspace({
               <EditorComponent
                 value={activeDocument.content}
                 index={index}
+                scrollTarget={scrollTarget}
                 onChange={(content) => dispatch({ type: 'documentEdited', content })}
               />
               <SaveStatus
@@ -328,7 +392,9 @@ export function Workspace({
           )}
           {notice ? <p className="workspace-notice">{notice}</p> : null}
         </main>
-        {activeDocument && metadataOpen ? <MetadataPanel content={activeDocument.content} /> : null}
+        {activeDocument && metadataOpen ? (
+          <MetadataPanel content={activeDocument.content} onSelectHeading={scrollToHeading} />
+        ) : null}
       </div>
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} onSwitchGoogleAccount={onSwitchGoogleAccount} />
     </div>
@@ -372,4 +438,75 @@ function removeSetValue<T>(current: Set<T>, value: T) {
   const next = new Set(current);
   next.delete(value);
   return next;
+}
+
+function normalizeMarkdownName(name: string) {
+  return name.endsWith('.md') ? name : `${name}.md`;
+}
+
+function parentPathForFolderId(parentFolderId: string, rootId: string, entries: VaultEntry[]) {
+  if (parentFolderId === rootId) {
+    return '';
+  }
+
+  const parentFolder = entries.find((entry): entry is VaultFolder =>
+    entry.kind === 'folder' && entry.id === parentFolderId
+  );
+  return parentFolder?.path ?? '';
+}
+
+function parentPathForEntry(entry: VaultEntry) {
+  const separatorIndex = entry.path.lastIndexOf('/');
+  return separatorIndex === -1 ? '' : entry.path.slice(0, separatorIndex);
+}
+
+function applyParentPath<T extends VaultEntry>(entry: T, parentId: string, parentPath: string): T {
+  const path = parentPath ? `${parentPath}/${entry.name}` : entry.name;
+  return {
+    ...entry,
+    parentId,
+    path,
+    ...(entry.kind === 'markdown' ? { title: entry.name.replace(/\.md$/i, '') } : {})
+  };
+}
+
+async function renameEntryLocally(entry: VaultEntry, name: string): Promise<VaultEntry> {
+  return {
+    ...entry,
+    name,
+    modifiedTime: new Date().toISOString(),
+    ...(entry.kind === 'markdown' ? { title: name.replace(/\.md$/i, '') } : {})
+  };
+}
+
+function replaceRenamedEntry(current: VaultEntry[], previousEntry: VaultEntry, nextEntry: VaultEntry) {
+  const previousChildPathPrefix = previousEntry.kind === 'folder' ? `${previousEntry.path}/` : null;
+  const nextChildPathPrefix = nextEntry.kind === 'folder' ? `${nextEntry.path}/` : null;
+  let foundEntry = false;
+
+  const renamedEntries = current.map((entry) => {
+    if (entry.id === previousEntry.id) {
+      foundEntry = true;
+      return nextEntry;
+    }
+
+    if (previousChildPathPrefix && nextChildPathPrefix && entry.path.startsWith(previousChildPathPrefix)) {
+      return {
+        ...entry,
+        path: `${nextChildPathPrefix}${entry.path.slice(previousChildPathPrefix.length)}`
+      };
+    }
+
+    return entry;
+  });
+
+  return (foundEntry ? renamedEntries : [...renamedEntries, nextEntry]).sort(compareEntries);
+}
+
+function removeEntryTree(current: VaultEntry[], entryToDelete: VaultEntry) {
+  const childPathPrefix = entryToDelete.kind === 'folder' ? `${entryToDelete.path}/` : null;
+  return current.filter((entry) =>
+    entry.id !== entryToDelete.id &&
+    !(childPathPrefix && entry.path.startsWith(childPathPrefix))
+  );
 }

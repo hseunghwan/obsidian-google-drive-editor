@@ -13,6 +13,8 @@ describe('loadDriveWorkspace', () => {
       updateText: vi.fn(),
       createTextFile: vi.fn(),
       createFolder: vi.fn(),
+      renameFile: vi.fn(),
+      trashFile: vi.fn(),
       getMetadata: vi.fn()
     };
 
@@ -64,6 +66,8 @@ describe('loadDriveWorkspace', () => {
         updateText: vi.fn(),
         createTextFile: vi.fn(),
         createFolder: vi.fn(),
+        renameFile: vi.fn(),
+        trashFile: vi.fn(),
         getMetadata: vi.fn()
       }),
       drafts

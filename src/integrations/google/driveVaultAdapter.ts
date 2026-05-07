@@ -112,12 +112,44 @@ export class DriveVaultAdapter {
     return toVaultFolder(folder, parentFolderId, '');
   }
 
-  private async assertNameAvailable(parentFolderId: string, name: string) {
+  async renameEntry(entry: VaultEntry, name: string): Promise<VaultEntry> {
+    if (!entry.parentId) {
+      throw new VaultError('NetworkFailed', `Cannot rename an entry without a parent: ${entry.name}`);
+    }
+
+    await this.assertNameAvailable(entry.parentId, name, entry.id);
+    const renamed = await this.drive.renameFile(entry.id, name);
+    const parentPath = parentPathForEntry(entry);
+
+    if (entry.kind === 'folder') {
+      if (renamed.mimeType !== folderMimeType) {
+        throw new VaultError('NetworkFailed', `Renamed entry is not a folder: ${name}`);
+      }
+      return toVaultFolder(renamed, entry.parentId, parentPath);
+    }
+
+    if (!renamed.name.toLocaleLowerCase().endsWith('.md')) {
+      throw new VaultError('NetworkFailed', `Renamed file is not markdown: ${name}`);
+    }
+    return toVaultFile(renamed, entry.parentId, parentPath);
+  }
+
+  async deleteEntry(vaultRootId: string, entry: VaultEntry): Promise<void> {
+    await this.drive.trashFile(entry.id);
+    if (entry.kind === 'markdown') {
+      await this.drafts.deleteDraft(vaultRootId, entry.id);
+    }
+  }
+
+  private async assertNameAvailable(parentFolderId: string, name: string, ignoredEntryId?: string) {
     const children = [
       ...(await this.listFolders(parentFolderId)),
       ...(await this.listMarkdownFiles(parentFolderId))
     ];
-    if (children.some((child) => child.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+    if (children.some((child) =>
+      child.id !== ignoredEntryId &&
+      child.name.toLocaleLowerCase() === name.toLocaleLowerCase()
+    )) {
       throw new VaultError('DuplicateName', `Name already exists in this folder: ${name}`);
     }
   }
@@ -250,6 +282,11 @@ function toVaultFile(file: GoogleDriveFile, parentId: string, parentPath: string
 
 function entryPath(parentPath: string, name: string) {
   return parentPath ? `${parentPath}/${name}` : name;
+}
+
+function parentPathForEntry(entry: VaultEntry) {
+  const separatorIndex = entry.path.lastIndexOf('/');
+  return separatorIndex === -1 ? '' : entry.path.slice(0, separatorIndex);
 }
 
 function compareEntries(left: VaultEntry, right: VaultEntry) {

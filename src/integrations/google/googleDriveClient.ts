@@ -19,5 +19,7 @@ export interface GoogleDriveClient {
   updateText(fileId: string, content: string): Promise<GoogleDriveFile>;
   createTextFile(parentFolderId: string, name: string, content: string): Promise<GoogleDriveFile>;
   createFolder(parentFolderId: string, name: string): Promise<GoogleDriveFile>;
+  renameFile(fileId: string, name: string): Promise<GoogleDriveFile>;
+  trashFile(fileId: string): Promise<void>;
   getMetadata(fileId: string, signal?: AbortSignal): Promise<GoogleDriveFile>;
 }

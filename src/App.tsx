@@ -114,6 +114,20 @@ function AppContent() {
     }
   }
 
+  async function changeRootFolder() {
+    setConnecting(true);
+    setError(null);
+    try {
+      const nextWorkspace = await openDriveWorkspace();
+      setWorkspace(nextWorkspace);
+      setError(null);
+    } catch (changeError) {
+      setError(changeError instanceof Error ? changeError.message : t('errors.driveConnectFailed'));
+    } finally {
+      setConnecting(false);
+    }
+  }
+
   function openMockWorkspace() {
     setWorkspace({
       root: fixtureVaultRoot,
@@ -153,7 +167,15 @@ See [[Project Note]].`,
         kind: 'folder',
         mimeType: 'application/vnd.google-apps.folder',
         modifiedTime: new Date().toISOString()
-      })
+      }),
+      renameEntry: async (entry, name) => ({
+        ...entry,
+        name,
+        path: name,
+        modifiedTime: new Date().toISOString(),
+        ...(entry.kind === 'markdown' ? { title: name.replace(/\.md$/i, '') } : {})
+      }),
+      deleteEntry: async () => undefined
     });
   }
 
@@ -187,6 +209,9 @@ See [[Project Note]].`,
       saveDocument={workspace.saveDocument}
       createFile={workspace.createFile}
       createFolder={workspace.createFolder}
+      renameEntry={workspace.renameEntry}
+      deleteEntry={workspace.deleteEntry}
+      onChangeRootFolder={() => void changeRootFolder()}
       onSwitchGoogleAccount={() => void switchGoogleAccount()}
     />
   );

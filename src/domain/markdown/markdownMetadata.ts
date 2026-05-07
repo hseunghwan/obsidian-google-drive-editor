@@ -5,12 +5,21 @@ export interface MarkdownMetadata {
   frontmatterError?: string;
   tags: string[];
   wikiLinks: string[];
+  headings: MarkdownHeading[];
   bodyStart: number;
+}
+
+export interface MarkdownHeading {
+  level: number;
+  lineNumber: number;
+  text: string;
 }
 
 const frontmatterPattern = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 const tagPattern = /(^|\s)#([A-Za-z0-9_/-]+)/g;
 const wikiLinkPattern = /\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]/g;
+const headingPattern = /^(#{1,6})[ \t]+(.+?)\s*$/;
+const fencePattern = /^[ \t]*(```+|~~~+)/;
 
 export function extractMarkdownMetadata(source: string): MarkdownMetadata {
   const frontmatterMatch = source.match(frontmatterPattern);
@@ -21,8 +30,41 @@ export function extractMarkdownMetadata(source: string): MarkdownMetadata {
     ...parsedFrontmatter,
     tags: uniqueMatches(source, tagPattern),
     wikiLinks: uniqueMatches(source, wikiLinkPattern),
+    headings: extractMarkdownHeadings(source.slice(bodyStart), lineNumberAtOffset(source, bodyStart)),
     bodyStart
   };
+}
+
+function extractMarkdownHeadings(source: string, startLineNumber: number): MarkdownHeading[] {
+  const headings: MarkdownHeading[] = [];
+  let inFence = false;
+
+  for (const [index, line] of source.split(/\r?\n/).entries()) {
+    if (fencePattern.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+
+    if (inFence) {
+      continue;
+    }
+
+    const match = line.match(headingPattern);
+    if (!match) {
+      continue;
+    }
+
+    const text = match[2].replace(/[ \t]+#+[ \t]*$/, '').trim();
+    if (text) {
+      headings.push({ level: match[1].length, lineNumber: startLineNumber + index, text });
+    }
+  }
+
+  return headings;
+}
+
+function lineNumberAtOffset(source: string, offset: number) {
+  return source.slice(0, offset).split(/\r?\n/).length;
 }
 
 function parseFrontmatterRecord(source: string): Pick<MarkdownMetadata, 'frontmatter' | 'frontmatterError'> {

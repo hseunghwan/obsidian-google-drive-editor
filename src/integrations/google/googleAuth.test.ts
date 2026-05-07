@@ -44,11 +44,37 @@ describe('ChromeIdentityAuthClient', () => {
     await expect(new ChromeIdentityAuthClient().getAccessToken(true)).resolves.toBe('access-token');
     expect(getAuthToken).toHaveBeenCalledWith({ interactive: true, scopes: [...driveScopes] });
   });
+
+  it('revokes the cached Google grant before clearing Chrome identity state', async () => {
+    const getAuthToken = vi.fn().mockResolvedValue({ token: 'cached-access-token' });
+    const removeCachedAuthToken = vi.fn().mockResolvedValue(undefined);
+    const clearAllCachedAuthTokens = vi.fn().mockResolvedValue(undefined);
+    const fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    stubChrome(getAuthToken, 'valid-client-id.apps.googleusercontent.com', {
+      removeCachedAuthToken,
+      clearAllCachedAuthTokens
+    });
+    vi.stubGlobal('fetch', fetch);
+
+    await new ChromeIdentityAuthClient().clearCachedAccessToken();
+
+    expect(fetch).toHaveBeenCalledWith('https://oauth2.googleapis.com/revoke', {
+      body: new URLSearchParams({ token: 'cached-access-token' }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      method: 'POST'
+    });
+    expect(removeCachedAuthToken).toHaveBeenCalledWith({ token: 'cached-access-token' });
+    expect(clearAllCachedAuthTokens).toHaveBeenCalled();
+  });
 });
 
-function stubChrome(getAuthToken: ReturnType<typeof vi.fn>, clientId: string) {
+function stubChrome(
+  getAuthToken: ReturnType<typeof vi.fn>,
+  clientId: string,
+  identityOverrides: Partial<typeof chrome.identity> = {}
+) {
   vi.stubGlobal('chrome', {
-    identity: { getAuthToken },
+    identity: { getAuthToken, ...identityOverrides },
     runtime: {
       getManifest: () => ({
         oauth2: {

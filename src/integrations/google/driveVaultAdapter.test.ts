@@ -19,6 +19,8 @@ function client(overrides: Partial<GoogleDriveClient> = {}): GoogleDriveClient {
     }),
     createTextFile: vi.fn(),
     createFolder: vi.fn(),
+    renameFile: vi.fn(),
+    trashFile: vi.fn(),
     getMetadata: vi.fn().mockResolvedValue({
       id: 'file-home',
       name: 'Home.md',
@@ -204,6 +206,58 @@ describe('DriveVaultAdapter', () => {
     await expect(adapter.createFile('root', 'Home.md', '# Home')).rejects.toMatchObject({
       code: 'DuplicateName'
     });
+  });
+
+  it('renames markdown entries while preserving their parent path', async () => {
+    const drive = client({
+      listFolders: vi.fn().mockResolvedValue({ files: [] }),
+      listMarkdownFiles: vi.fn().mockResolvedValue({ files: [] }),
+      renameFile: vi.fn().mockResolvedValue({
+        id: 'file-project-note',
+        name: 'Renamed.md',
+        mimeType: 'text/markdown',
+        modifiedTime: '2026-05-03T00:05:00.000Z',
+        parents: ['folder-projects']
+      })
+    });
+    const adapter = new DriveVaultAdapter(drive, new IndexedDbDraftStore('adapter-rename-file'));
+
+    await expect(
+      adapter.renameEntry({
+        id: 'file-project-note',
+        name: 'Project Note.md',
+        title: 'Project Note',
+        path: 'Projects/Project Note.md',
+        parentId: 'folder-projects',
+        kind: 'markdown',
+        mimeType: 'text/markdown',
+        modifiedTime: '2026-05-03T00:02:00.000Z'
+      }, 'Renamed.md')
+    ).resolves.toMatchObject({
+      name: 'Renamed.md',
+      title: 'Renamed',
+      path: 'Projects/Renamed.md'
+    });
+    expect(drive.renameFile).toHaveBeenCalledWith('file-project-note', 'Renamed.md');
+  });
+
+  it('moves entries to Drive trash for deletion', async () => {
+    const drive = client({ trashFile: vi.fn().mockResolvedValue(undefined) });
+    const drafts = new IndexedDbDraftStore('adapter-delete-file');
+    const adapter = new DriveVaultAdapter(drive, drafts);
+
+    await adapter.deleteEntry('root', {
+      id: 'file-home',
+      name: 'Home.md',
+      title: 'Home',
+      path: 'Home.md',
+      parentId: 'root',
+      kind: 'markdown',
+      mimeType: 'text/markdown',
+      modifiedTime: '2026-05-03T00:01:00.000Z'
+    });
+
+    expect(drive.trashFile).toHaveBeenCalledWith('file-home');
   });
 
   it('searches unloaded Drive descendants for folders and markdown file names', async () => {

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -85,17 +85,61 @@ describe('App', () => {
     const removeCachedAuthToken = vi.fn().mockResolvedValue(undefined);
     stubChromeIdentity(getAuthToken, removeCachedAuthToken);
     localStorage.setItem(vaultConnectionStorageKey, JSON.stringify({ id: 'vault-folder', name: 'Vault' }));
-    vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise<Response>(() => undefined)));
+    const fetch = vi
+      .fn()
+      .mockReturnValueOnce(new Promise<Response>(() => undefined))
+      .mockResolvedValueOnce(emptyResponse());
+    vi.stubGlobal('fetch', fetch);
 
     render(<App />);
 
     await screen.findByRole('searchbox', { name: 'Vault 파일 검색' });
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
     await user.click(screen.getByRole('button', { name: '설정 열기' }));
     await user.click(screen.getByRole('button', { name: '다른 Google 계정으로 전환' }));
 
+    expect(await screen.findByRole('button', { name: 'Google Drive vault 연결' })).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith('https://oauth2.googleapis.com/revoke', {
+      body: new URLSearchParams({ token: 'cached-access-token' }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      method: 'POST'
+    });
     expect(removeCachedAuthToken).toHaveBeenCalledWith({ token: 'cached-access-token' });
     expect(localStorage.getItem(vaultConnectionStorageKey)).toBeNull();
-    expect(screen.getByRole('button', { name: 'Google Drive vault 연결' })).toBeInTheDocument();
+  });
+
+  it('opens the Drive folder picker from the sidebar root folder select', async () => {
+    const user = userEvent.setup();
+    const getAuthToken = vi
+      .fn()
+      .mockResolvedValueOnce({ token: 'cached-access-token' })
+      .mockResolvedValueOnce({ token: 'cached-access-token' });
+    stubChromeIdentity(getAuthToken);
+    localStorage.setItem(vaultConnectionStorageKey, JSON.stringify({ id: 'vault-folder', name: 'Vault' }));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockReturnValueOnce(new Promise<Response>(() => undefined))
+        .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'next-vault-folder', name: 'Next Vault' }] }))
+        .mockReturnValueOnce(new Promise<Response>(() => undefined))
+    );
+
+    render(<App />);
+
+    await screen.findByRole('searchbox', { name: 'Vault 파일 검색' });
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: '루트 폴더' }),
+      screen.getByRole('option', { name: '루트 폴더 변경' })
+    );
+
+    expect(await screen.findByRole('dialog', { name: 'Google Drive 폴더 선택' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next Vault 선택' })).toBeInTheDocument();
+    expect(getAuthToken).toHaveBeenLastCalledWith({
+      interactive: true,
+      scopes: ['https://www.googleapis.com/auth/drive']
+    });
   });
 
   it('switches visible onboarding copy between Korean and English', async () => {
@@ -194,5 +238,12 @@ function jsonResponse(body: unknown): Response {
     ok: true,
     status: 200,
     json: async () => body
+  } as Response;
+}
+
+function emptyResponse(): Response {
+  return {
+    ok: true,
+    status: 200
   } as Response;
 }

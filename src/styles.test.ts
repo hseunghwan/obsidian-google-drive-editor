@@ -45,4 +45,17 @@ describe('styles', () => {
     expect(styles).toContain('.open-first-file');
     expect(styles).toContain('grid-row: 1 / -1');
   });
+
+  it('keeps sidebar item menus hidden until row hover or focus', () => {
+    expect(styles).toContain('.sidebar-tree-row');
+    expect(styles).toContain('.sidebar-item-menu');
+    expect(styles).toContain('.sidebar-tree-row:hover,\n.sidebar-tree-row:focus-within');
+    expect(styles).toContain('.sidebar-tree-row:hover .sidebar-item-menu');
+    expect(styles).toContain('.sidebar-tree-row:focus-within .sidebar-item-menu');
+    expect(styles).toContain('opacity: 0');
+    expect(styles).toContain('opacity: 1');
+    expect(styles).toContain('cursor: pointer');
+    expect(styles).not.toContain('.sidebar-item:hover:not(.active)');
+    expect(styles).not.toContain('.sidebar-item-menu:hover,\n.sidebar-item-menu:focus {\n  color: var(--text-primary);\n  background: var(--panel-bg-hover);');
+  });
 });

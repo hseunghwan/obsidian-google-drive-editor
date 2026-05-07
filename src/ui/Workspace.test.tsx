@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import type { ComponentProps } from 'react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { VaultEntry } from '../domain/vault/types';
+import type { VaultEntry, VaultRoot } from '../domain/vault/types';
 import { fixtureFiles, fixtureFolder, fixtureVaultRoot } from '../test/fixtures';
 import type { MarkdownEditorProps } from './editor/MarkdownEditor';
 import { Workspace } from './Workspace';
@@ -33,7 +34,17 @@ const createFolder = vi.fn().mockResolvedValue({
   modifiedTime: '2026-05-03T00:13:00.000Z'
 });
 
-function renderWorkspace() {
+const renameEntry = vi.fn(async (entry: VaultEntry, name: string): Promise<VaultEntry> => ({
+  ...entry,
+  name,
+  path: name,
+  modifiedTime: '2026-05-03T00:14:00.000Z',
+  ...(entry.kind === 'markdown' ? { title: name.replace(/\.md$/i, '') } : {})
+}));
+
+const deleteEntry = vi.fn().mockResolvedValue(undefined);
+
+function renderWorkspace(overrides: Partial<ComponentProps<typeof Workspace>> = {}) {
   return render(
     <Workspace
       root={fixtureVaultRoot}
@@ -52,7 +63,10 @@ title: Home
       saveDocument={saveDocument}
       createFile={createFile}
       createFolder={createFolder}
+      renameEntry={renameEntry}
+      deleteEntry={deleteEntry}
       autosaveDelayMs={10}
+      {...overrides}
     />
   );
 }
@@ -76,6 +90,8 @@ describe('Workspace', () => {
 
     expect(screen.getByText('title')).toBeInTheDocument();
     expect(screen.getByText('#daily')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '목차' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: '목차' })).toHaveTextContent('Home #daily');
     expect(screen.getByRole('heading', { name: '프로퍼티' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '태그' })).toBeInTheDocument();
 
@@ -317,7 +333,8 @@ describe('Workspace', () => {
     await user.click(screen.getByRole('button', { name: '새 파일' }));
 
     expect(createFile).toHaveBeenCalledWith(fixtureVaultRoot.id, 'New Note.md', '# New Note\n');
-    expect(await screen.findByText('New Note')).toBeInTheDocument();
+    const sidebar = screen.getByLabelText('Vault files');
+    expect(await within(sidebar).findByRole('button', { name: /New Note/ })).toBeInTheDocument();
   });
 
   it('creates a folder from the sidebar', async () => {
@@ -330,6 +347,57 @@ describe('Workspace', () => {
 
     expect(createFolder).toHaveBeenCalledWith(fixtureVaultRoot.id, 'New Folder');
     expect(await screen.findByText('폴더 생성됨')).toBeInTheDocument();
+  });
+
+  it('creates notes and folders in the folder selected from the item menu', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'prompt')
+      .mockReturnValueOnce('Nested Note')
+      .mockReturnValueOnce('Nested Folder');
+
+    renderWorkspace();
+
+    const projectsMenu = screen.getByRole('combobox', { name: 'Projects 더보기' });
+
+    await user.selectOptions(projectsMenu, 'create-file');
+    expect(createFile).toHaveBeenCalledWith(fixtureFolder.id, 'Nested Note.md', '# Nested Note\n');
+
+    await user.selectOptions(projectsMenu, 'create-folder');
+    expect(createFolder).toHaveBeenCalledWith(fixtureFolder.id, 'Nested Folder');
+  });
+
+  it('renames files from the item menu and updates the sidebar row', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'prompt').mockReturnValue('Renamed Home');
+    renameEntry.mockResolvedValueOnce({
+      ...fixtureFiles[0],
+      name: 'Renamed Home.md',
+      title: 'Renamed Home',
+      path: 'Renamed Home.md',
+      modifiedTime: '2026-05-03T00:14:00.000Z'
+    });
+
+    renderWorkspace();
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Home 더보기' }), 'rename');
+
+    expect(renameEntry).toHaveBeenCalledWith(fixtureFiles[0], 'Renamed Home.md');
+    expect(await screen.findByRole('button', { name: 'Renamed Home' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Home' })).not.toBeInTheDocument();
+  });
+
+  it('deletes files from the item menu after confirmation', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    renderWorkspace();
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Home 더보기' }), 'delete');
+
+    expect(deleteEntry).toHaveBeenCalledWith(fixtureFiles[0]);
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Home' })).not.toBeInTheDocument();
+    });
   });
 
   it('autosaves dirty editor content after the debounce delay', async () => {
@@ -367,6 +435,24 @@ describe('Workspace', () => {
     vi.useRealTimers();
   });
 
+  it('passes the selected outline heading line to the editor', async () => {
+    const user = userEvent.setup();
+
+    renderWorkspace({
+      loadFile: async (file) => ({
+        file,
+        content: '# Home\n\n## Target',
+        baselineModifiedTime: file.modifiedTime
+      }),
+      EditorComponent: TestEditor
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+    await user.click(await screen.findByRole('button', { name: 'Target 위치로 이동' }));
+
+    expect(screen.getByTestId('scroll-target')).toHaveTextContent('3');
+  });
+
   it('renders an empty vault state without trying to open an undefined file', async () => {
     render(
       <Workspace
@@ -385,15 +471,59 @@ describe('Workspace', () => {
     expect(await screen.findByText('이 vault에 Markdown 파일이 없습니다.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '첫 문서 열기' })).not.toBeInTheDocument();
   });
+
+  it('clears the active document when the vault root changes', async () => {
+    const user = userEvent.setup();
+    const nextRoot: VaultRoot = { id: 'next-vault-root', name: 'Next Vault' };
+    const props = {
+      loadFolders: async () => [],
+      loadMarkdownFiles: async () => [],
+      searchEntries: async () => [],
+      loadFile: async (file: (typeof fixtureFiles)[number]) => ({
+        file,
+        content: '# Home',
+        baselineModifiedTime: file.modifiedTime
+      }),
+      saveDocument,
+      createFile,
+      createFolder
+    };
+
+    const { rerender } = render(
+      <Workspace
+        root={fixtureVaultRoot}
+        entries={[fixtureFiles[0]]}
+        {...props}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Home/ }));
+
+    expect(screen.getByRole('heading', { name: '프로퍼티' })).toBeInTheDocument();
+
+    rerender(
+      <Workspace
+        root={nextRoot}
+        entries={[]}
+        {...props}
+      />
+    );
+
+    expect(screen.queryByRole('heading', { name: '프로퍼티' })).not.toBeInTheDocument();
+    expect(await screen.findByText('이 vault에 Markdown 파일이 없습니다.')).toBeInTheDocument();
+  });
 });
 
-function TestEditor({ value, onChange }: MarkdownEditorProps) {
+function TestEditor({ value, onChange, scrollTarget }: MarkdownEditorProps) {
   return (
-    <textarea
-      aria-label="Markdown editor"
-      value={value}
-      onChange={(event) => onChange(event.currentTarget.value)}
-    />
+    <>
+      <textarea
+        aria-label="Markdown editor"
+        value={value}
+        onChange={(event) => onChange(event.currentTarget.value)}
+      />
+      <output data-testid="scroll-target">{scrollTarget?.lineNumber ?? ''}</output>
+    </>
   );
 }
 

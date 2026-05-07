@@ -6,6 +6,7 @@ export const chromeOAuthClientIdInvalidMessage =
   'Google OAuth client id가 현재 Chrome 확장과 맞지 않습니다. Google Cloud OAuth client가 Chrome Extension 유형인지, 등록된 확장 ID가 chrome://extensions의 unpacked extension ID와 같은지 확인하세요.';
 
 const oauthClientIdPlaceholder = 'REPLACE_WITH_CHROME_EXTENSION_OAUTH_CLIENT_ID';
+const googleOAuthRevokeEndpoint = 'https://oauth2.googleapis.com/revoke';
 
 export interface GoogleAuthClient {
   getAccessToken(interactive: boolean): Promise<string>;
@@ -40,12 +41,28 @@ export class ChromeIdentityAuthClient implements GoogleAuthClient {
     validateOAuthClientId();
 
     const result = await getAuthToken(identity, false).catch(() => null);
-    if (result?.token && typeof identity.removeCachedAuthToken === 'function') {
-      await identity.removeCachedAuthToken({ token: result.token });
+    const token = result?.token;
+    if (token) {
+      await revokeGoogleOAuthGrant(token);
+    }
+    if (token && typeof identity.removeCachedAuthToken === 'function') {
+      await identity.removeCachedAuthToken({ token });
     }
     if (typeof identity.clearAllCachedAuthTokens === 'function') {
       await identity.clearAllCachedAuthTokens();
     }
+  }
+}
+
+async function revokeGoogleOAuthGrant(token: string) {
+  const response = await fetch(googleOAuthRevokeEndpoint, {
+    body: new URLSearchParams({ token }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    method: 'POST'
+  });
+
+  if (!response.ok) {
+    throw new Error(`Google OAuth grant revocation failed with status ${response.status}.`);
   }
 }
 

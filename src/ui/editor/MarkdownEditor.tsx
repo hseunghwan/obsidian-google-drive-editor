@@ -14,9 +14,15 @@ export interface MarkdownEditorProps {
   value: string;
   index: VaultIndex;
   onChange(value: string): void;
+  scrollTarget?: MarkdownEditorScrollTarget | null;
 }
 
-export function MarkdownEditor({ value, index, onChange }: MarkdownEditorProps) {
+export interface MarkdownEditorScrollTarget {
+  lineNumber: number;
+  requestId: number;
+}
+
+export function MarkdownEditor({ value, index, onChange, scrollTarget }: MarkdownEditorProps) {
   const { locale } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -68,6 +74,21 @@ export function MarkdownEditor({ value, index, onChange }: MarkdownEditorProps) 
       }
     });
   }, [value]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || !scrollTarget) {
+      return;
+    }
+
+    const lineNumber = Math.min(Math.max(1, scrollTarget.lineNumber), view.state.doc.lines);
+    const line = view.state.doc.line(lineNumber);
+    view.dispatch({
+      selection: { anchor: line.from },
+      effects: EditorView.scrollIntoView(line.from, { y: 'start' })
+    });
+    view.focus();
+  }, [scrollTarget]);
 
   return <div className="editor-pane" ref={hostRef} />;
 }
