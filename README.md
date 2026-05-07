@@ -1,3 +1,6 @@
+크롬 확장 프로그램:
+https://chromewebstore.google.com/detail/obsidian-vault-editor-for/fegekndlnlkbnkopphbokolacfemldge
+
 # Drive Obsidian Editor
 
 Google Drive에 보관해 둔 Markdown 노트를 브라우저에서 바로 열고 편집하는 Chrome 확장입니다.
