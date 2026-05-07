@@ -1,32 +1,104 @@
 :root {
-  --app-bg: #1e1e1e;
-  --editor-bg: #1e1e1e;
-  --panel-bg: #252525;
-  --panel-bg-raised: #2d2d2d;
-  --panel-bg-hover: #333333;
-  --panel-bg-active: #3a3a3a;
-  --settings-card-bg: #242424;
-  --settings-sidebar-bg: #1f1f1f;
-  --divider: #343434;
-  --divider-subtle: #2b2b2b;
-  --control-bg: #303136;
-  --control-border: #454545;
-  --text-primary: #edeef2;
-  --text-secondary: #c7c7c7;
-  --text-muted: #9a9a9a;
-  --text-faint: #737373;
-  --accent: #8aadf4;
-  --accent-muted: #5d6f91;
-  --settings-accent: #8b5cf6;
-  --settings-accent-hover: #9b72ff;
-  --selection-bg: #3c4f73;
-  --switch-track-off: #4a4a4a;
-  --scrollbar-thumb: #686868;
-  --success-bg: #1f312b;
-  --success-border: #3d4f48;
-  --success-text: #baf0dc;
-  --error: #ff6b6b;
-  --editor-caret: #f2f2f2;
+  --color-white: #ffffff;
+  --color-bright-gray: #eeeeee;
+  --color-medium-gray: #bcbcbc;
+  --color-muted-gray: #a3a3a3;
+  --color-graphite: #3f3f3f;
+  --color-surface: #1e1e1e;
+  --color-abyss: #171717;
+  --color-amethyst: #7c3aed;
+  --color-lavender: #a78bfa;
+  --color-tag-background: #8a5cf5;
+  --color-success-green: #4ade80;
+  --color-warning-yellow: #facc15;
+  --color-error-red: #f87171;
+  --font-ui-sans-serif-system-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --text-caption: 12px;
+  --leading-caption: 1.5;
+  --tracking-caption: 0;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.5;
+  --tracking-body-sm: 0;
+  --text-body: 16px;
+  --leading-body: 1.5;
+  --tracking-body: 0;
+  --text-subheading: 18px;
+  --leading-subheading: 1.4;
+  --tracking-subheading: 0;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.33;
+  --tracking-heading-sm: 0;
+  --text-heading: 28px;
+  --leading-heading: 1.25;
+  --tracking-heading: 0;
+  --text-heading-lg: 36px;
+  --leading-heading-lg: 1.25;
+  --tracking-heading-lg: 0;
+  --text-display: 60px;
+  --leading-display: 1.1;
+  --tracking-display: 0;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --spacing-unit: 4px;
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-36: 36px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-96: 96px;
+  --spacing-128: 128px;
+  --spacing-200: 200px;
+  --spacing-224: 224px;
+  --page-max-width: 1120px;
+  --section-gap: 96px;
+  --card-padding: 24px;
+  --element-gap: 16px;
+  --radius-tags: 9999px;
+  --radius-cards: 12px;
+  --radius-inputs: 8px;
+  --radius-buttons: 8px;
+  --shadow-subtle: rgb(255 255 255 / 5%) 0 0 0 1px inset;
+  --shadow-subtle-2: rgb(255 255 255 / 10%) 0 0 0 1px inset;
+  --shadow-subtle-3:
+    rgb(255 255 255 / 10%) 0 0 0 1px inset,
+    rgb(0 0 0 / 25%) 0 18px 44px -28px;
+  --app-bg: var(--color-abyss);
+  --editor-bg: var(--color-abyss);
+  --panel-bg: var(--color-surface);
+  --panel-bg-raised: color-mix(in srgb, var(--color-surface) 92%, var(--color-white) 8%);
+  --panel-bg-hover: color-mix(in srgb, var(--color-surface) 86%, var(--color-white) 14%);
+  --panel-bg-active: color-mix(in srgb, var(--color-amethyst) 24%, var(--color-surface));
+  --settings-card-bg: var(--color-surface);
+  --settings-sidebar-bg: color-mix(in srgb, var(--color-surface) 70%, var(--color-abyss));
+  --divider: var(--color-graphite);
+  --divider-subtle: color-mix(in srgb, var(--color-graphite) 58%, transparent);
+  --control-bg: color-mix(in srgb, var(--color-surface) 88%, var(--color-white) 12%);
+  --control-border: color-mix(in srgb, var(--color-graphite) 84%, var(--color-white) 16%);
+  --text-primary: var(--color-bright-gray);
+  --text-secondary: var(--color-medium-gray);
+  --text-muted: var(--color-muted-gray);
+  --text-faint: color-mix(in srgb, var(--color-muted-gray) 60%, var(--color-abyss));
+  --accent: var(--color-amethyst);
+  --accent-muted: var(--color-lavender);
+  --settings-accent: var(--color-amethyst);
+  --settings-accent-hover: var(--color-lavender);
+  --selection-bg: color-mix(in srgb, var(--color-amethyst) 42%, transparent);
+  --switch-track-off: var(--color-graphite);
+  --scrollbar-thumb: color-mix(in srgb, var(--color-graphite) 75%, var(--color-muted-gray) 25%);
+  --success-bg: color-mix(in srgb, var(--color-success-green) 16%, var(--color-abyss));
+  --success-border: color-mix(in srgb, var(--color-success-green) 42%, var(--color-graphite));
+  --success-text: var(--color-success-green);
+  --warning-text: var(--color-warning-yellow);
+  --error: var(--color-error-red);
+  --editor-caret: var(--color-white);
   --app-text: var(--text-primary);
   --panel-border: var(--divider);
   --control-text: var(--text-secondary);
@@ -34,36 +106,35 @@
   --muted-text: var(--text-muted);
   color: var(--app-text);
   background: var(--app-bg);
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-ui-sans-serif-system-ui);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
 html[data-theme='light'] {
-  --app-bg: #f6f5f2;
-  --editor-bg: #f6f5f2;
-  --panel-bg: #ebe8e1;
-  --panel-bg-raised: #f1eee8;
-  --panel-bg-hover: #e3ded5;
-  --panel-bg-active: #d9d2c8;
-  --settings-card-bg: #efebe3;
-  --settings-sidebar-bg: #e9e4dc;
-  --divider: #d8d2c7;
-  --divider-subtle: #e3ded5;
-  --control-bg: #f4f1ea;
-  --control-border: #c9c0b4;
-  --text-primary: #26282f;
-  --text-secondary: #555963;
-  --text-muted: #6d6f77;
-  --text-faint: #8a8790;
-  --accent: #2f65b7;
-  --accent-muted: #6f87b2;
-  --selection-bg: #c9d8f0;
-  --success-bg: #e4f3eb;
-  --success-border: #a8d4bd;
-  --success-text: #1e5b3d;
-  --editor-caret: #111318;
+  --app-bg: var(--color-abyss);
+  --editor-bg: var(--color-abyss);
+  --panel-bg: var(--color-surface);
+  --panel-bg-raised: color-mix(in srgb, var(--color-surface) 92%, var(--color-white) 8%);
+  --panel-bg-hover: color-mix(in srgb, var(--color-surface) 86%, var(--color-white) 14%);
+  --panel-bg-active: color-mix(in srgb, var(--color-amethyst) 24%, var(--color-surface));
+  --settings-card-bg: var(--color-surface);
+  --settings-sidebar-bg: color-mix(in srgb, var(--color-surface) 70%, var(--color-abyss));
+  --divider: var(--color-graphite);
+  --divider-subtle: color-mix(in srgb, var(--color-graphite) 58%, transparent);
+  --control-bg: color-mix(in srgb, var(--color-surface) 88%, var(--color-white) 12%);
+  --control-border: color-mix(in srgb, var(--color-graphite) 84%, var(--color-white) 16%);
+  --text-primary: var(--color-bright-gray);
+  --text-secondary: var(--color-medium-gray);
+  --text-muted: var(--color-muted-gray);
+  --text-faint: color-mix(in srgb, var(--color-muted-gray) 60%, var(--color-abyss));
+  --accent: var(--color-amethyst);
+  --accent-muted: var(--color-lavender);
+  --selection-bg: color-mix(in srgb, var(--color-amethyst) 42%, transparent);
+  --success-bg: color-mix(in srgb, var(--color-success-green) 16%, var(--color-abyss));
+  --success-border: color-mix(in srgb, var(--color-success-green) 42%, var(--color-graphite));
+  --success-text: var(--color-success-green);
+  --editor-caret: var(--color-white);
 }
 
 * {
@@ -95,7 +166,7 @@ textarea {
 button,
 input,
 select {
-  border-radius: 4px;
+  border-radius: var(--radius-inputs);
 }
 
 button {
@@ -158,15 +229,49 @@ select:focus-visible {
 .app-actions button,
 .open-first-file,
 .empty-vault button {
-  padding: 7px 10px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-buttons);
+  box-shadow: var(--shadow-subtle);
+}
+
+.app-actions button:first-child,
+.drive-picker-select-current,
+.open-first-file,
+.empty-vault button {
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-buttons);
+  color: var(--color-white);
+  background: var(--color-amethyst);
+  box-shadow: var(--shadow-subtle);
+}
+
+.app-actions button:not(:first-child),
+.drive-picker-back,
+.drive-picker-close,
+.drive-picker-select,
+.save-status button,
+.settings-toggle,
+.settings-action-button {
+  box-shadow: var(--shadow-subtle);
+}
+
+.app-actions button:not(:first-child) {
+  padding: 8px 10px;
   border: 1px solid var(--control-border);
   color: var(--control-text);
   background: var(--control-bg);
 }
 
-.app-actions button:hover,
+.app-actions button:first-child:hover,
+.drive-picker-select-current:hover,
 .open-first-file:hover,
 .empty-vault button:hover {
+  background: var(--color-lavender);
+  color: var(--color-white);
+}
+
+.app-actions button:not(:first-child):hover {
   color: var(--text-primary);
   background: var(--panel-bg-hover);
 }
@@ -188,9 +293,9 @@ select:focus-visible {
   max-height: min(680px, calc(100vh - 32px));
   overflow: hidden;
   border: 1px solid var(--divider);
-  border-radius: 8px;
+  border-radius: var(--radius-cards);
   background: var(--panel-bg);
-  box-shadow: 0 18px 48px rgb(0 0 0 / 38%);
+  box-shadow: var(--shadow-subtle-3);
   text-align: left;
 }
 
@@ -236,13 +341,16 @@ select:focus-visible {
 
 .drive-picker-close,
 .drive-picker-back,
-.drive-picker-select-current,
 .drive-picker-select {
   flex: 0 0 auto;
   padding: 6px 9px;
   border: 1px solid var(--control-border);
   color: var(--control-text);
   background: var(--control-bg);
+}
+
+.drive-picker-select-current {
+  flex: 0 0 auto;
 }
 
 .drive-picker-close {
@@ -255,7 +363,6 @@ select:focus-visible {
 
 .drive-picker-close:hover,
 .drive-picker-back:hover,
-.drive-picker-select-current:hover,
 .drive-picker-select:hover,
 .drive-picker-folder:hover {
   color: var(--text-primary);
@@ -355,16 +462,17 @@ select:focus-visible {
   background: transparent;
 }
 
-.activity-rail button:last-child {
-  margin-top: auto;
-}
-
 .activity-rail button:hover,
-.activity-rail button.active,
 .sidebar-actions button:hover,
 .settings-close:hover {
   color: var(--text-primary);
   background: var(--panel-bg-hover);
+}
+
+.activity-rail button.active {
+  color: var(--color-lavender);
+  background: color-mix(in srgb, var(--color-amethyst) 20%, transparent);
+  box-shadow: var(--shadow-subtle);
 }
 
 .sidebar,
@@ -374,6 +482,7 @@ select:focus-visible {
   background: var(--panel-bg);
   border-color: var(--divider);
   border-style: solid;
+  box-shadow: var(--shadow-subtle);
 }
 
 .sidebar {
@@ -384,19 +493,7 @@ select:focus-visible {
   padding: 8px;
 }
 
-.sidebar-vault {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 7px;
-  height: 28px;
-  padding: 0 6px;
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.sidebar-vault span,
+.sidebar-vault-summary span,
 .sidebar-folder-row span,
 .sidebar-item span,
 .sidebar-item small,
@@ -544,6 +641,10 @@ button.sidebar-folder-row:hover {
   background: var(--panel-bg-active);
 }
 
+.sidebar-item.active .icon {
+  color: var(--color-lavender);
+}
+
 .sidebar-item:hover:not(.active) {
   background: var(--panel-bg-hover);
 }
@@ -555,26 +656,55 @@ button.sidebar-folder-row:hover {
   font-size: 13px;
 }
 
-.sidebar-settings {
+.sidebar-footer {
   display: grid;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
   margin-top: auto;
   padding-top: 8px;
   border-top: 1px solid var(--divider-subtle);
 }
 
+.sidebar-vault-summary,
 .settings-toggle {
   display: flex;
-  width: 100%;
   align-items: center;
   gap: 7px;
+  min-width: 0;
   padding: 7px 8px;
-  border: 1px solid var(--control-border);
   color: var(--control-text);
-  background: var(--control-bg);
   text-align: left;
 }
 
+.sidebar-vault-summary {
+  min-height: 30px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sidebar-vault-summary .icon {
+  color: var(--text-muted);
+}
+
+.sidebar-footer-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.sidebar-footer-icon,
+.sidebar-footer-icon-button {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.sidebar-footer-icon-button:hover,
 .settings-toggle:hover {
   color: var(--text-primary);
   background: var(--panel-bg-hover);
@@ -589,7 +719,9 @@ button.sidebar-folder-row:hover {
   background: var(--editor-bg);
 }
 
-.open-first-file {
+.open-first-file,
+.empty-vault {
+  grid-row: 1 / -1;
   justify-self: center;
   align-self: center;
 }
@@ -597,7 +729,6 @@ button.sidebar-folder-row:hover {
 .empty-vault {
   display: grid;
   justify-items: center;
-  align-self: center;
   gap: 10px;
   color: var(--secondary-text);
 }
@@ -686,6 +817,17 @@ button.sidebar-folder-row:hover {
   background: var(--panel-bg-hover);
 }
 
+.save-status-dirty button {
+  border-color: transparent;
+  color: var(--color-white);
+  background: var(--color-amethyst);
+}
+
+.save-status-dirty button:hover {
+  color: var(--color-white);
+  background: var(--color-lavender);
+}
+
 .save-status-saved span {
   color: var(--success-text);
 }
@@ -713,8 +855,7 @@ button.sidebar-folder-row:hover {
 }
 
 .editor-pane .cm-scroller {
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-ui-sans-serif-system-ui);
 }
 
 .editor-pane .cm-content {
@@ -744,12 +885,10 @@ button.sidebar-folder-row:hover {
 .editor-pane .cm-tooltip {
   overflow: hidden;
   border: 1px solid var(--control-border);
-  border-radius: 7px;
-  background: #1f1f1f;
+  border-radius: var(--radius-inputs);
+  background: var(--panel-bg);
   color: var(--text-secondary);
-  box-shadow:
-    0 14px 36px rgb(0 0 0 / 36%),
-    inset 0 1px 0 rgb(255 255 255 / 3%);
+  box-shadow: var(--shadow-subtle-3);
 }
 
 .editor-pane .cm-tooltip-autocomplete {
@@ -770,7 +909,7 @@ button.sidebar-folder-row:hover {
   align-items: center;
   gap: 16px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-inputs);
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 600;
@@ -794,21 +933,21 @@ button.sidebar-folder-row:hover {
   min-height: 20px;
   margin-left: 0;
   padding: 1px 7px;
-  border-radius: 5px;
+  border-radius: var(--radius-inputs);
   color: var(--text-primary);
-  background: #2b2b2b;
+  background: var(--control-bg);
   font-size: 12px;
   font-weight: 700;
   opacity: 1;
 }
 
 .editor-pane .cm-tooltip-autocomplete ul li[aria-selected] {
-  background: #3a3a3a;
+  background: var(--panel-bg-active);
   color: var(--text-primary);
 }
 
 .editor-pane .cm-tooltip-autocomplete ul li[aria-selected] .cm-completionDetail {
-  background: #303030;
+  background: var(--panel-bg-hover);
 }
 
 .metadata-panel {
@@ -889,11 +1028,11 @@ button.sidebar-folder-row:hover {
 
 .tag {
   max-width: 100%;
-  padding: 2px 6px;
-  border-radius: 9999px;
+  padding: 2px 8px;
+  border-radius: var(--radius-tags);
   overflow-wrap: anywhere;
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent-muted) 24%, transparent);
+  color: var(--color-lavender);
+  background: color-mix(in srgb, var(--color-tag-background) 15%, transparent);
   font-size: 12px;
   line-height: 1.35;
 }
@@ -917,10 +1056,10 @@ button.sidebar-folder-row:hover {
   height: min(760px, calc(100vh - 64px));
   overflow: hidden;
   border: 1px solid var(--control-border);
-  border-radius: 8px;
+  border-radius: var(--radius-cards);
   background: var(--app-bg);
   color: var(--text-primary);
-  box-shadow: 0 18px 42px rgb(0 0 0 / 34%);
+  box-shadow: var(--shadow-subtle-3);
 }
 
 .settings-sidebar {
@@ -975,8 +1114,9 @@ button.sidebar-folder-row:hover {
   display: grid;
   max-width: 736px;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: var(--radius-cards);
   background: var(--settings-card-bg);
+  box-shadow: var(--shadow-subtle);
 }
 
 .settings-card h3 {
@@ -1077,7 +1217,7 @@ button.sidebar-folder-row:hover {
     left: 40px;
     z-index: 20;
     width: min(260px, calc(100vw - 40px));
-    box-shadow: 12px 0 28px rgb(0 0 0 / 28%);
+    box-shadow: var(--shadow-subtle-2);
   }
 
   .editor-pane .cm-content {

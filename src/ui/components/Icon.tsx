@@ -5,6 +5,7 @@ type IconName =
   | 'check'
   | 'chevron-down'
   | 'chevron-right'
+  | 'circle-help'
   | 'file-text'
   | 'folder'
   | 'folder-plus'
@@ -27,6 +28,7 @@ const iconPaths: Record<IconName, string[]> = {
   check: ['m20 6-11 11-5-5'],
   'chevron-down': ['m6 9 6 6 6-6'],
   'chevron-right': ['m9 18 6-6-6-6'],
+  'circle-help': ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z', 'M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4', 'M12 17h.01'],
   'file-text': ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z', 'M14 2v6h6', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
   folder: ['M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2L10.8 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z'],
   'folder-plus': ['M12 10v6', 'M9 13h6', 'M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2L10.8 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z'],

@@ -42,10 +42,6 @@ export function FileSidebar({
 
   return (
     <aside className="sidebar" aria-label={t('sidebar.aria')}>
-      <div className="sidebar-vault">
-        <Icon name="folder" />
-        <span>{rootName}</span>
-      </div>
       <div className="sidebar-tools">
         <label className="sidebar-search">
           <Icon name="search" />
@@ -84,15 +80,25 @@ export function FileSidebar({
       {entries.length === 0 ? (
         <p className="sidebar-empty">{t('sidebar.empty')}</p>
       ) : null}
-      <div className="sidebar-settings">
-        <button
-          className="settings-toggle"
-          type="button"
-          onClick={onOpenSettings}
-        >
-          <Icon name="settings" />
-          {t('settings.label')}
-        </button>
+      <div className="sidebar-footer">
+        <div className="sidebar-vault-summary" title={rootName}>
+          <Icon name="chevron-down" />
+          <span>{rootName}</span>
+        </div>
+        <div className="sidebar-footer-actions">
+          <span className="sidebar-footer-icon" aria-hidden="true">
+            <Icon name="circle-help" />
+          </span>
+          <button
+            aria-label={t('settings.open')}
+            className="sidebar-footer-icon-button"
+            title={t('settings.open')}
+            type="button"
+            onClick={onOpenSettings}
+          >
+            <Icon name="settings" />
+          </button>
+        </div>
       </div>
     </aside>
   );

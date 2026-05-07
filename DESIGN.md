@@ -1,362 +1,369 @@
----
-version: alpha
-name: Obsidian Vault Editor for Google Drive
-description: "A quiet, dense, Obsidian-inspired dark workspace for editing Markdown files stored in Google Drive."
-colors:
-  app-bg: "#1E1E1E"
-  editor-bg: "#1E1E1E"
-  panel-bg: "#252525"
-  panel-bg-raised: "#2D2D2D"
-  panel-bg-hover: "#333333"
-  panel-bg-active: "#3A3A3A"
-  settings-card-bg: "#242424"
-  settings-sidebar-bg: "#1F1F1F"
-  divider: "#343434"
-  divider-subtle: "#2B2B2B"
-  control-bg: "#303136"
-  control-border: "#454545"
-  text-primary: "#EDEEF2"
-  text-secondary: "#C7C7C7"
-  text-muted: "#9A9A9A"
-  text-faint: "#737373"
-  accent: "#8AADF4"
-  accent-muted: "#5D6F91"
-  settings-accent: "#8B5CF6"
-  settings-accent-hover: "#9B72FF"
-  selection-bg: "#3C4F73"
-  switch-track-off: "#4A4A4A"
-  scrollbar-thumb: "#686868"
-  success-bg: "#1F312B"
-  success-border: "#3D4F48"
-  success-text: "#BAF0DC"
-  error: "#FF6B6B"
-  light-app-bg: "#F6F5F2"
-  light-panel-bg: "#EBE8E1"
-  light-text-primary: "#26282F"
-  light-text-muted: "#6D6F77"
-typography:
-  title-lg:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: 28px
-    fontWeight: 700
-    lineHeight: 1.25
-    letterSpacing: 0
-  title-md:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: 18px
-    fontWeight: 700
-    lineHeight: 1.35
-    letterSpacing: 0
-  body-md:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: 15px
-    fontWeight: 400
-    lineHeight: 1.7
-    letterSpacing: 0
-  body-sm:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: 13px
-    fontWeight: 400
-    lineHeight: 1.5
-    letterSpacing: 0
-  label-sm:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: 12px
-    fontWeight: 500
-    lineHeight: 1.35
-    letterSpacing: 0
-  mono-sm:
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace"
-    fontSize: 13px
-    fontWeight: 400
-    lineHeight: 1.5
-    letterSpacing: 0
-spacing:
-  none: 0px
-  xxs: 2px
-  xs: 4px
-  sm: 6px
-  md: 8px
-  lg: 12px
-  xl: 16px
-  xxl: 24px
-  editor-inline: 32px
-  editor-top: 36px
-  sidebar-width: 260px
-  metadata-width: 280px
-  activity-rail-width: 40px
-  settings-dialog-max-width: 1100px
-  settings-sidebar-width: 250px
-  settings-content-max-width: 736px
-  settings-card-padding: 20px
-  settings-row-min-height: 58px
-rounded:
-  none: 0px
-  xs: 3px
-  sm: 4px
-  md: 6px
-  lg: 8px
-  full: 9999px
-components:
-  workspace:
-    backgroundColor: "{colors.app-bg}"
-    textColor: "{colors.text-primary}"
-    typography: "{typography.body-md}"
-  sidebar:
-    backgroundColor: "{colors.panel-bg}"
-    textColor: "{colors.text-secondary}"
-    width: "{spacing.sidebar-width}"
-    borderColor: "{colors.divider}"
-  sidebar-item:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-secondary}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.sm}"
-    padding: "6px 8px"
-  sidebar-item-hover:
-    backgroundColor: "{colors.panel-bg-hover}"
-    textColor: "{colors.text-primary}"
-  sidebar-item-active:
-    backgroundColor: "{colors.panel-bg-active}"
-    textColor: "{colors.text-primary}"
-  editor-pane:
-    backgroundColor: "{colors.editor-bg}"
-    textColor: "{colors.text-primary}"
-    typography: "{typography.body-md}"
-  metadata-panel:
-    backgroundColor: "{colors.panel-bg}"
-    textColor: "{colors.text-secondary}"
-    width: "{spacing.metadata-width}"
-    borderColor: "{colors.divider}"
-  button-secondary:
-    backgroundColor: "{colors.control-bg}"
-    textColor: "{colors.text-secondary}"
-    borderColor: "{colors.control-border}"
-    rounded: "{rounded.sm}"
-    padding: "7px 8px"
-  input:
-    backgroundColor: "{colors.app-bg}"
-    textColor: "{colors.text-primary}"
-    borderColor: "{colors.divider}"
-    rounded: "{rounded.sm}"
-    padding: "7px 8px"
-  icon:
-    iconSet: "Lucide"
-    size: 16px
-    strokeWidth: 1.75
-    textColor: "{colors.text-muted}"
-  icon-button:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-muted}"
-    rounded: "{rounded.sm}"
-    size: 28px
-  icon-button-hover:
-    backgroundColor: "{colors.panel-bg-hover}"
-    textColor: "{colors.text-primary}"
-  settings-dialog:
-    backgroundColor: "{colors.app-bg}"
-    textColor: "{colors.text-primary}"
-    width: "{spacing.settings-dialog-max-width}"
-    rounded: "{rounded.lg}"
-    borderColor: "{colors.control-border}"
-  settings-sidebar:
-    backgroundColor: "{colors.settings-sidebar-bg}"
-    textColor: "{colors.text-secondary}"
-    width: "{spacing.settings-sidebar-width}"
-    borderColor: "{colors.divider}"
-  settings-sidebar-item:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-secondary}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.sm}"
-    padding: "6px 8px"
-  settings-sidebar-item-active:
-    backgroundColor: "{colors.panel-bg-active}"
-    textColor: "{colors.text-primary}"
-  settings-card:
-    backgroundColor: "{colors.settings-card-bg}"
-    textColor: "{colors.text-secondary}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.settings-card-padding}"
-  setting-row:
-    minHeight: "{spacing.settings-row-min-height}"
-    borderColor: "{colors.divider}"
-  button-primary:
-    backgroundColor: "{colors.settings-accent}"
-    textColor: "#FFFFFF"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
-  toggle-on:
-    backgroundColor: "{colors.settings-accent}"
-    textColor: "#FFFFFF"
-    width: 44px
-    height: 22px
-    rounded: "{rounded.full}"
-  toggle-off:
-    backgroundColor: "{colors.switch-track-off}"
-    textColor: "#FFFFFF"
-    width: 44px
-    height: 22px
-    rounded: "{rounded.full}"
----
+# Obsidian — Style Reference
+> Crystalline Knowledge Vault. A sharp, faceted digital space built for clarity and focus, with glowing violet veins of interaction.
 
-# Obsidian Vault Editor for Google Drive Design
+**Theme:** dark
 
-## Overview
+The design feels like being inside a piece of precision software—a dark, focused digital workspace where thoughts crystallize. The foundation is a near-black, void-like background (#171717), creating a high-contrast canvas. A single, electric violet accent (#7c3aed, #a78bfa) is used strictly for interactive elements like CTAs and links, acting as functional beacons in the dark. Typography is exclusively the system's native UI font, reinforcing its identity as a functional tool rather than a stylized marketing site. Instead of drop shadows, surfaces use a subtle, 1px white inset highlight, giving them an internal luminescence as if lit from within.
 
-This interface should feel like a calm local Markdown workspace, not a web dashboard. The reference screenshot is Obsidian in dark mode: dense navigation on the left, a quiet writing surface in the center, metadata on the right, and thin utility rails around the workspace. The emotional target is focused, low-friction, and familiar to people who already organize notes in folders.
+## Tokens — Colors
 
-Dark mode is the canonical experience. The UI should recede behind the document, using subtle tonal separation instead of decorative color, large cards, gradients, or marketing-style panels. The editor content is the most important element on the screen; navigation, metadata, sync state, and controls should be visible but visually quieter.
+| Name | Value | Token | Role |
+|------|-------|-------|------|
+| White | `#ffffff` | `--color-white` | Bright text on dark CTAs, inset glows for definition |
+| Bright Gray | `#eeeeee` | `--color-bright-gray` | Primary body text, headings |
+| Medium Gray | `#bcbcbc` | `--color-medium-gray` | Secondary text, navigation links |
+| Muted Gray | `#a3a3a3` | `--color-muted-gray` | Tertiary text, subtle metadata |
+| Graphite | `#3f3f3f` | `--color-graphite` | Borders, UI element dividers |
+| Surface | `#1e1e1` | `--color-surface` | Card backgrounds, elevated UI panels |
+| Abyss | `#171717` | `--color-abyss` | Main page background |
+| Amethyst | `#7c3aed` | `--color-amethyst` | Primary CTA buttons—a sharp, functional accent against the dark theme |
+| Lavender | `#a78bfa` | `--color-lavender` | Links, badge text, and active states—the secondary, brighter interaction color |
+| Tag Background | `#8a5cf5` | `--color-tag-background` | Background for tag/badge elements, used at 15% opacity |
+| Success Green | `#4ade80` | `--color-success-green` | Success states or syntax highlighting within the app UI |
+| Warning Yellow | `#facc15` | `--color-warning-yellow` | Warning states or syntax highlighting within the app UI |
+| Error Red | `#f87171` | `--color-error-red` | Error states or syntax highlighting within the app UI |
 
-Use Korean and English content naturally. Korean filenames, headings, and metadata must preserve legibility at compact sizes.
+## Tokens — Typography
 
-## Colors
+### ui-sans-serif, system-ui — Used for all text. The choice of a system font is deliberate, making the website feel like a native application—a functional tool for thought. · `--font-ui-sans-serif-system-ui`
+- **Substitute:** "SF Pro Display", "Roboto", "Segoe UI", sans-serif
+- **Weights:** 400, 500, 600, 700
+- **Sizes:** 8px, 9px, 10px, 11px, 12px, 13px, 14px, 16px, 18px, 20px, 24px, 28px, 36px, 60px
+- **Line height:** 1.25-1.5
+- **Letter spacing:** Negative tracking (-0.02em) on larger sizes tightens headlines for a more compact, solid appearance.
+- **Role:** Used for all text. The choice of a system font is deliberate, making the website feel like a native application—a functional tool for thought.
 
-The palette is built from neutral dark layers with one restrained blue accent for links, focus, selected text, and sync affordances.
+### Type Scale
 
-- **App background (`#1E1E1E`):** The main editor canvas and overall workspace foundation.
-- **Panel background (`#252525`):** Sidebars and utility panels. It should be only slightly lighter than the editor.
-- **Active item (`#3A3A3A`):** Current file, selected panel control, and active row states.
-- **Dividers (`#343434`):** Thin one-pixel boundaries between panes, never heavy outlines.
-- **Primary text (`#EDEEF2`):** Headings, active filenames, body content.
-- **Secondary text (`#C7C7C7`):** Standard navigation labels and metadata.
-- **Muted text (`#9A9A9A`):** Breadcrumbs, inactive utility labels, secondary paths.
-- **Accent (`#8AADF4`):** Links, focus rings, editor selections, and a small number of meaningful highlights.
-- **Settings accent (`#8B5CF6`):** Primary settings actions, enabled toggles, and Obsidian-style preference links.
+| Role | Size | Line Height | Letter Spacing | Token |
+|------|------|-------------|----------------|-------|
+| caption | 12px | 1.5 | -0.24px | `--text-caption` |
+| body-sm | 14px | 1.5 | -0.28px | `--text-body-sm` |
+| body | 16px | 1.5 | -0.32px | `--text-body` |
+| subheading | 18px | 1.4 | -0.36px | `--text-subheading` |
+| heading-sm | 24px | 1.33 | -0.48px | `--text-heading-sm` |
+| heading | 28px | 1.25 | -0.56px | `--text-heading` |
+| heading-lg | 36px | 1.25 | -0.72px | `--text-heading-lg` |
+| display | 60px | 1.1 | -1.2px | `--text-display` |
 
-Avoid saturated color blocks. Status colors should appear as small notices, icons, borders, or text accents, not as full-width banners unless the message blocks the editing flow.
+## Tokens — Spacing & Shapes
 
-## Typography
+**Base unit:** 4px
 
-Use the system UI stack with Inter when available. The UI should feel native to macOS and modern browsers while staying close to Obsidian's compact density.
+**Density:** compact
 
-- **Document title:** 28px, 700 weight, tight but readable. Use for the note title only.
-- **Section headings:** 18px or smaller, 700 weight. Use sparingly inside panels.
-- **Editor body:** 15px, 400 weight, 1.7 line height. This supports long-form Markdown and Korean text.
-- **Sidebar labels:** 13px, 400 or 500 weight. Keep labels compact and scannable.
-- **Metadata and utility labels:** 12px to 13px. Use muted color before reducing size further.
-- **Code and identifiers:** Use a monospace stack at 13px for IDs, frontmatter values, and technical metadata.
+### Spacing Scale
 
-Do not use negative letter spacing. Do not scale font sizes with viewport width.
+| Name | Value | Token |
+|------|-------|-------|
+| 4 | 4px | `--spacing-4` |
+| 8 | 8px | `--spacing-8` |
+| 12 | 12px | `--spacing-12` |
+| 16 | 16px | `--spacing-16` |
+| 20 | 20px | `--spacing-20` |
+| 24 | 24px | `--spacing-24` |
+| 28 | 28px | `--spacing-28` |
+| 32 | 32px | `--spacing-32` |
+| 36 | 36px | `--spacing-36` |
+| 48 | 48px | `--spacing-48` |
+| 64 | 64px | `--spacing-64` |
+| 96 | 96px | `--spacing-96` |
+| 128 | 128px | `--spacing-128` |
+| 200 | 200px | `--spacing-200` |
+| 224 | 224px | `--spacing-224` |
 
-## Layout
+### Border Radius
 
-The desktop layout uses three stable columns:
+| Element | Value |
+|---------|-------|
+| tags | 9999px |
+| cards | 12px |
+| inputs | 8px |
+| buttons | 8px |
 
-- Left navigation: 260px wide for folder/file browsing.
-- Center editor: fluid, minimum width 0, owns all remaining space.
-- Right metadata panel: 280px wide for properties, tags, backlinks, or document intelligence.
+### Shadows
 
-The reference Obsidian screen also includes a very narrow activity rail on the far left. If this app adds one, keep it about 40px wide with icon-only controls and tooltips.
+| Name | Value | Token |
+|------|-------|-------|
+| subtle | `rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset` | `--shadow-subtle` |
+| xl | `rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1)...` | `--shadow-xl` |
+| subtle-2 | `rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset` | `--shadow-subtle-2` |
+| subtle-3 | `rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset, rgba(0, 0...` | `--shadow-subtle-3` |
+| xl-2 | `rgba(0, 0, 0, 0.25) 0px 25px 50px -12px` | `--shadow-xl-2` |
 
-The center editor should have generous internal reading space without becoming a hero section. Use approximately 32px horizontal padding and 36px top padding for document content on desktop. On narrow screens, collapse panels before shrinking editor text. Prefer a single editor-first column on mobile with navigation and metadata available through drawers, tabs, or toggles.
+### Layout
 
-Use thin dividers and tonal layers to communicate structure. Do not wrap the editor, sidebars, or whole page sections in floating cards.
-
-## Elevation & Depth
-
-Depth is flat and tonal. This design should not rely on shadows. Hierarchy comes from:
-
-- Adjacent dark surfaces with small luminance differences.
-- One-pixel dividers between persistent panes.
-- Active and hover row fills.
-- Text contrast and density.
-
-Use shadows only for temporary overlays such as popovers, autocomplete menus, dropdowns, and modal dialogs. Even then, keep shadows soft and low contrast.
-
-## Shapes
-
-The shape language is compact and slightly softened.
-
-- Pane boundaries are square.
-- Sidebar rows, inputs, and buttons use 3px to 6px radii.
-- Repeated cards are not part of the core workspace pattern.
-- Avoid pill-shaped controls unless representing tags or compact filters.
-
-Corners should never become a dominant visual theme. Obsidian-like utility surfaces should feel precise and quiet.
+- **Page max-width:** 1120px
+- **Section gap:** 96px
+- **Card padding:** 24px
+- **Element gap:** 16px
 
 ## Components
 
-**Workspace Frame**
+### Primary CTA Button
+**Role:** The main call-to-action button.
 
-Do not add a separate app-level titlebar, tab strip, fake macOS traffic-light controls, or decorative header. The browser or host shell owns window controls. The workspace should begin immediately with the activity rail, sidebar, editor, and metadata panel. Icons are monochrome and low contrast by default, brightening on hover or active state.
+Solid Amethyst (#7c3aed) background with White (#ffffff) text. Padding is 16px 24px. Corner radius is 8px.
 
-**Sidebar**
+### Secondary Ghost Button
+**Role:** A less prominent action, often for secondary choices like 'More platforms'.
 
-The sidebar is a dense file tree. It should support nested folders, disclosure arrows, active file highlighting, and long filenames without layout shifts. Use 6px to 8px row padding. Active rows use a filled background, not a left accent bar. Folder indentation should be clear but compact.
+Transparent background with Medium Gray (#bcbcbc) text. Padding is 8px. Corner radius is 8px. No border.
 
-**Editor**
+### Community Link Card
+**Role:** Large, clickable cards used to link to community resources.
 
-The editor is the visual anchor. Markdown headings, lists, tables, links, frontmatter, and code should be readable against the app background. The cursor should be high contrast. Selection should use a muted accent fill rather than a bright system blue.
+Surface (#1e1e1e) background with Bright Gray (#eeeeee) text. Padding is 24px. Corner radius is 12px. Features a 1px white inset glow `rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset`.
 
-**Metadata Panel**
+### Tag Badge
+**Role:** Used inside the app UI to display tags on notes.
 
-The right panel is quieter than the document. It should show properties, tags, backlinks, word counts, or sync information in compact rows. Labels use muted text; values use primary or secondary text. Avoid large empty-state illustrations.
+Pill-shaped (9999px radius). Background is Tag Background (#8a5cf5) at 15% opacity. Text is Lavender (#a78bfa). Padding is 2px 8px.
 
-**Buttons and Inputs**
+### App Showcase
+**Role:** Displays the product UI directly on the page.
 
-Buttons are secondary by default. Use filled dark controls with subtle borders. Primary actions may use the accent color, but only when the action is central and rare. Inputs should blend into panels and reveal stronger borders on focus.
+A detailed screenshot or rendered view of the Obsidian application, showing elements like the note editor, sidebar file browser, and distinctive graph view. Follows the site's dark theme.
 
-**Settings Dialog**
+### App Icon
+**Role:** The primary brand mark and application icon.
 
-Settings use a dedicated two-column dialog rather than the normal editor layout. The left column is a 250px preference navigation rail with grouped labels, Lucide icons, compact rows, and a filled active state. The right column is a scrollable content area with a max width around 736px and clear section headings.
+A squircle-shaped icon (approx 20% border-radius) depicting a faceted purple and black gem. Has a subtle internal gloss and shadow to give it dimension.
 
-Setting content is grouped into rounded tonal cards. Cards use about 20px padding, 8px radius, and subtle horizontal dividers between rows. Each setting row has a title, one-line helper copy, and a right-aligned control when applicable. Dense utility text is acceptable here; the screen is for configuration, not reading.
+### Navigation Link
+**Role:** Text links in the main header navigation.
 
-The close control sits in the top-right corner of the dialog as a muted icon-only button. The dialog may be nearly full-height on desktop, but it should still read as an overlay/panel with its own border and internal scroll area.
-
-**Settings Controls**
-
-Use Obsidian-style purple for settings primary actions, enabled toggles, and inline preference links. Secondary buttons remain dark gray with subtle borders. Select menus use dark filled controls, right-aligned in setting rows, with compact heights and clear focus states. Toggles are pill-shaped: purple track when enabled, gray track when disabled, white thumb in both states.
-
-**Iconography**
-
-Use **Lucide** as the default icon set for the activity rail, navigation, toolbar actions, metadata controls, and editor utilities. Its thin rounded outline style matches the Obsidian reference better than filled, duotone, or heavy pictographic sets.
-
-Default icons are 16px with 1.75 stroke width. Toolbar and sidebar controls may use 18px icons when the hit target remains compact. Icon-only buttons should have 28px square hit targets, subtle hover fills, and tooltips or accessible labels. Icons are muted by default and brighten only on hover, focus, active, or selected states.
-
-Prefer familiar Lucide symbols such as `Search`, `FileText`, `Folder`, `FolderPlus`, `Plus`, `ChevronRight`, `ChevronDown`, `PanelLeft`, `PanelRight`, `Settings`, `Save`, `Check`, `AlertTriangle`, `RefreshCw`, `Link`, `Hash`, and `MoreHorizontal`. Do not mix icon sets on the same surface unless an integration brand mark is required.
-
-**Notices and Save State**
-
-Autosave, sync, and conflict states should be small and persistent. Place them near the bottom/status area or inline with the relevant control. Errors and remote conflicts need stronger color, but still within the quiet desktop style.
-
-**Tables**
-
-Markdown tables should use thin grid lines and compact cells. Headers may be slightly bolder but should not introduce heavy backgrounds.
+Medium Gray (#bcbcbc) text using the system UI font at 16px. No background or borders. Hover state is likely a color change to Bright Gray (#eeeeee).
 
 ## Do's and Don'ts
 
-- Do keep the editor and file tree immediately usable on the first screen.
-- Do use thin borders, compact spacing, and muted labels for utility surfaces.
-- Do prioritize keyboard-driven, repeated workflows over presentation-style layouts.
-- Do preserve clear active states for the current file, active panel control, focused input, and selected editor text.
-- Do make Korean filenames and headings readable at sidebar density.
-- Do use Lucide icons for icon buttons and toolbar controls.
-- Do present settings as a two-column dialog with grouped navigation and carded setting sections.
-- Do use purple only for settings primary actions, enabled toggles, and inline preference links.
-- Don't add landing-page heroes, decorative gradients, floating page cards, or large empty illustrations.
-- Don't make the UI feel like a generic SaaS dashboard.
-- Don't add fake window controls, a redundant titlebar, or a header that only repeats the active filename.
-- Don't use accent color as broad decoration.
-- Don't mix filled, duotone, emoji, and outline icon styles in the same workspace.
-- Don't make settings rows taller or more spacious than necessary; preserve Obsidian's compact preference density.
-- Don't center the editor in a card or add ornamental frames around the writing area.
-- Don't hide sync/conflict states behind ambiguous color alone; include text or an icon.
+### Do
+- Use the system UI font for all text to maintain the native-app feel.
+- Reserve Amethyst (#7c3aed) and Lavender (#a78bfa) exclusively for interactive elements like buttons and links.
+- Employ subtle 1px inset white glows for definition on dark cards and buttons.
+- Maintain high contrast with light gray text (#eeeeee) on near-black backgrounds (#171717).
+- Use pill-shaped radii (9999px) for tags and badges only; keep other elements sharp.
+- Keep layouts centered and spacious, with generous vertical rhythm between sections.
 
-## Responsive Behavior
+### Don't
+- Do not use traditional drop shadows for elevation; prefer the inset glow effect.
+- Do not introduce other saturated colors into the primary UI; stick to the violet-on-dark palette.
+- Do not use decorative or serif fonts; the brand identity is utilitarian.
+- Do not use bright or light-themed backgrounds for primary content sections.
+- Do not use large border radii on cards or buttons; stick to the 8-12px range.
+- Do not use lifestyle photography; focus on the product UI as the primary visual.
 
-At desktop widths, show navigation, editor, and metadata together. Below tablet width, keep the editor primary and collapse the right metadata panel first. On mobile, present a single-column editor with file navigation and metadata behind explicit controls.
+## Elevation
 
-Text must never overlap icons or controls. Long filenames, paths, tags, and metadata values should truncate with ellipsis in navigation surfaces and wrap in detail views.
+Elevation is achieved through internal luminescence, not external shadows. Most interactive surfaces like cards and buttons feature a 1px inset white 'glow' (e.g., `rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset`). This creates definition and a subtle sense of depth without making elements feel like they are floating above the surface, reinforcing the in-app, digital tool aesthetic.
 
 ## Agent Prompt Guide
 
-When implementing UI from this design file:
+### Quick Color Reference
+- **Page Background**: `Abyss (#171717)`
+- **Card Background**: `Surface (#1e1e1e)`
+- **Default Text**: `Bright Gray (#eeeeee)`
+- **Primary CTA**: `Amethyst (#7c3aed)`
+- **Accent / Link**: `Lavender (#a78bfa)`
+- **Border Glow**: `rgba(255, 255, 255, 0.05)`
 
-- Treat this document as the visual source of truth for the workspace.
-- Reuse existing CSS variables before adding new tokens.
-- Prefer deletion and simplification over decorative additions.
-- Build the working editor surface first, then navigation and metadata affordances.
-- Verify desktop and mobile layouts with screenshots after significant visual changes.
-- If exact Obsidian parity is requested, compare against a fresh screenshot before editing.
+### Example Component Prompts
+1.  **Hero Section:** Create a hero section with a full-bleed Abyss (#171717) background. Add a centered headline 'Knowledge, connected.' in 60px system UI font, weight 600, color Bright Gray (#eeeeee), with -1.2px letter-spacing. Below it, add a sub-headline 'Your second brain, for life.' in 24px system font, weight 400, color Medium Gray (#bcbcbc), with -0.48px letter-spacing. Add a primary CTA button below that.
+2.  **Primary CTA Button:** Create a button with text 'Get Started'. The background is Amethyst (#7c3aed) with White (#ffffff) text. Use a 16px system UI font, weight 500. Padding is 16px vertical and 24px horizontal. Corner radius is 8px.
+3.  **Feature Card:** Create a feature card with a Surface (#1e1e1e) background. Padding is 24px. The corner radius is 12px. Add an inset box-shadow of `rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset`. Inside, add a heading in Bright Gray (#eeeeee) and body text in Medium Gray (#bcbcbc).
+
+## Similar Brands
+
+- **Raycast** — Shares the dark UI, native-app feel from using system fonts, and a focus on utility and speed.
+- **Linear** — Similar dark, high-contrast aesthetic with a single sharp violet/purple accent and subtle internal glow effects.
+- **VS Code** — Directly echoes the visual language of a code editor, appealing to a developer-adjacent audience with its dark theme and focus on plaintext.
+- **Superhuman** — Another productivity tool with a premium, dark-mode-first interface that emphasizes speed and function over adornment.
+
+## Quick Start
+
+### CSS Custom Properties
+
+```css
+:root {
+  /* Colors */
+  --color-white: #ffffff;
+  --color-bright-gray: #eeeeee;
+  --color-medium-gray: #bcbcbc;
+  --color-muted-gray: #a3a3a3;
+  --color-graphite: #3f3f3f;
+  --color-surface: #1e1e1;
+  --color-abyss: #171717;
+  --color-amethyst: #7c3aed;
+  --color-lavender: #a78bfa;
+  --color-tag-background: #8a5cf5;
+  --color-success-green: #4ade80;
+  --color-warning-yellow: #facc15;
+  --color-error-red: #f87171;
+
+  /* Typography — Font Families */
+  --font-ui-sans-serif-system-ui: 'ui-sans-serif, system-ui', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Typography — Scale */
+  --text-caption: 12px;
+  --leading-caption: 1.5;
+  --tracking-caption: -0.24px;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.5;
+  --tracking-body-sm: -0.28px;
+  --text-body: 16px;
+  --leading-body: 1.5;
+  --tracking-body: -0.32px;
+  --text-subheading: 18px;
+  --leading-subheading: 1.4;
+  --tracking-subheading: -0.36px;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.33;
+  --tracking-heading-sm: -0.48px;
+  --text-heading: 28px;
+  --leading-heading: 1.25;
+  --tracking-heading: -0.56px;
+  --text-heading-lg: 36px;
+  --leading-heading-lg: 1.25;
+  --tracking-heading-lg: -0.72px;
+  --text-display: 60px;
+  --leading-display: 1.1;
+  --tracking-display: -1.2px;
+
+  /* Typography — Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-unit: 4px;
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-36: 36px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-96: 96px;
+  --spacing-128: 128px;
+  --spacing-200: 200px;
+  --spacing-224: 224px;
+
+  /* Layout */
+  --page-max-width: 1120px;
+  --section-gap: 96px;
+  --card-padding: 24px;
+  --element-gap: 16px;
+
+  /* Border Radius */
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-3xl-2: 30px;
+  --radius-full: 999px;
+  --radius-full-2: 9999px;
+
+  /* Named Radii */
+  --radius-tags: 9999px;
+  --radius-cards: 12px;
+  --radius-inputs: 8px;
+  --radius-buttons: 8px;
+
+  /* Shadows */
+  --shadow-subtle: rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset;
+  --shadow-xl: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px;
+  --shadow-subtle-2: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset;
+  --shadow-subtle-3: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px;
+  --shadow-xl-2: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+}
+```
+
+### Tailwind v4
+
+```css
+@theme {
+  /* Colors */
+  --color-white: #ffffff;
+  --color-bright-gray: #eeeeee;
+  --color-medium-gray: #bcbcbc;
+  --color-muted-gray: #a3a3a3;
+  --color-graphite: #3f3f3f;
+  --color-surface: #1e1e1;
+  --color-abyss: #171717;
+  --color-amethyst: #7c3aed;
+  --color-lavender: #a78bfa;
+  --color-tag-background: #8a5cf5;
+  --color-success-green: #4ade80;
+  --color-warning-yellow: #facc15;
+  --color-error-red: #f87171;
+
+  /* Typography */
+  --font-ui-sans-serif-system-ui: 'ui-sans-serif, system-ui', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Typography — Scale */
+  --text-caption: 12px;
+  --leading-caption: 1.5;
+  --tracking-caption: -0.24px;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.5;
+  --tracking-body-sm: -0.28px;
+  --text-body: 16px;
+  --leading-body: 1.5;
+  --tracking-body: -0.32px;
+  --text-subheading: 18px;
+  --leading-subheading: 1.4;
+  --tracking-subheading: -0.36px;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.33;
+  --tracking-heading-sm: -0.48px;
+  --text-heading: 28px;
+  --leading-heading: 1.25;
+  --tracking-heading: -0.56px;
+  --text-heading-lg: 36px;
+  --leading-heading-lg: 1.25;
+  --tracking-heading-lg: -0.72px;
+  --text-display: 60px;
+  --leading-display: 1.1;
+  --tracking-display: -1.2px;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-36: 36px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-96: 96px;
+  --spacing-128: 128px;
+  --spacing-200: 200px;
+  --spacing-224: 224px;
+
+  /* Border Radius */
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-3xl-2: 30px;
+  --radius-full: 999px;
+  --radius-full-2: 9999px;
+
+  /* Shadows */
+  --shadow-subtle: rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset;
+  --shadow-xl: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px;
+  --shadow-subtle-2: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset;
+  --shadow-subtle-3: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px;
+  --shadow-xl-2: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+}
+```

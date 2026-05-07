@@ -90,7 +90,7 @@ describe('App', () => {
     render(<App />);
 
     await screen.findByRole('searchbox', { name: 'Vault 파일 검색' });
-    await user.click(screen.getByRole('button', { name: '설정' }));
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
     await user.click(screen.getByRole('button', { name: '다른 Google 계정으로 전환' }));
 
     expect(removeCachedAuthToken).toHaveBeenCalledWith({ token: 'cached-access-token' });
@@ -106,12 +106,14 @@ describe('App', () => {
     expect(screen.getByText('Google Drive 폴더를 vault로 연결해 Markdown 파일을 편집합니다.')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Mock vault 열기' }));
-    await user.click(screen.getByRole('button', { name: '설정' }));
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
     await user.selectOptions(screen.getByLabelText('언어'), 'en');
 
     expect(screen.getByRole('searchbox', { name: 'Search vault files' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'New file' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByText('Obsidian Vault')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open settings' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Settings' })).not.toBeInTheDocument();
   });
 
   it('keeps language settings in the sidebar menu after entering the workspace', async () => {
@@ -124,8 +126,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Mock vault 열기' }));
 
     expect(screen.queryByLabelText('언어')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '설정 열기' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '설정' }));
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
     await user.selectOptions(screen.getByLabelText('언어'), 'en');
 
     await user.selectOptions(screen.getByLabelText('Language'), 'ko');
@@ -144,7 +147,7 @@ describe('App', () => {
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
 
-    await user.click(screen.getByRole('button', { name: '설정' }));
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
     await user.selectOptions(screen.getByLabelText('테마'), 'light');
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'light');

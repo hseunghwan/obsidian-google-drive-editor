@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { VaultEntry, VaultFile, VaultFolder } from '../../domain/vault/types';
@@ -52,5 +53,35 @@ describe('FileSidebar', () => {
     expect(screen.getByRole('button', { name: /^Projects$/ })).toHaveAttribute('data-depth', '0');
     expect(screen.getByRole('button', { name: /^Area$/ })).toHaveAttribute('data-depth', '1');
     expect(screen.getByRole('button', { name: /Nested Note/ })).toHaveAttribute('data-depth', '2');
+  });
+
+  it('moves the root folder name to the sidebar footer beside the settings button', async () => {
+    const user = userEvent.setup();
+    const onOpenSettings = vi.fn();
+
+    render(
+      <FileSidebar
+        rootId={fixtureVaultRoot.id}
+        rootName={fixtureVaultRoot.name}
+        entries={[fixtureFolder]}
+        query=""
+        expandedFolderIds={new Set()}
+        loadingFolderIds={new Set()}
+        onQueryChange={vi.fn()}
+        onOpen={vi.fn()}
+        onToggleFolder={vi.fn()}
+        onCreateFile={vi.fn()}
+        onCreateFolder={vi.fn()}
+        onOpenSettings={onOpenSettings}
+      />
+    );
+
+    expect(screen.getByText(fixtureVaultRoot.name)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: fixtureVaultRoot.name })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '설정 열기' }));
+
+    expect(onOpenSettings).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: '설정' })).not.toBeInTheDocument();
   });
 });

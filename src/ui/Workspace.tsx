@@ -282,9 +282,6 @@ export function Workspace({
           >
             <Icon name="panel-right" />
           </button>
-          <button aria-label={t('settings.open')} title={t('settings.open')} type="button" onClick={() => setSettingsOpen(true)}>
-            <Icon name="settings" />
-          </button>
         </nav>
         {sidebarOpen ? (
           <FileSidebar
