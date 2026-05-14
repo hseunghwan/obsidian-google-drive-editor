@@ -112,29 +112,40 @@
 }
 
 html[data-theme='light'] {
-  --app-bg: var(--color-abyss);
-  --editor-bg: var(--color-abyss);
-  --panel-bg: var(--color-surface);
-  --panel-bg-raised: color-mix(in srgb, var(--color-surface) 92%, var(--color-white) 8%);
-  --panel-bg-hover: color-mix(in srgb, var(--color-surface) 86%, var(--color-white) 14%);
-  --panel-bg-active: color-mix(in srgb, var(--color-amethyst) 24%, var(--color-surface));
-  --settings-card-bg: var(--color-surface);
-  --settings-sidebar-bg: color-mix(in srgb, var(--color-surface) 70%, var(--color-abyss));
-  --divider: var(--color-graphite);
-  --divider-subtle: color-mix(in srgb, var(--color-graphite) 58%, transparent);
-  --control-bg: color-mix(in srgb, var(--color-surface) 88%, var(--color-white) 12%);
-  --control-border: color-mix(in srgb, var(--color-graphite) 84%, var(--color-white) 16%);
-  --text-primary: var(--color-bright-gray);
-  --text-secondary: var(--color-medium-gray);
-  --text-muted: var(--color-muted-gray);
-  --text-faint: color-mix(in srgb, var(--color-muted-gray) 60%, var(--color-abyss));
+  --app-bg: #f5f5f5;
+  --editor-bg: #ffffff;
+  --panel-bg: #fafafa;
+  --panel-bg-raised: #ffffff;
+  --panel-bg-hover: rgb(0 0 0 / 6%);
+  --panel-bg-active: color-mix(in srgb, var(--color-amethyst) 14%, #ffffff);
+  --settings-card-bg: #ffffff;
+  --settings-sidebar-bg: #f0f0f0;
+  --divider: #dcdcdc;
+  --divider-subtle: rgb(0 0 0 / 8%);
+  --control-bg: #ffffff;
+  --control-border: #cfcfcf;
+  --text-primary: #1f1f1f;
+  --text-secondary: #525252;
+  --text-muted: #737373;
+  --text-faint: #a0a0a0;
   --accent: var(--color-amethyst);
-  --accent-muted: var(--color-lavender);
-  --selection-bg: color-mix(in srgb, var(--color-amethyst) 42%, transparent);
-  --success-bg: color-mix(in srgb, var(--color-success-green) 16%, var(--color-abyss));
-  --success-border: color-mix(in srgb, var(--color-success-green) 42%, var(--color-graphite));
-  --success-text: var(--color-success-green);
-  --editor-caret: var(--color-white);
+  --accent-muted: var(--color-amethyst);
+  --settings-accent: var(--color-amethyst);
+  --settings-accent-hover: var(--color-amethyst);
+  --selection-bg: color-mix(in srgb, var(--color-amethyst) 22%, transparent);
+  --switch-track-off: #d4d4d4;
+  --scrollbar-thumb: #c2c2c2;
+  --success-bg: color-mix(in srgb, var(--color-success-green) 18%, #ffffff);
+  --success-border: color-mix(in srgb, var(--color-success-green) 55%, #cfcfcf);
+  --success-text: #15803d;
+  --warning-text: #b45309;
+  --error: #b91c1c;
+  --editor-caret: #1f1f1f;
+  --shadow-subtle: rgb(0 0 0 / 8%) 0 0 0 1px inset;
+  --shadow-subtle-2: rgb(0 0 0 / 12%) 0 0 0 1px inset;
+  --shadow-subtle-3:
+    rgb(0 0 0 / 10%) 0 0 0 1px inset,
+    rgb(0 0 0 / 12%) 0 18px 44px -28px;
 }
 
 * {

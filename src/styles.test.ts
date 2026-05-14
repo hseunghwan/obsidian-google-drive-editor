@@ -46,6 +46,19 @@ describe('styles', () => {
     expect(styles).toContain('place-content: center');
   });
 
+  it('defines a light theme with surfaces and text that diverge from the dark defaults', () => {
+    const lightBlockMatch = styles.match(/html\[data-theme='light'\]\s*{([\s\S]*?)}/);
+    expect(lightBlockMatch).not.toBeNull();
+    const lightBlock = lightBlockMatch![1];
+
+    expect(lightBlock).toMatch(/--app-bg:\s*#f5f5f5/);
+    expect(lightBlock).toMatch(/--editor-bg:\s*#ffffff/);
+    expect(lightBlock).toMatch(/--text-primary:\s*#1f1f1f/);
+    expect(lightBlock).toMatch(/--editor-caret:\s*#1f1f1f/);
+    expect(lightBlock).not.toContain('var(--color-abyss)');
+    expect(lightBlock).not.toContain('var(--color-surface)');
+  });
+
   it('keeps sidebar item menus hidden until row hover or focus', () => {
     expect(styles).toContain('.sidebar-tree-row');
     expect(styles).toContain('.sidebar-item-menu');
