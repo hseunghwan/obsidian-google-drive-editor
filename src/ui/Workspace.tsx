@@ -68,6 +68,7 @@ export function Workspace({
   const [metadataOpen, setMetadataOpen] = useState(() => matchesMedia('(min-width: 1081px)', true));
   const [sidebarWidth, setSidebarWidth] = useState(() => readStoredSidebarWidth());
   const sidebarDragState = useRef<{ pointerId: number; startX: number; startWidth: number } | null>(null);
+  const [recentFiles, setRecentFiles] = useState<VaultFile[]>(() => readStoredRecentFiles(root.id));
 
   useEffect(() => {
     try {
@@ -78,9 +79,14 @@ export function Workspace({
   }, [sidebarWidth]);
 
   useEffect(() => {
+    writeStoredRecentFiles(root.id, recentFiles);
+  }, [recentFiles, root.id]);
+
+  useEffect(() => {
     setWorkspaceEntries(entries);
     if (previousRootId.current !== root.id) {
       dispatch({ type: 'workspaceReset' });
+      setRecentFiles(readStoredRecentFiles(root.id));
       previousRootId.current = root.id;
     }
     setLoadedFolderIds(new Set());
@@ -163,12 +169,17 @@ export function Workspace({
   async function openFile(file: VaultFile) {
     setWorkspaceEntries((current) => mergeEntries(current, [file]));
     const document = await loadFile(file);
+    setRecentFiles((current) => pushRecentFile(current, document.file));
     dispatch({
       type: 'documentOpened',
       root,
       files: mergeEntries(workspaceFiles, [file]).filter((entry): entry is VaultFile => entry.kind === 'markdown'),
       document
     });
+  }
+
+  function closeRecentFile(fileId: string) {
+    setRecentFiles((current) => current.filter((entry) => entry.id !== fileId));
   }
 
   useEffect(() => {
@@ -253,6 +264,7 @@ export function Workspace({
     const nextEntries = mergeEntries(workspaceEntries, [nextFile]);
     const nextFiles = markdownEntries(nextEntries);
     setWorkspaceEntries(nextEntries);
+    setRecentFiles((current) => pushRecentFile(current, nextFile));
     setNotice(null);
     dispatch({
       type: 'documentOpened',
@@ -298,6 +310,7 @@ export function Workspace({
     );
     setWorkspaceEntries((current) => replaceRenamedEntry(current, entry, renamedEntry));
     setDriveSearchEntries((current) => replaceRenamedEntry(current, entry, renamedEntry));
+    setRecentFiles((current) => syncRecentFilesAfterRename(current, entry, renamedEntry));
     dispatch({ type: 'entryRenamed', previous: entry, entry: renamedEntry });
     setNotice(null);
   }
@@ -310,6 +323,7 @@ export function Workspace({
     await deleteEntry(entry);
     setWorkspaceEntries((current) => removeEntryTree(current, entry));
     setDriveSearchEntries((current) => removeEntryTree(current, entry));
+    setRecentFiles((current) => syncRecentFilesAfterDelete(current, entry));
     dispatch({ type: 'entryDeleted', entry });
     setNotice(null);
   }
@@ -435,6 +449,44 @@ export function Workspace({
           </>
         ) : null}
         <main className="workspace-main">
+          {recentFiles.length > 0 ? (
+            <div className="workspace-tabs" role="tablist" aria-label={t('workspace.recentTabs')}>
+              {recentFiles.map((file) => {
+                const isActive = activeDocument?.file.id === file.id;
+                return (
+                  <div
+                    key={file.id}
+                    className={`workspace-tab${isActive ? ' active' : ''}`}
+                    role="tab"
+                    aria-selected={isActive}
+                    tabIndex={0}
+                    title={file.path}
+                    onClick={() => void openFile(file)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        void openFile(file);
+                      }
+                    }}
+                  >
+                    <span className="workspace-tab-label">{file.title}</span>
+                    <button
+                      type="button"
+                      className="workspace-tab-close"
+                      aria-label={t('workspace.closeRecentTab')}
+                      title={t('workspace.closeRecentTab')}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        closeRecentFile(file.id);
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
           {activeDocument ? (
             <>
               <Breadcrumb path={activeDocument.file.path} />
@@ -476,6 +528,75 @@ const SIDEBAR_WIDTH_STORAGE_KEY = 'workspace:sidebar-width';
 const SIDEBAR_DEFAULT_WIDTH = 260;
 const SIDEBAR_MIN_WIDTH = 180;
 const SIDEBAR_MAX_WIDTH = 520;
+const RECENT_FILES_STORAGE_PREFIX = 'workspace:recent-files:';
+const RECENT_FILES_LIMIT = 8;
+
+function recentFilesStorageKey(rootId: string) {
+  return `${RECENT_FILES_STORAGE_PREFIX}${rootId}`;
+}
+
+function readStoredRecentFiles(rootId: string): VaultFile[] {
+  try {
+    const stored = window.localStorage?.getItem(recentFilesStorageKey(rootId));
+    if (!stored) {
+      return [];
+    }
+    const parsed = JSON.parse(stored) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .filter((entry): entry is VaultFile =>
+        typeof entry === 'object' &&
+        entry !== null &&
+        typeof (entry as VaultFile).id === 'string' &&
+        (entry as VaultFile).kind === 'markdown'
+      )
+      .slice(0, RECENT_FILES_LIMIT);
+  } catch {
+    return [];
+  }
+}
+
+function writeStoredRecentFiles(rootId: string, files: VaultFile[]) {
+  try {
+    window.localStorage?.setItem(recentFilesStorageKey(rootId), JSON.stringify(files));
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function pushRecentFile(current: VaultFile[], file: VaultFile): VaultFile[] {
+  const filtered = current.filter((entry) => entry.id !== file.id);
+  return [file, ...filtered].slice(0, RECENT_FILES_LIMIT);
+}
+
+function syncRecentFilesAfterRename(
+  current: VaultFile[],
+  previousEntry: VaultEntry,
+  nextEntry: VaultEntry
+): VaultFile[] {
+  if (previousEntry.kind === 'markdown' && nextEntry.kind === 'markdown') {
+    return current.map((file) => (file.id === previousEntry.id ? nextEntry : file));
+  }
+  if (previousEntry.kind !== 'folder' || nextEntry.kind !== 'folder') {
+    return current;
+  }
+  const previousPrefix = `${previousEntry.path}/`;
+  return current.map((file) =>
+    file.path.startsWith(previousPrefix)
+      ? { ...file, path: `${nextEntry.path}/${file.path.slice(previousPrefix.length)}` }
+      : file
+  );
+}
+
+function syncRecentFilesAfterDelete(current: VaultFile[], deletedEntry: VaultEntry): VaultFile[] {
+  if (deletedEntry.kind === 'markdown') {
+    return current.filter((file) => file.id !== deletedEntry.id);
+  }
+  const childPrefix = `${deletedEntry.path}/`;
+  return current.filter((file) => !file.path.startsWith(childPrefix));
+}
 
 function clampSidebarWidth(value: number) {
   if (!Number.isFinite(value)) {

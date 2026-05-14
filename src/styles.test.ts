@@ -43,7 +43,7 @@ describe('styles', () => {
 
   it('centers the editor empty action across the whole writing surface', () => {
     expect(styles).toContain('.open-first-file');
-    expect(styles).toContain('grid-row: 1 / -1');
+    expect(styles).toContain('place-content: center');
   });
 
   it('keeps sidebar item menus hidden until row hover or focus', () => {

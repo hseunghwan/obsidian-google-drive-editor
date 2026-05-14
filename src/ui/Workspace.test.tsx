@@ -75,6 +75,7 @@ describe('Workspace', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
+    window.localStorage.clear();
   });
 
   afterEach(() => {
