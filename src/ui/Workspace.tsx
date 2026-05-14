@@ -178,8 +178,27 @@ export function Workspace({
     });
   }
 
-  function closeRecentFile(fileId: string) {
-    setRecentFiles((current) => current.filter((entry) => entry.id !== fileId));
+  async function closeRecentFile(fileId: string) {
+    const isClosingActive = activeDocument?.file.id === fileId;
+    if (isClosingActive && state.saveState.status === 'dirty' && activeDocument) {
+      await saveDocumentWithState(activeDocument);
+    }
+
+    const closedIndex = recentFiles.findIndex((entry) => entry.id === fileId);
+    const next = recentFiles.filter((entry) => entry.id !== fileId);
+    setRecentFiles(next);
+
+    if (!isClosingActive) {
+      return;
+    }
+
+    if (next.length === 0) {
+      dispatch({ type: 'documentClosed' });
+      return;
+    }
+
+    const adjacent = next[Math.min(closedIndex, next.length - 1)];
+    await openFile(adjacent);
   }
 
   useEffect(() => {
@@ -477,7 +496,7 @@ export function Workspace({
                       title={t('workspace.closeRecentTab')}
                       onClick={(event) => {
                         event.stopPropagation();
-                        closeRecentFile(file.id);
+                        void closeRecentFile(file.id);
                       }}
                     >
                       ×
@@ -567,8 +586,20 @@ function writeStoredRecentFiles(rootId: string, files: VaultFile[]) {
 }
 
 function pushRecentFile(current: VaultFile[], file: VaultFile): VaultFile[] {
-  const filtered = current.filter((entry) => entry.id !== file.id);
-  return [file, ...filtered].slice(0, RECENT_FILES_LIMIT);
+  const existingIndex = current.findIndex((entry) => entry.id === file.id);
+  if (existingIndex !== -1) {
+    if (current[existingIndex] === file) {
+      return current;
+    }
+    const next = current.slice();
+    next[existingIndex] = file;
+    return next;
+  }
+  const next = [...current, file];
+  if (next.length <= RECENT_FILES_LIMIT) {
+    return next;
+  }
+  return next.slice(next.length - RECENT_FILES_LIMIT);
 }
 
 function syncRecentFilesAfterRename(

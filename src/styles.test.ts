@@ -42,8 +42,7 @@ describe('styles', () => {
   });
 
   it('centers the editor empty action across the whole writing surface', () => {
-    expect(styles).toContain('.open-first-file');
-    expect(styles).toContain('place-content: center');
+    expect(styles).toMatch(/\.open-first-file,\s*\.empty-vault\s*{\s*margin:\s*auto;?\s*}/);
   });
 
   it('defines a light theme with surfaces and text that diverge from the dark defaults', () => {

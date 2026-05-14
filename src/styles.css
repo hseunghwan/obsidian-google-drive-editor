@@ -802,10 +802,7 @@ button.sidebar-folder-row:hover {
 
 .open-first-file,
 .empty-vault {
-  flex: 1;
-  display: grid;
-  place-content: center;
-  justify-self: center;
+  margin: auto;
 }
 
 .workspace-tabs {

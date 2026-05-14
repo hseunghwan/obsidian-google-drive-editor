@@ -19,6 +19,7 @@ export type WorkspaceAction =
       files: VaultFile[];
       document: OpenDocument;
     }
+  | { type: 'documentClosed' }
   | { type: 'documentEdited'; content: string }
   | { type: 'saveStarted' }
   | { type: 'saveSucceeded'; modifiedTime: string }
@@ -50,6 +51,12 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         saveState: {
           status: 'saved'
         }
+      };
+    case 'documentClosed':
+      return {
+        ...state,
+        activeDocument: null,
+        saveState: { status: 'idle' }
       };
     case 'documentEdited':
       return {
