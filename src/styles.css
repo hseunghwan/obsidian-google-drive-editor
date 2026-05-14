@@ -428,7 +428,7 @@ select:focus-visible {
 }
 
 .workspace.has-sidebar {
-  grid-template-columns: 40px 260px minmax(0, 1fr);
+  grid-template-columns: 40px var(--sidebar-width, 260px) 4px minmax(0, 1fr);
 }
 
 .workspace.has-metadata {
@@ -436,7 +436,34 @@ select:focus-visible {
 }
 
 .workspace.has-sidebar.has-metadata {
-  grid-template-columns: 40px 260px minmax(0, 1fr) 280px;
+  grid-template-columns: 40px var(--sidebar-width, 260px) 4px minmax(0, 1fr) 280px;
+}
+
+.workspace-resize-handle {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  touch-action: none;
+}
+
+.workspace-resize-handle::before {
+  content: '';
+  position: absolute;
+  inset: 0 -3px;
+  background: transparent;
+  transition: background-color 120ms ease-in-out;
+}
+
+.workspace-resize-handle:hover::before,
+.workspace-resize-handle:focus-visible::before,
+.workspace-resize-handle:active::before {
+  background: color-mix(in srgb, var(--color-amethyst) 40%, transparent);
+}
+
+.workspace-resize-handle:focus-visible {
+  outline: none;
 }
 
 .activity-rail {
@@ -1309,7 +1336,7 @@ button.sidebar-folder-row:hover {
 
   .workspace.has-sidebar,
   .workspace.has-sidebar.has-metadata {
-    grid-template-columns: 40px 240px minmax(0, 1fr);
+    grid-template-columns: 40px var(--sidebar-width, 240px) 4px minmax(0, 1fr);
   }
 
   .workspace.has-metadata:not(.has-sidebar) {
@@ -1341,6 +1368,10 @@ button.sidebar-folder-row:hover {
     z-index: 20;
     width: min(260px, calc(100vw - 40px));
     box-shadow: var(--shadow-subtle-2);
+  }
+
+  .workspace-resize-handle {
+    display: none;
   }
 
   .editor-pane .cm-content {

@@ -1,4 +1,4 @@
-import { type ComponentType, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import React, { type ComponentType, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import { isVaultError } from '../domain/vault/errors';
 import { VaultIndex } from '../domain/vault/vaultIndex';
@@ -66,6 +66,16 @@ export function Workspace({
   const scrollRequestId = useRef(0);
   const [sidebarOpen, setSidebarOpen] = useState(() => matchesMedia('(min-width: 721px)', true));
   const [metadataOpen, setMetadataOpen] = useState(() => matchesMedia('(min-width: 1081px)', true));
+  const [sidebarWidth, setSidebarWidth] = useState(() => readStoredSidebarWidth());
+  const sidebarDragState = useRef<{ pointerId: number; startX: number; startWidth: number } | null>(null);
+
+  useEffect(() => {
+    try {
+      window.localStorage?.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(sidebarWidth));
+    } catch {
+      // ignore storage failures (private mode, quota, etc.)
+    }
+  }, [sidebarWidth]);
 
   useEffect(() => {
     setWorkspaceEntries(entries);
@@ -317,9 +327,53 @@ export function Workspace({
     .filter(Boolean)
     .join(' ');
 
+  function handleSidebarResizeStart(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    const target = event.currentTarget;
+    target.setPointerCapture(event.pointerId);
+    sidebarDragState.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startWidth: sidebarWidth
+    };
+  }
+
+  function handleSidebarResizeMove(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = sidebarDragState.current;
+    if (!drag || drag.pointerId !== event.pointerId) {
+      return;
+    }
+    const next = drag.startWidth + (event.clientX - drag.startX);
+    setSidebarWidth(clampSidebarWidth(next));
+  }
+
+  function handleSidebarResizeEnd(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = sidebarDragState.current;
+    if (!drag || drag.pointerId !== event.pointerId) {
+      return;
+    }
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    sidebarDragState.current = null;
+  }
+
+  function handleSidebarResizeKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+      return;
+    }
+    event.preventDefault();
+    const step = event.shiftKey ? 32 : 8;
+    const delta = event.key === 'ArrowRight' ? step : -step;
+    setSidebarWidth((current) => clampSidebarWidth(current + delta));
+  }
+
+  const workspaceStyle = { '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties;
+
   return (
     <div className="workspace-shell">
-      <div className={workspaceClassNames}>
+      <div className={workspaceClassNames} style={workspaceStyle}>
         <nav className="activity-rail" aria-label="Workspace panels">
           <button
             aria-pressed={sidebarOpen}
@@ -344,24 +398,41 @@ export function Workspace({
           </button>
         </nav>
         {sidebarOpen ? (
-          <FileSidebar
-            rootId={root.id}
-            rootName={root.name}
-            entries={visibleEntries}
-            query={query}
-            activeFileId={activeDocument?.file.id}
-            expandedFolderIds={expandedFolderIds}
-            loadingFolderIds={loadingFolderIds}
-            onQueryChange={setQuery}
-            onOpen={(file) => void openFile(file)}
-            onToggleFolder={toggleFolder}
-            onCreateFile={(parentFolderId) => void createMarkdownFile(parentFolderId)}
-            onCreateFolder={(parentFolderId) => void createVaultFolderIn(parentFolderId)}
-            onRename={(entry) => void renameVaultEntry(entry)}
-            onDelete={(entry) => void deleteVaultEntry(entry)}
-            onChangeRootFolder={onChangeRootFolder}
-            onOpenSettings={() => setSettingsOpen(true)}
-          />
+          <>
+            <FileSidebar
+              rootId={root.id}
+              rootName={root.name}
+              entries={visibleEntries}
+              query={query}
+              activeFileId={activeDocument?.file.id}
+              expandedFolderIds={expandedFolderIds}
+              loadingFolderIds={loadingFolderIds}
+              onQueryChange={setQuery}
+              onOpen={(file) => void openFile(file)}
+              onToggleFolder={toggleFolder}
+              onCreateFile={(parentFolderId) => void createMarkdownFile(parentFolderId)}
+              onCreateFolder={(parentFolderId) => void createVaultFolderIn(parentFolderId)}
+              onRename={(entry) => void renameVaultEntry(entry)}
+              onDelete={(entry) => void deleteVaultEntry(entry)}
+              onChangeRootFolder={onChangeRootFolder}
+              onOpenSettings={() => setSettingsOpen(true)}
+            />
+            <div
+              aria-label={t('workspace.resizeSidebar')}
+              aria-orientation="vertical"
+              aria-valuemax={SIDEBAR_MAX_WIDTH}
+              aria-valuemin={SIDEBAR_MIN_WIDTH}
+              aria-valuenow={sidebarWidth}
+              className="workspace-resize-handle"
+              role="separator"
+              tabIndex={0}
+              onKeyDown={handleSidebarResizeKeyDown}
+              onPointerDown={handleSidebarResizeStart}
+              onPointerMove={handleSidebarResizeMove}
+              onPointerUp={handleSidebarResizeEnd}
+              onPointerCancel={handleSidebarResizeEnd}
+            />
+          </>
         ) : null}
         <main className="workspace-main">
           {activeDocument ? (
@@ -399,6 +470,31 @@ export function Workspace({
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} onSwitchGoogleAccount={onSwitchGoogleAccount} />
     </div>
   );
+}
+
+const SIDEBAR_WIDTH_STORAGE_KEY = 'workspace:sidebar-width';
+const SIDEBAR_DEFAULT_WIDTH = 260;
+const SIDEBAR_MIN_WIDTH = 180;
+const SIDEBAR_MAX_WIDTH = 520;
+
+function clampSidebarWidth(value: number) {
+  if (!Number.isFinite(value)) {
+    return SIDEBAR_DEFAULT_WIDTH;
+  }
+  return Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, Math.round(value)));
+}
+
+function readStoredSidebarWidth() {
+  try {
+    const stored = window.localStorage?.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+    if (!stored) {
+      return SIDEBAR_DEFAULT_WIDTH;
+    }
+    const parsed = Number.parseInt(stored, 10);
+    return clampSidebarWidth(parsed);
+  } catch {
+    return SIDEBAR_DEFAULT_WIDTH;
+  }
 }
 
 function matchesMedia(query: string, fallback: boolean) {
