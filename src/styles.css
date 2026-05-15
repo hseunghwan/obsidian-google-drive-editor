@@ -165,6 +165,7 @@ body {
   overflow: hidden;
   color: var(--app-text);
   background: var(--app-bg);
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 button,
