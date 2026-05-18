@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chrome Web Store Asset Renderer</title>
+    <style>
+      :root {
+        --white: #ffffff;
+        --bright: #eeeeee;
+        --medium: #bcbcbc;
+        --muted: #8f8f8f;
+        --graphite: #3f3f3f;
+        --surface: #1e1e1e;
+        --abyss: #171717;
+        --amethyst: #7c3aed;
+        --lavender: #a78bfa;
+        --green: #4ade80;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-width: 0;
+        height: 100%;
+        min-height: 0;
+        margin: 0;
+        overflow: hidden;
+        color: var(--bright);
+        background: var(--abyss);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        letter-spacing: 0;
+      }
+
+      .asset {
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 18% 22%, rgb(124 58 237 / 32%), transparent 26%),
+          linear-gradient(135deg, #171717 0%, #101010 52%, #242033 100%);
+      }
+
+      .screenshot {
+        width: 1280px;
+        height: 800px;
+        padding: 46px 54px 50px;
+      }
+
+      .screenshot.common {
+        padding: 0;
+      }
+
+      .promo-small {
+        width: 440px;
+        height: 280px;
+        padding: 28px;
+      }
+
+      .promo-marquee {
+        width: 1400px;
+        height: 560px;
+        padding: 54px 64px;
+      }
+
+      .caption {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        max-width: 980px;
+        gap: 10px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border: 1px solid rgb(167 139 250 / 42%);
+        border-radius: 999px;
+        color: var(--lavender);
+        background: rgb(124 58 237 / 16%);
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .headline {
+        margin: 0;
+        color: var(--white);
+        font-size: 52px;
+        font-weight: 750;
+        line-height: 1.05;
+      }
+
+      .subhead {
+        max-width: 1080px;
+        margin: 0;
+        color: var(--medium);
+        font-size: 24px;
+        font-weight: 500;
+        line-height: 1.32;
+      }
+
+      .product-frame {
+        position: absolute;
+        right: 50px;
+        bottom: 42px;
+        left: 50px;
+        height: 500px;
+        overflow: hidden;
+        border: 1px solid rgb(255 255 255 / 14%);
+        border-radius: 18px;
+        background: #111111;
+        box-shadow:
+          rgb(255 255 255 / 8%) 0 0 0 1px inset,
+          rgb(0 0 0 / 42%) 0 26px 70px -30px;
+      }
+
+      .product-frame.compact {
+        top: 252px;
+        right: 54px;
+        bottom: auto;
+        left: 54px;
+        height: 496px;
+      }
+
+      .product-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 0 0;
+        display: block;
+      }
+
+      .common .product-frame {
+        inset: 0;
+        height: auto;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .common .product-frame img {
+        object-fit: cover;
+      }
+
+      .common-badges {
+        position: absolute;
+        right: 34px;
+        bottom: 34px;
+        z-index: 3;
+        display: flex;
+        gap: 10px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 13px;
+        border: 1px solid rgb(255 255 255 / 12%);
+        border-radius: 999px;
+        color: var(--bright);
+        background: rgb(23 23 23 / 82%);
+        box-shadow: rgb(255 255 255 / 8%) 0 0 0 1px inset;
+        font-size: 18px;
+        font-weight: 750;
+      }
+
+      .brand-lockup {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .brand-lockup img {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        box-shadow:
+          rgb(255 255 255 / 18%) 0 0 0 1px inset,
+          rgb(0 0 0 / 38%) 0 20px 42px -18px;
+      }
+
+      .brand-name {
+        margin: 0;
+        color: var(--white);
+        font-size: 32px;
+        font-weight: 800;
+        line-height: 1.05;
+      }
+
+      .brand-kicker {
+        margin: 5px 0 0;
+        color: var(--lavender);
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      .promo-small .brand-lockup {
+        gap: 12px;
+      }
+
+      .promo-small .brand-lockup img {
+        width: 52px;
+        height: 52px;
+        border-radius: 13px;
+      }
+
+      .promo-small .brand-name {
+        font-size: 24px;
+      }
+
+      .promo-small .brand-kicker {
+        font-size: 12px;
+      }
+
+      .promo-small .mini-window {
+        position: absolute;
+        right: 22px;
+        bottom: 20px;
+        left: 22px;
+        height: 120px;
+        overflow: hidden;
+        border: 1px solid rgb(255 255 255 / 14%);
+        border-radius: 12px;
+        background: #121212;
+      }
+
+      .promo-small .mini-window img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 0 0;
+      }
+
+      .promo-small .tagline {
+        position: absolute;
+        right: 28px;
+        bottom: 152px;
+        left: 28px;
+        z-index: 2;
+        margin: 0;
+        color: var(--white);
+        font-size: 27px;
+        font-weight: 820;
+        line-height: 1.08;
+      }
+
+      .promo-marquee .brand-lockup img {
+        width: 84px;
+        height: 84px;
+        border-radius: 21px;
+      }
+
+      .promo-marquee .brand-name {
+        max-width: 520px;
+        font-size: 46px;
+      }
+
+      .promo-marquee .tagline {
+        position: relative;
+        z-index: 2;
+        max-width: 530px;
+        margin: 26px 0 0;
+        color: var(--medium);
+        font-size: 27px;
+        font-weight: 550;
+        line-height: 1.24;
+      }
+
+      .promo-marquee .feature-strip {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .promo-marquee .feature-strip span {
+        padding: 10px 13px;
+        border: 1px solid rgb(167 139 250 / 34%);
+        border-radius: 999px;
+        color: var(--lavender);
+        background: rgb(124 58 237 / 13%);
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      .promo-marquee .hero-window {
+        position: absolute;
+        top: 44px;
+        right: 54px;
+        width: 720px;
+        height: 470px;
+        overflow: hidden;
+        border: 1px solid rgb(255 255 255 / 14%);
+        border-radius: 18px;
+        background: #121212;
+        box-shadow:
+          rgb(255 255 255 / 8%) 0 0 0 1px inset,
+          rgb(0 0 0 / 44%) 0 32px 80px -30px;
+      }
+
+      .promo-marquee .hero-window img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="asset-root"></main>
+    <script>
+      const base = {
+        icon: "public/icons/app-icon-512.png",
+        enEditor: "docs/store-assets/source/en-editor.png",
+        enSearch: "docs/store-assets/source/en-search.png",
+        enSettings: "docs/store-assets/source/en-settings.png",
+        koEditor: "docs/store-assets/source/ko-editor.png",
+        koSearch: "docs/store-assets/source/ko-search.png",
+        koSettings: "docs/store-assets/source/ko-settings.png"
+      };
+
+      const assets = {
+        "en-01": {
+          type: "screenshot",
+          source: base.enEditor,
+          eyebrow: "Google Drive vault",
+          headline: "Edit Drive Markdown vaults anywhere",
+          subhead: "Open a Google Drive folder like an Obsidian vault, then write without leaving Chrome."
+        },
+        "en-02": {
+          type: "screenshot",
+          source: base.enSearch,
+          eyebrow: "Fast file search",
+          headline: "Find notes across folders fast",
+          subhead: "Search by file name or path while keeping your existing Drive folder structure intact."
+        },
+        "en-03": {
+          type: "screenshot",
+          source: base.enSettings,
+          eyebrow: "Portable workspace",
+          headline: "Use the same vault in your language",
+          subhead: "Switch language, theme, Google account, and root folder from a compact workspace panel."
+        },
+        "ko-01": {
+          type: "screenshot",
+          source: base.koEditor,
+          eyebrow: "Google Drive vault",
+          headline: "Drive Markdown vault를 어디서든 편집",
+          subhead: "Google Drive 폴더를 Obsidian vault처럼 열고, Chrome 안에서 바로 작성하세요."
+        },
+        "ko-02": {
+          type: "screenshot",
+          source: base.koSearch,
+          eyebrow: "빠른 파일 검색",
+          headline: "폴더가 많아도 노트를 빠르게 찾기",
+          subhead: "기존 Drive 폴더 구조를 유지하면서 파일 이름과 경로로 Markdown 문서를 검색합니다."
+        },
+        "ko-03": {
+          type: "screenshot",
+          source: base.koSettings,
+          eyebrow: "작업 환경 설정",
+          headline: "언어, 테마, 계정을 한곳에서 관리",
+          subhead: "vault 선택과 Google 계정 전환까지 가벼운 설정 패널에서 처리합니다."
+        },
+        "global-01": {
+          type: "common",
+          source: base.enEditor,
+          badges: ["Markdown", "Drive vault", "Tags"]
+        },
+        "global-02": {
+          type: "common",
+          source: base.enSearch,
+          badges: ["Folders", "Search", "Existing files"]
+        },
+        "global-03": {
+          type: "common",
+          source: base.enSettings,
+          badges: ["Language", "Theme", "Account"]
+        },
+        "promo-small": {
+          type: "promo-small",
+          source: base.enEditor,
+          tagline: "Markdown vaults in Drive"
+        },
+        "promo-marquee": {
+          type: "promo-marquee",
+          source: base.enEditor,
+          tagline: "A focused Obsidian-style workspace for Markdown notes you already keep in Drive."
+        }
+      };
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id") || "en-01";
+      const asset = assets[id] || assets["en-01"];
+      document.documentElement.style.width =
+        asset.type === "promo-small" ? "440px" : asset.type === "promo-marquee" ? "1400px" : "1280px";
+      document.documentElement.style.height =
+        asset.type === "promo-small" ? "280px" : asset.type === "promo-marquee" ? "560px" : "800px";
+
+      function html(strings, ...values) {
+        return strings.reduce((out, part, index) => out + part + (values[index] ?? ""), "");
+      }
+
+      function screenshotTemplate(common = false) {
+        return html`
+          <section class="asset screenshot ${common ? "common" : ""}">
+            ${
+              common
+                ? ""
+                : html`<div class="caption">
+                    <div class="eyebrow">${asset.eyebrow}</div>
+                    <h1 class="headline">${asset.headline}</h1>
+                    <p class="subhead">${asset.subhead}</p>
+                  </div>`
+            }
+            <div class="product-frame ${common ? "" : "compact"}">
+              <img src="/${asset.source}" alt="" />
+            </div>
+            ${
+              common
+                ? html`<div class="common-badges">
+                    ${asset.badges.map((badge) => `<span class="badge">${badge}</span>`).join("")}
+                  </div>`
+                : ""
+            }
+          </section>
+        `;
+      }
+
+      function promoSmallTemplate() {
+        return html`
+          <section class="asset promo-small">
+            <div class="brand-lockup">
+              <img src="/${base.icon}" alt="" />
+              <div>
+                <p class="brand-name">Drive Obsidian Editor</p>
+                <p class="brand-kicker">Chrome extension</p>
+              </div>
+            </div>
+            <p class="tagline">${asset.tagline}</p>
+            <div class="mini-window"><img src="/${asset.source}" alt="" /></div>
+          </section>
+        `;
+      }
+
+      function promoMarqueeTemplate() {
+        return html`
+          <section class="asset promo-marquee">
+            <div class="brand-lockup">
+              <img src="/${base.icon}" alt="" />
+              <div>
+                <p class="brand-name">Obsidian Vault Editor for Google Drive</p>
+                <p class="brand-kicker">Chrome extension</p>
+              </div>
+            </div>
+            <p class="tagline">${asset.tagline}</p>
+            <div class="feature-strip">
+              <span>Markdown</span>
+              <span>Drive folders</span>
+              <span>Tags & properties</span>
+            </div>
+            <div class="hero-window"><img src="/${asset.source}" alt="" /></div>
+          </section>
+        `;
+      }
+
+      const root = document.getElementById("asset-root");
+      if (asset.type === "common") {
+        root.innerHTML = screenshotTemplate(true);
+      } else if (asset.type === "promo-small") {
+        root.innerHTML = promoSmallTemplate();
+      } else if (asset.type === "promo-marquee") {
+        root.innerHTML = promoMarqueeTemplate();
+      } else {
+        root.innerHTML = screenshotTemplate(false);
+      }
+    </script>
+  </body>
+</html>
