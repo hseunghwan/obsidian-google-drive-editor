@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { loadDriveWorkspace, type DriveWorkspace } from './app/driveWorkspaceLoader';
+import { hasCompletedReviewRequest, markReviewRequestCompleted } from './app/reviewRequestStore';
 import { clearStoredVaultRoot, readStoredVaultRoot, writeStoredVaultRoot } from './app/vaultConnectionStore';
 import type { VaultRoot } from './domain/vault/types';
 import { I18nProvider, useI18n } from './i18n/I18nProvider';
@@ -27,6 +28,7 @@ function AppContent() {
   const [workspace, setWorkspace] = useState<DriveWorkspace | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [showReviewRequestToast, setShowReviewRequestToast] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +58,23 @@ function AppContent() {
     }
 
     void restoreDriveConnection();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreReviewRequestState() {
+      const completed = await hasCompletedReviewRequest();
+      if (!cancelled) {
+        setShowReviewRequestToast(!completed);
+      }
+    }
+
+    void restoreReviewRequestState();
 
     return () => {
       cancelled = true;
@@ -179,6 +198,11 @@ See [[Project Note]].`,
     });
   }
 
+  function completeReviewRequest() {
+    setShowReviewRequestToast(false);
+    void markReviewRequestCompleted();
+  }
+
   if (!workspace) {
     return (
       <main className="app-shell">
@@ -213,6 +237,8 @@ See [[Project Note]].`,
       deleteEntry={workspace.deleteEntry}
       onChangeRootFolder={() => void changeRootFolder()}
       onSwitchGoogleAccount={() => void switchGoogleAccount()}
+      showReviewRequestToast={showReviewRequestToast}
+      onReviewRequestAccepted={completeReviewRequest}
     />
   );
 }

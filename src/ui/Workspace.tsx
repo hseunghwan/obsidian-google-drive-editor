@@ -9,6 +9,7 @@ import { Breadcrumb } from './components/Breadcrumb';
 import { FileSidebar } from './components/FileSidebar';
 import { Icon } from './components/Icon';
 import { MetadataPanel } from './components/MetadataPanel';
+import { ReviewRequestToast } from './components/ReviewRequestToast';
 import { SaveStatus } from './components/SaveStatus';
 import { SettingsDialog } from './components/SettingsDialog';
 import { MarkdownEditor, type MarkdownEditorProps } from './editor/MarkdownEditor';
@@ -30,6 +31,9 @@ interface WorkspaceProps {
   onChangeRootFolder?(): void;
   autosaveDelayMs?: number;
   searchDebounceMs?: number;
+  showReviewRequestToast?: boolean;
+  reviewRequestUrl?: string;
+  onReviewRequestAccepted?(): void;
   EditorComponent?: ComponentType<MarkdownEditorProps>;
 }
 
@@ -49,6 +53,9 @@ export function Workspace({
   onChangeRootFolder = () => undefined,
   autosaveDelayMs = 1200,
   searchDebounceMs = 350,
+  showReviewRequestToast = true,
+  reviewRequestUrl = CHROME_WEB_STORE_REVIEW_URL,
+  onReviewRequestAccepted,
   EditorComponent = MarkdownEditor
 }: WorkspaceProps) {
   const { t } = useI18n();
@@ -69,6 +76,7 @@ export function Workspace({
   const [sidebarWidth, setSidebarWidth] = useState(() => readStoredSidebarWidth());
   const sidebarDragState = useRef<{ pointerId: number; startX: number; startWidth: number } | null>(null);
   const [recentFiles, setRecentFiles] = useState<VaultFile[]>(() => readStoredRecentFiles(root.id));
+  const [reviewRequestDismissed, setReviewRequestDismissed] = useState(false);
 
   useEffect(() => {
     try {
@@ -532,7 +540,19 @@ export function Workspace({
               {t('workspace.openFirstFile')}
             </button>
           )}
-          {notice ? <p className="workspace-notice">{notice}</p> : null}
+          <div className="workspace-toasts">
+            {notice ? <p className="workspace-notice">{notice}</p> : null}
+            {showReviewRequestToast && !reviewRequestDismissed ? (
+              <ReviewRequestToast
+                reviewUrl={reviewRequestUrl}
+                onDismiss={() => setReviewRequestDismissed(true)}
+                onReviewLinkClick={() => {
+                  setReviewRequestDismissed(true);
+                  onReviewRequestAccepted?.();
+                }}
+              />
+            ) : null}
+          </div>
         </main>
         {activeDocument && metadataOpen ? (
           <MetadataPanel content={activeDocument.content} onSelectHeading={scrollToHeading} />
@@ -549,6 +569,7 @@ const SIDEBAR_MIN_WIDTH = 180;
 const SIDEBAR_MAX_WIDTH = 520;
 const RECENT_FILES_STORAGE_PREFIX = 'workspace:recent-files:';
 const RECENT_FILES_LIMIT = 8;
+export const CHROME_WEB_STORE_REVIEW_URL = 'https://chromewebstore.google.com/detail/obsidian-vault-editor-for/fegekndlnlkbnkopphbokolacfemldge/reviews?hl=en-US&utm_source=ext_sidebar';
 
 function recentFilesStorageKey(rootId: string) {
   return `${RECENT_FILES_STORAGE_PREFIX}${rootId}`;

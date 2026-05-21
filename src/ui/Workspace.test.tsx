@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VaultEntry, VaultRoot } from '../domain/vault/types';
 import { fixtureFiles, fixtureFolder, fixtureVaultRoot } from '../test/fixtures';
 import type { MarkdownEditorProps } from './editor/MarkdownEditor';
-import { Workspace } from './Workspace';
+import { CHROME_WEB_STORE_REVIEW_URL, Workspace } from './Workspace';
 
 const saveDocument = vi.fn().mockResolvedValue({
   fileId: 'file-home',
@@ -73,9 +73,10 @@ title: Home
 
 describe('Workspace', () => {
   beforeEach(() => {
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
     vi.clearAllMocks();
-    window.localStorage.clear();
+    vi.stubGlobal('localStorage', createMemoryStorage());
   });
 
   afterEach(() => {
@@ -473,6 +474,39 @@ describe('Workspace', () => {
     expect(screen.queryByRole('button', { name: '첫 문서 열기' })).not.toBeInTheDocument();
   });
 
+  it('opens the Chrome Web Store review link and accepts the review request', async () => {
+    const user = userEvent.setup();
+    const onReviewRequestAccepted = vi.fn();
+
+    renderWorkspace({ onReviewRequestAccepted });
+
+    const toast = screen.getByLabelText('Chrome Web Store 리뷰 요청');
+    const reviewLink = within(toast).getByRole('link', { name: /리뷰 남기기/ });
+    expect(reviewLink).toHaveAttribute('href', CHROME_WEB_STORE_REVIEW_URL);
+    expect(reviewLink).toHaveAttribute('target', '_blank');
+
+    await user.click(reviewLink);
+
+    expect(onReviewRequestAccepted).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText('Chrome Web Store 리뷰 요청')).not.toBeInTheDocument();
+  });
+
+  it('dismisses the review toast for the current session when the user chooses later', async () => {
+    const user = userEvent.setup();
+
+    renderWorkspace();
+
+    await user.click(within(screen.getByLabelText('Chrome Web Store 리뷰 요청')).getByRole('button', { name: '나중에' }));
+
+    expect(screen.queryByLabelText('Chrome Web Store 리뷰 요청')).not.toBeInTheDocument();
+  });
+
+  it('hides the review toast when the caller already knows not to show it', () => {
+    renderWorkspace({ showReviewRequestToast: false });
+
+    expect(screen.queryByLabelText('Chrome Web Store 리뷰 요청')).not.toBeInTheDocument();
+  });
+
   it('clears the active document when the vault root changes', async () => {
     const user = userEvent.setup();
     const nextRoot: VaultRoot = { id: 'next-vault-root', name: 'Next Vault' };
@@ -535,4 +569,19 @@ function deferred<T>(value: T) {
   });
 
   return { promise, resolve };
+}
+
+function createMemoryStorage(): Storage {
+  const values = new Map<string, string>();
+
+  return {
+    get length() {
+      return values.size;
+    },
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => [...values.keys()][index] ?? null,
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, value)
+  };
 }

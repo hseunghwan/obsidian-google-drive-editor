@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import App from './App';
+import { reviewRequestStorageKey } from './app/reviewRequestStore';
 import { vaultConnectionStorageKey } from './app/vaultConnectionStore';
 
 describe('App', () => {
@@ -180,6 +181,31 @@ describe('App', () => {
     expect(screen.getByRole('searchbox', { name: 'Vault 파일 검색' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '새 파일' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '첫 문서 열기' })).toBeInTheDocument();
+  });
+
+  it('stops showing the review toast after the review link is opened', async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Mock vault 열기' }));
+    const toast = await screen.findByLabelText('Chrome Web Store 리뷰 요청');
+    await user.click(within(toast).getByRole('link', { name: /리뷰 남기기/ }));
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Chrome Web Store 리뷰 요청')).not.toBeInTheDocument();
+    });
+    expect(JSON.parse(localStorage.getItem(reviewRequestStorageKey) ?? '{}')).toEqual(
+      expect.objectContaining({ completed: true })
+    );
+
+    unmount();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Mock vault 열기' }));
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Chrome Web Store 리뷰 요청')).not.toBeInTheDocument();
+    });
   });
 
   it('switches between dark and light theme from sidebar settings', async () => {

@@ -891,17 +891,144 @@ button.sidebar-folder-row:hover {
   margin: 0;
 }
 
-.workspace-notice {
+.workspace-toasts {
   position: absolute;
   right: 16px;
   bottom: 48px;
-  max-width: min(360px, calc(100% - 32px));
+  z-index: 15;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  width: min(392px, calc(100% - 32px));
+  pointer-events: none;
+}
+
+.workspace-toasts>* {
+  pointer-events: auto;
+}
+
+.workspace-notice {
+  max-width: 100%;
   margin: 0;
   padding: 7px 10px;
   border: 1px solid var(--success-border);
   color: var(--success-text);
   background: var(--success-bg);
   font-size: 13px;
+}
+
+.review-toast {
+  display: grid;
+  grid-template-areas:
+    "icon copy close"
+    "icon actions actions";
+  grid-template-columns: 32px minmax(0, 1fr) 26px;
+  align-items: start;
+  gap: 10px 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-cards);
+  color: var(--text-primary);
+  background: var(--panel-bg-raised);
+  box-shadow: var(--shadow-subtle-3);
+}
+
+.review-toast-icon {
+  display: inline-grid;
+  grid-area: icon;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: var(--radius-inputs);
+  color: var(--color-lavender);
+  background: color-mix(in srgb, var(--color-amethyst) 20%, transparent);
+  box-shadow: var(--shadow-subtle);
+}
+
+.review-toast-copy {
+  display: grid;
+  grid-area: copy;
+  min-width: 0;
+  gap: 2px;
+}
+
+.review-toast-copy strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.review-toast-copy span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.review-toast-actions {
+  display: flex;
+  grid-area: actions;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.review-toast-primary,
+.review-toast-secondary,
+.review-toast-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-toast-primary,
+.review-toast-secondary {
+  min-height: 30px;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: var(--radius-buttons);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: var(--shadow-subtle);
+}
+
+.review-toast-primary {
+  border: 1px solid transparent;
+  color: var(--color-white);
+  background: var(--color-amethyst);
+}
+
+.review-toast-primary:hover {
+  color: var(--color-white);
+  background: var(--color-lavender);
+}
+
+.review-toast-secondary {
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+  background: var(--control-bg);
+}
+
+.review-toast-secondary:hover {
+  color: var(--text-primary);
+  background: var(--panel-bg-hover);
+}
+
+.review-toast-close {
+  grid-area: close;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.review-toast-close:hover {
+  color: var(--text-primary);
+  background: var(--panel-bg-hover);
 }
 
 .breadcrumb,
@@ -1465,6 +1592,19 @@ button.sidebar-folder-row:hover {
 
   .editor-pane .cm-content {
     padding: 28px 18px;
+  }
+
+  .workspace-toasts {
+    right: 10px;
+    bottom: 48px;
+    width: calc(100% - 20px);
+  }
+
+  .review-toast {
+    grid-template-areas:
+      "icon copy close"
+      "actions actions actions";
+    grid-template-columns: 32px minmax(0, 1fr) 26px;
   }
 
   .settings-overlay {

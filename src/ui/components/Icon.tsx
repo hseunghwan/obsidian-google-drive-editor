@@ -10,6 +10,7 @@ type IconName =
   | 'folder'
   | 'folder-plus'
   | 'hash'
+  | 'external-link'
   | 'list'
   | 'panel-left'
   | 'panel-right'
@@ -18,6 +19,7 @@ type IconName =
   | 'save'
   | 'search'
   | 'settings'
+  | 'star'
   | 'x';
 
 interface IconProps extends SVGProps<SVGSVGElement> {
@@ -34,6 +36,7 @@ const iconPaths: Record<IconName, string[]> = {
   folder: ['M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2L10.8 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z'],
   'folder-plus': ['M12 10v6', 'M9 13h6', 'M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.2L10.8 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z'],
   hash: ['M4 9h16', 'M4 15h16', 'M10 3 8 21', 'M16 3l-2 18'],
+  'external-link': ['M15 3h6v6', 'M10 14 21 3', 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'],
   list: ['M8 6h13', 'M8 12h13', 'M8 18h13', 'M3 6h.01', 'M3 12h.01', 'M3 18h.01'],
   'panel-left': ['M3 4h18v16H3z', 'M9 4v16'],
   'panel-right': ['M3 4h18v16H3z', 'M15 4v16'],
@@ -42,6 +45,7 @@ const iconPaths: Record<IconName, string[]> = {
   save: ['M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z', 'M17 21v-8H7v8', 'M7 3v5h8'],
   search: ['m21 21-4.3-4.3', 'M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z'],
   settings: ['M12.2 2h-.4l-1 3.2a7 7 0 0 0-1.5.6L6.2 4.4l-1.8 1.8 1.4 3.1a7 7 0 0 0-.6 1.5L2 11.8v.4l3.2 1a7 7 0 0 0 .6 1.5l-1.4 3.1 1.8 1.8 3.1-1.4a7 7 0 0 0 1.5.6l1 3.2h.4l1-3.2a7 7 0 0 0 1.5-.6l3.1 1.4 1.8-1.8-1.4-3.1a7 7 0 0 0 .6-1.5l3.2-1v-.4l-3.2-1a7 7 0 0 0-.6-1.5l1.4-3.1-1.8-1.8-3.1 1.4a7 7 0 0 0-1.5-.6L12.2 2Z', 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z'],
+  star: ['M12 2.8 15 8.8l6.6 1-4.8 4.7 1.1 6.6L12 18l-5.9 3.1 1.1-6.6-4.8-4.7 6.6-1L12 2.8Z'],
   x: ['M18 6 6 18', 'm6 6 12 12']
 };
 
