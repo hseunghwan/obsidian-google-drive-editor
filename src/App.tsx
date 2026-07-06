@@ -164,6 +164,7 @@ title: Home
 See [[Project Note]].`,
         baselineModifiedTime: file.modifiedTime
       }),
+      prefetchFile: () => undefined,
       saveDocument: async (document) => ({
         fileId: document.file.id,
         modifiedTime: new Date().toISOString()
@@ -230,6 +231,7 @@ See [[Project Note]].`,
       loadMarkdownFiles={workspace.loadMarkdownFiles}
       searchEntries={workspace.searchEntries}
       loadFile={workspace.loadFile}
+      prefetchFile={workspace.prefetchFile}
       saveDocument={workspace.saveDocument}
       createFile={workspace.createFile}
       createFolder={workspace.createFolder}

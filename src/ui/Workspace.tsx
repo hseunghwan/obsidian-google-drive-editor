@@ -22,6 +22,7 @@ interface WorkspaceProps {
   loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
   searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
+  prefetchFile?(file: VaultFile): void;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
@@ -44,6 +45,7 @@ export function Workspace({
   loadMarkdownFiles,
   searchEntries,
   loadFile,
+  prefetchFile,
   saveDocument,
   createFile,
   createFolder,
@@ -450,6 +452,7 @@ export function Workspace({
               loadingFolderIds={loadingFolderIds}
               onQueryChange={setQuery}
               onOpen={(file) => void openFile(file)}
+              onPrefetch={prefetchFile}
               onToggleFolder={toggleFolder}
               onCreateFile={(parentFolderId) => void createMarkdownFile(parentFolderId)}
               onCreateFolder={(parentFolderId) => void createVaultFolderIn(parentFolderId)}

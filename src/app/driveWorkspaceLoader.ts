@@ -12,6 +12,7 @@ export interface DriveWorkspace {
   loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
   searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
+  prefetchFile(file: VaultFile): void;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
@@ -27,11 +28,36 @@ interface LoadDriveWorkspaceDeps {
   savedRoot?: VaultRoot;
 }
 
+interface CachedContent {
+  modifiedTime: string;
+  content: Promise<string>;
+}
+
 export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<DriveWorkspace> {
   const accessToken = await deps.auth.getAccessToken(!deps.savedRoot);
   const pickedFolder = deps.savedRoot ?? (await deps.picker.pickVaultFolder(accessToken));
   const adapter = new DriveVaultAdapter(deps.createDriveClient(accessToken), deps.drafts);
   const root: VaultRoot = { id: pickedFolder.id, name: pickedFolder.name };
+  const contentCache = new Map<string, CachedContent>();
+
+  function readFileWithCache(file: VaultFile): CachedContent {
+    const cached = contentCache.get(file.id);
+    if (cached && cached.modifiedTime >= file.modifiedTime) {
+      return cached;
+    }
+
+    const entry: CachedContent = {
+      modifiedTime: file.modifiedTime,
+      content: adapter.readFile(file.id)
+    };
+    entry.content.catch(() => {
+      if (contentCache.get(file.id) === entry) {
+        contentCache.delete(file.id);
+      }
+    });
+    contentCache.set(file.id, entry);
+    return entry;
+  }
 
   return {
     root,
@@ -50,14 +76,29 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
         };
       }
 
+      const cached = readFileWithCache(file);
       return {
         file,
-        content: await adapter.readFile(file.id),
-        baselineModifiedTime: file.modifiedTime
+        content: await cached.content,
+        baselineModifiedTime: cached.modifiedTime
       };
     },
-    saveDocument: (document) =>
-      adapter.saveFile(root.id, document.file.id, document.content, document.baselineModifiedTime),
+    prefetchFile: (file) => {
+      readFileWithCache(file);
+    },
+    saveDocument: async (document) => {
+      const result = await adapter.saveFile(
+        root.id,
+        document.file.id,
+        document.content,
+        document.baselineModifiedTime
+      );
+      contentCache.set(document.file.id, {
+        modifiedTime: result.modifiedTime,
+        content: Promise.resolve(document.content)
+      });
+      return result;
+    },
     createFile: (parentFolderId, name, content) => adapter.createFile(parentFolderId, name, content),
     createFolder: (parentFolderId, name) => adapter.createFolder(parentFolderId, name),
     renameEntry: (entry, name) => adapter.renameEntry(entry, name),

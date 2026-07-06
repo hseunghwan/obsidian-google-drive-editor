@@ -14,6 +14,7 @@ interface FileSidebarProps {
   loadingFolderIds: Set<string>;
   onQueryChange(query: string): void;
   onOpen(file: VaultFile): void;
+  onPrefetch?(file: VaultFile): void;
   onToggleFolder(folder: VaultFolder): void;
   onCreateFile(parentFolderId: string): void;
   onCreateFolder(parentFolderId: string): void;
@@ -33,6 +34,7 @@ export function FileSidebar({
   loadingFolderIds,
   onQueryChange,
   onOpen,
+  onPrefetch,
   onToggleFolder,
   onCreateFile,
   onCreateFolder,
@@ -76,7 +78,7 @@ export function FileSidebar({
       </div>
       <div className="sidebar-tree">
         {searchTree
-          ? renderSearchTree(searchTree, activeFileId, onOpen, onToggleFolder, onCreateFile, onCreateFolder, onRename, onDelete)
+          ? renderSearchTree(searchTree, activeFileId, onOpen, onPrefetch, onToggleFolder, onCreateFile, onCreateFolder, onRename, onDelete)
           : renderEntryChildren({
             parentId: rootId,
             depth: 0,
@@ -86,6 +88,7 @@ export function FileSidebar({
             loadingMessage: t('workspace.loadingFolder'),
             activeFileId,
             onOpen,
+            onPrefetch,
             onToggleFolder,
             onCreateFile,
             onCreateFolder,
@@ -133,11 +136,12 @@ interface SidebarFileButtonProps {
   depth: number;
   file: VaultFile;
   onOpen(file: VaultFile): void;
+  onPrefetch?(file: VaultFile): void;
   onRename(entry: VaultEntry): void;
   onDelete(entry: VaultEntry): void;
 }
 
-function SidebarFileButton({ activeFileId, depth, file, onOpen, onRename, onDelete }: SidebarFileButtonProps) {
+function SidebarFileButton({ activeFileId, depth, file, onOpen, onPrefetch, onRename, onDelete }: SidebarFileButtonProps) {
   return (
     <div className="sidebar-tree-row">
       <button
@@ -145,6 +149,7 @@ function SidebarFileButton({ activeFileId, depth, file, onOpen, onRename, onDele
         data-depth={depth}
         type="button"
         onClick={() => onOpen(file)}
+        onPointerDown={() => onPrefetch?.(file)}
       >
         <Icon name="file-text" />
         <span>{file.title}</span>
@@ -270,6 +275,7 @@ interface RenderEntryChildrenOptions {
   loadingMessage: string;
   activeFileId?: string;
   onOpen(file: VaultFile): void;
+  onPrefetch?(file: VaultFile): void;
   onToggleFolder(folder: VaultFolder): void;
   onCreateFile(parentFolderId: string): void;
   onCreateFolder(parentFolderId: string): void;
@@ -286,6 +292,7 @@ function renderEntryChildren({
   loadingMessage,
   activeFileId,
   onOpen,
+  onPrefetch,
   onToggleFolder,
   onCreateFile,
   onCreateFolder,
@@ -303,6 +310,7 @@ function renderEntryChildren({
           file={entry}
           key={entry.id}
           onOpen={onOpen}
+          onPrefetch={onPrefetch}
           onRename={onRename}
           onDelete={onDelete}
         />
@@ -336,6 +344,7 @@ function renderEntryChildren({
                 loadingMessage,
                 activeFileId,
                 onOpen,
+                onPrefetch,
                 onToggleFolder,
                 onCreateFile,
                 onCreateFolder,
@@ -354,6 +363,7 @@ function renderSearchTree(
   fileTree: FileTree,
   activeFileId: string | undefined,
   onOpen: (file: VaultFile) => void,
+  onPrefetch: ((file: VaultFile) => void) | undefined,
   onToggleFolder: (folder: VaultFolder) => void,
   onCreateFile: (parentFolderId: string) => void,
   onCreateFolder: (parentFolderId: string) => void,
@@ -383,6 +393,7 @@ function renderSearchTree(
           file={file}
           key={file.id}
           onOpen={onOpen}
+          onPrefetch={onPrefetch}
           onRename={onRename}
           onDelete={onDelete}
         />
@@ -402,6 +413,7 @@ function renderSearchTree(
                 file={file}
                 key={file.id}
                 onOpen={onOpen}
+                onPrefetch={onPrefetch}
                 onRename={onRename}
                 onDelete={onDelete}
               />
