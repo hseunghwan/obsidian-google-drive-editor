@@ -1,8 +1,9 @@
-import type { ChangeEvent, ReactNode } from 'react';
+import { type ChangeEvent, type ReactNode, useState } from 'react';
 
 import type { VaultEntry, VaultFile, VaultFolder } from '../../domain/vault/types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { Icon } from './Icon';
+import { ShortcutHelpDialog } from './ShortcutHelpDialog';
 
 interface FileSidebarProps {
   rootId: string;
@@ -44,6 +45,7 @@ export function FileSidebar({
   onOpenSettings
 }: FileSidebarProps) {
   const { t } = useI18n();
+  const [helpOpen, setHelpOpen] = useState(false);
   const searchActive = Boolean(query.trim());
   const searchTree = searchActive ? buildSearchTree(entries) : null;
   const childrenByParentId = searchActive ? new Map<string | null, VaultEntry[]>() : groupEntriesByParent(entries);
@@ -111,9 +113,15 @@ export function FileSidebar({
           <option value={changeRootFolderValue}>{t('sidebar.changeRootFolder')}</option>
         </select>
         <div className="sidebar-footer-actions">
-          <span className="sidebar-footer-icon" aria-hidden="true">
+          <button
+            aria-label={t('shortcutHelp.open')}
+            className="sidebar-footer-icon-button"
+            title={t('shortcutHelp.open')}
+            type="button"
+            onClick={() => setHelpOpen(true)}
+          >
             <Icon name="circle-help" />
-          </span>
+          </button>
           <button
             aria-label={t('settings.open')}
             className="sidebar-footer-icon-button"
@@ -125,6 +133,7 @@ export function FileSidebar({
           </button>
         </div>
       </div>
+      <ShortcutHelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
     </aside>
   );
 }

@@ -38,7 +38,10 @@ export function formatShortcut(key: string) {
     if (part === 'Shift') {
       return isMac ? '⇧' : 'Shift';
     }
-    return part.toUpperCase();
+    if (part === 'Alt') {
+      return isMac ? '⌥' : 'Alt';
+    }
+    return part.length === 1 ? part.toUpperCase() : part;
   });
   return parts.join(isMac ? '' : '+');
 }

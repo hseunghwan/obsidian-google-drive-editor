@@ -1305,6 +1305,69 @@ button.sidebar-folder-row:hover {
   accent-color: var(--accent);
 }
 
+.shortcut-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(400px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 64px));
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-inputs);
+  background: var(--settings-card-bg);
+  box-shadow: var(--shadow-subtle-3);
+}
+
+.shortcut-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 6px;
+}
+
+.shortcut-dialog-header h2 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.shortcut-dialog-body {
+  overflow-y: auto;
+  padding: 0 16px 16px;
+}
+
+.shortcut-section h3 {
+  margin: 14px 0 6px;
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+}
+
+.shortcut-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shortcut-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.shortcut-list kbd {
+  padding: 2px 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  background: var(--control-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .editor-pane .cm-lp-table {
   margin: 4px 0;
   border-collapse: collapse;

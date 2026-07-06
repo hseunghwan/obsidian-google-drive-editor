@@ -158,6 +158,22 @@ describe('FileSidebar', () => {
     );
   });
 
+  it('opens the shortcut list from the footer help button', async () => {
+    const user = userEvent.setup();
+
+    renderSidebar([fixtureFiles[0]]);
+
+    await user.click(screen.getByRole('button', { name: '단축키 보기' }));
+
+    const dialog = screen.getByRole('dialog', { name: '단축키' });
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveTextContent('저장');
+    expect(dialog).toHaveTextContent('볼드');
+
+    await user.click(screen.getByRole('button', { name: '단축키 닫기' }));
+    expect(screen.queryByRole('dialog', { name: '단축키' })).not.toBeInTheDocument();
+  });
+
   it('moves the root folder name to the sidebar footer beside the settings button', async () => {
     const user = userEvent.setup();
     const onOpenSettings = vi.fn();
