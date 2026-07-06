@@ -1,4 +1,5 @@
 import { autocompletion } from '@codemirror/autocomplete';
+import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
@@ -8,6 +9,7 @@ import type { VaultIndex } from '../../domain/vault/vaultIndex';
 import { useI18n } from '../../i18n/I18nProvider';
 import { messages } from '../../i18n/messages';
 import { livePreview } from './livePreview';
+import { markdownKeymap } from './markdownCommands';
 import { slashCommandAutocomplete } from './slashCommandAutocomplete';
 import { wikiLinkAutocomplete } from './wikiLinkAutocomplete';
 
@@ -51,7 +53,8 @@ export function MarkdownEditor({ value, index, onChange, scrollTarget, mode = 'l
       doc: value,
       extensions: [
         markdown({ base: markdownLanguage }),
-        keymap.of([]),
+        history(),
+        keymap.of([...markdownKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab]),
         autocompletion({ override: [wikiLinkAutocomplete(index), slashCommandAutocomplete(messages[locale])] }),
         modeCompartmentRef.current.of(modeExtension(modeRef.current)),
         EditorView.updateListener.of((update) => {

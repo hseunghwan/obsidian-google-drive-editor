@@ -1,3 +1,4 @@
+import { history, undo } from '@codemirror/commands';
 import { EditorSelection, EditorState, type StateCommand } from '@codemirror/state';
 import { describe, expect, it } from 'vitest';
 
@@ -83,5 +84,24 @@ describe('cycleListMarker', () => {
   it('keeps indentation while cycling', () => {
     const state = run(cycleListMarker, '  - item', 5);
     expect(state.doc.toString()).toBe('  - [ ] item');
+  });
+});
+
+describe('editor history', () => {
+  it('reverts the last change with undo', () => {
+    let state = EditorState.create({ doc: 'a', extensions: [history()] });
+    state = state.update({
+      changes: { from: 1, insert: 'b' },
+      userEvent: 'input.type'
+    }).state;
+    expect(state.doc.toString()).toBe('ab');
+
+    undo({
+      state,
+      dispatch: (transaction) => {
+        state = transaction.state;
+      }
+    });
+    expect(state.doc.toString()).toBe('a');
   });
 });
