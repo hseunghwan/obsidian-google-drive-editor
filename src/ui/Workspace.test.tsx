@@ -538,6 +538,23 @@ describe('Workspace', () => {
     expect(tab).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('opens files from the quick switcher with keyboard navigation', async () => {
+    const user = userEvent.setup();
+
+    renderWorkspace({ EditorComponent: TestEditor });
+    await screen.findByRole('button', { name: 'Home' });
+
+    fireEvent.keyDown(window, { key: 'o', metaKey: true });
+
+    const input = await screen.findByRole('textbox', { name: '빠른 전환기' });
+    await user.type(input, 'Project');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    const tab = await screen.findByRole('tab', { name: /Project Note/ });
+    expect(tab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByRole('textbox', { name: '빠른 전환기' })).not.toBeInTheDocument();
+  });
+
   it('creates a note when an unresolved wiki link is clicked', async () => {
     const user = userEvent.setup();
 

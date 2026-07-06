@@ -32,6 +32,7 @@ const editingShortcuts: ShortcutEntry[] = [
 
 const workspaceShortcuts: ShortcutEntry[] = [
   { labelKey: 'shortcutHelp.save', keys: 'Mod-S' },
+  { labelKey: 'shortcutHelp.quickSwitcher', keys: 'Mod-O' },
   { labelKey: 'shortcutHelp.toggleMode', keys: 'Mod-E' },
   { labelKey: 'shortcutHelp.searchFiles', keys: 'Mod-Shift-F' },
   { labelKey: 'shortcutHelp.newNote', keys: 'Alt-N' },

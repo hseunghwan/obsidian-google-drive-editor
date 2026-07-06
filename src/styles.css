@@ -1520,6 +1520,74 @@ button.sidebar-folder-row:hover {
   accent-color: var(--accent);
 }
 
+.quick-switcher-overlay {
+  align-items: flex-start;
+  padding-top: 14vh;
+}
+
+.quick-switcher {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(420px, calc(100vh - 20vh));
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-inputs);
+  background: var(--settings-card-bg);
+  box-shadow: var(--shadow-subtle-3);
+  overflow: hidden;
+}
+
+.quick-switcher input {
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--divider);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+
+.quick-switcher-results {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.quick-switcher-results li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.quick-switcher-results li.active {
+  background: var(--panel-bg-active);
+}
+
+.quick-switcher-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.quick-switcher-path {
+  overflow: hidden;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-switcher-empty {
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
 .shortcut-dialog {
   display: flex;
   flex-direction: column;

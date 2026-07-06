@@ -9,6 +9,7 @@ import { Breadcrumb } from './components/Breadcrumb';
 import { FileSidebar } from './components/FileSidebar';
 import { Icon } from './components/Icon';
 import { MetadataPanel } from './components/MetadataPanel';
+import { QuickSwitcher } from './components/QuickSwitcher';
 import { ReviewRequestToast } from './components/ReviewRequestToast';
 import { SaveStatus } from './components/SaveStatus';
 import { SettingsDialog } from './components/SettingsDialog';
@@ -80,6 +81,7 @@ export function Workspace({
   const [recentFiles, setRecentFiles] = useState<VaultFile[]>(() => readStoredRecentFiles(root.id));
   const [reviewRequestDismissed, setReviewRequestDismissed] = useState(false);
   const [editorMode, setEditorMode] = useState<EditorMode>(() => readStoredEditorMode());
+  const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -95,6 +97,11 @@ export function Workspace({
       if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 's') {
         event.preventDefault();
         void saveActiveDocument();
+        return;
+      }
+      if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'o') {
+        event.preventDefault();
+        setQuickSwitcherOpen(true);
         return;
       }
       if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'e') {
@@ -684,6 +691,16 @@ export function Workspace({
           <MetadataPanel content={activeDocument.content} onSelectHeading={scrollToHeading} />
         ) : null}
       </div>
+      <QuickSwitcher
+        open={quickSwitcherOpen}
+        files={workspaceFiles}
+        recentFiles={recentFiles}
+        onSelect={(file) => {
+          setQuickSwitcherOpen(false);
+          void openFile(file);
+        }}
+        onClose={() => setQuickSwitcherOpen(false)}
+      />
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} onSwitchGoogleAccount={onSwitchGoogleAccount} />
     </div>
   );
