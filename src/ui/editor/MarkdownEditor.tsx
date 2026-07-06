@@ -15,6 +15,7 @@ import { messages } from '../../i18n/messages';
 import { livePreview, wikiLinkOpener } from './livePreview';
 import { markdownKeymap } from './markdownCommands';
 import { slashCommandAutocomplete } from './slashCommandAutocomplete';
+import { tagAutocomplete } from './tagAutocomplete';
 import { wikiLinkAutocomplete } from './wikiLinkAutocomplete';
 
 export type EditorMode = 'live' | 'source';
@@ -70,7 +71,9 @@ export function MarkdownEditor({ value, index, onChange, scrollTarget, mode = 'l
         search({ top: true }),
         highlightSelectionMatches(),
         keymap.of([...markdownKeymap, ...defaultKeymap, ...historyKeymap, ...foldKeymap, ...searchKeymap, indentWithTab]),
-        autocompletion({ override: [wikiLinkAutocomplete(index), slashCommandAutocomplete(messages[locale])] }),
+        autocompletion({
+          override: [wikiLinkAutocomplete(index), slashCommandAutocomplete(messages[locale]), tagAutocomplete]
+        }),
         modeCompartmentRef.current.of(modeExtension(modeRef.current)),
         wikiLinkOpener.of((target) => onOpenWikiLinkRef.current?.(target)),
         EditorView.updateListener.of((update) => {
