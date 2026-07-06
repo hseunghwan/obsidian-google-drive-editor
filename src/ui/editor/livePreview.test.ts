@@ -82,6 +82,28 @@ describe('buildLivePreviewDecorations', () => {
     expect(summary).toContainEqual({ from: 13, to: 14, kind: 'hide' });
   });
 
+  it('renders external images as an inline widget when the cursor is outside', () => {
+    const doc = 'pic ![로고](https://example.com/logo.png) end';
+    const summary = summarize(createState(doc, 0));
+
+    expect(summary).toContainEqual({ from: 4, to: 39, kind: 'widget:ImageWidget' });
+  });
+
+  it('keeps relative image paths as styled text instead of an image widget', () => {
+    const doc = 'pic ![로고](assets/logo.png) end';
+    const summary = summarize(createState(doc, 0));
+
+    expect(summary.some((entry) => entry.kind.startsWith('widget:ImageWidget'))).toBe(false);
+    expect(summary.some((entry) => entry.kind === 'cm-lp-link')).toBe(true);
+  });
+
+  it('reveals the raw image syntax when the cursor is inside', () => {
+    const doc = 'pic ![로고](https://example.com/logo.png) end';
+    const summary = summarize(createState(doc, 8));
+
+    expect(summary.some((entry) => entry.kind.startsWith('widget:ImageWidget'))).toBe(false);
+  });
+
   it('hides the url part of markdown links', () => {
     const doc = 'see [docs](https://example.com) now';
     const summary = summarize(createState(doc, 0));

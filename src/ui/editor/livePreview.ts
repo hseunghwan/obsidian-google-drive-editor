@@ -81,6 +81,36 @@ class HorizontalRuleWidget extends WidgetType {
   }
 }
 
+class ImageWidget extends WidgetType {
+  constructor(
+    readonly url: string,
+    readonly alt: string
+  ) {
+    super();
+  }
+
+  eq(other: ImageWidget) {
+    return other.url === this.url && other.alt === this.alt;
+  }
+
+  toDOM(view: EditorView) {
+    const image = document.createElement('img');
+    image.className = 'cm-lp-image';
+    image.src = this.url;
+    image.alt = this.alt;
+    image.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      view.dispatch({ selection: { anchor: view.posAtDOM(image) } });
+      view.focus();
+    });
+    return image;
+  }
+
+  ignoreEvent() {
+    return false;
+  }
+}
+
 class CalloutLabelWidget extends WidgetType {
   constructor(readonly calloutType: string) {
     super();
@@ -257,6 +287,13 @@ export function buildLivePreviewDecorations(
           const url = node.node.getChild('URL');
           const rendered = !touchesRange(state, node.from, node.to) && marks.length >= 2;
           const urlText = url ? state.sliceDoc(url.from, url.to) : '';
+
+          if (name === 'Image' && rendered && /^https?:\/\//.test(urlText)) {
+            const closingBracket = marks.find((mark) => state.sliceDoc(mark.from, mark.to) === ']');
+            const alt = closingBracket ? state.sliceDoc(marks[0].to, closingBracket.from) : '';
+            add(node.from, node.to, Decoration.replace({ widget: new ImageWidget(urlText, alt) }));
+            return;
+          }
           add(
             node.from,
             node.to,
