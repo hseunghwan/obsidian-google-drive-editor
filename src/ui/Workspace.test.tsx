@@ -474,6 +474,50 @@ describe('Workspace', () => {
     expect(window.localStorage.getItem('workspace:editor-mode')).toBe('source');
   });
 
+  it('handles app-level keyboard shortcuts', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'prompt').mockReturnValue(null);
+
+    renderWorkspace({ EditorComponent: TestEditor });
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+    saveDocument.mockClear();
+
+    fireEvent.keyDown(window, { key: 's', metaKey: true });
+    await waitFor(() => expect(saveDocument).toHaveBeenCalled());
+
+    fireEvent.keyDown(window, { key: 'e', metaKey: true });
+    expect(screen.getByTestId('editor-mode')).toHaveTextContent('source');
+
+    fireEvent.keyDown(window, { key: 'f', metaKey: true, shiftKey: true });
+    await waitFor(() =>
+      expect(screen.getByRole('searchbox', { name: 'Vault 파일 검색' })).toHaveFocus()
+    );
+
+    fireEvent.keyDown(window, { code: 'KeyN', altKey: true });
+    expect(window.prompt).toHaveBeenCalledWith('새 Markdown 파일 이름');
+  });
+
+  it('switches recent tabs with alt+digit', async () => {
+    const user = userEvent.setup();
+
+    renderWorkspace({ EditorComponent: TestEditor });
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+    await user.click(screen.getByRole('button', { name: 'Projects' }));
+    await user.click(await screen.findByRole('button', { name: 'Project Note' }));
+
+    fireEvent.keyDown(window, { code: 'Digit1', altKey: true });
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: /Home/ })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    fireEvent.keyDown(window, { code: 'Digit9', altKey: true });
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: /Project Note/ })).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
   it('renders an empty vault state without trying to open an undefined file', async () => {
     render(
       <Workspace

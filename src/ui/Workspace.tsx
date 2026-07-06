@@ -90,6 +90,46 @@ export function Workspace({
   }, [editorMode]);
 
   useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      const mod = event.metaKey || event.ctrlKey;
+      if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        void saveActiveDocument();
+        return;
+      }
+      if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'e') {
+        event.preventDefault();
+        setEditorMode((mode) => (mode === 'source' ? 'live' : 'source'));
+        return;
+      }
+      if (mod && event.shiftKey && !event.altKey && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        setSidebarOpen(true);
+        window.requestAnimationFrame(() => {
+          document.querySelector<HTMLInputElement>('.sidebar-search input')?.focus();
+        });
+        return;
+      }
+      if (event.altKey && !mod && event.code === 'KeyN') {
+        event.preventDefault();
+        void createMarkdownFile();
+        return;
+      }
+      if (event.altKey && !mod && /^Digit[1-9]$/.test(event.code)) {
+        const digit = Number(event.code.slice(5));
+        const file = digit === 9 ? recentFiles[recentFiles.length - 1] : recentFiles[digit - 1];
+        if (file) {
+          event.preventDefault();
+          void openFile(file);
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  });
+
+  useEffect(() => {
     try {
       window.localStorage?.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(sidebarWidth));
     } catch {
