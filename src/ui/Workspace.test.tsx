@@ -90,8 +90,9 @@ describe('Workspace', () => {
 
     await user.click(screen.getByRole('button', { name: /Home/ }));
 
-    expect(screen.getByText('title')).toBeInTheDocument();
-    expect(screen.getByText('#daily')).toBeInTheDocument();
+    const metadataPanel = screen.getByRole('region', { name: '문서 정보' });
+    expect(within(metadataPanel).getByText('title')).toBeInTheDocument();
+    expect(within(metadataPanel).getByText('#daily')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '목차' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: '목차' })).toHaveTextContent('Home #daily');
     expect(screen.getByRole('heading', { name: '프로퍼티' })).toBeInTheDocument();
@@ -455,6 +456,24 @@ describe('Workspace', () => {
     expect(screen.getByTestId('scroll-target')).toHaveTextContent('3');
   });
 
+  it('toggles between live preview and source mode and persists the choice', async () => {
+    const user = userEvent.setup();
+
+    renderWorkspace({ EditorComponent: TestEditor });
+
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+
+    const toggle = await screen.findByRole('button', { name: '원본 텍스트 모드 전환' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('editor-mode')).toHaveTextContent('live');
+
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('editor-mode')).toHaveTextContent('source');
+    expect(window.localStorage.getItem('workspace:editor-mode')).toBe('source');
+  });
+
   it('renders an empty vault state without trying to open an undefined file', async () => {
     render(
       <Workspace
@@ -549,7 +568,7 @@ describe('Workspace', () => {
   });
 });
 
-function TestEditor({ value, onChange, scrollTarget }: MarkdownEditorProps) {
+function TestEditor({ value, onChange, scrollTarget, mode }: MarkdownEditorProps) {
   return (
     <>
       <textarea
@@ -558,6 +577,7 @@ function TestEditor({ value, onChange, scrollTarget }: MarkdownEditorProps) {
         onChange={(event) => onChange(event.currentTarget.value)}
       />
       <output data-testid="scroll-target">{scrollTarget?.lineNumber ?? ''}</output>
+      <output data-testid="editor-mode">{mode}</output>
     </>
   );
 }

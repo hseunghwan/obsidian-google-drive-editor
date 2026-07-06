@@ -1063,6 +1063,40 @@ button.sidebar-folder-row:hover {
   color: var(--text-faint);
 }
 
+.editor-header {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.editor-header .breadcrumb {
+  flex: 1;
+  border-bottom: 0;
+}
+
+.editor-mode-toggle {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.editor-mode-toggle:hover {
+  color: var(--text-primary);
+  background: var(--panel-bg-hover);
+}
+
+.editor-mode-toggle.active {
+  color: var(--color-lavender);
+  background: color-mix(in srgb, var(--color-amethyst) 20%, transparent);
+  box-shadow: var(--shadow-subtle);
+}
+
 .save-status {
   justify-content: space-between;
   gap: 12px;
@@ -1175,6 +1209,108 @@ button.sidebar-folder-row:hover {
 .editor-pane .cm-tooltip-autocomplete {
   min-width: 320px;
   max-width: min(420px, calc(100vw - 24px));
+}
+
+.editor-pane .cm-lp-heading {
+  font-weight: var(--font-weight-bold);
+}
+
+.editor-pane .cm-lp-h1 {
+  font-size: 1.6em;
+}
+
+.editor-pane .cm-lp-h2 {
+  font-size: 1.4em;
+}
+
+.editor-pane .cm-lp-h3 {
+  font-size: 1.25em;
+}
+
+.editor-pane .cm-lp-h4 {
+  font-size: 1.1em;
+}
+
+.editor-pane .cm-lp-h6 {
+  color: var(--text-secondary);
+}
+
+.editor-pane .cm-lp-strong {
+  font-weight: var(--font-weight-bold);
+}
+
+.editor-pane .cm-lp-em {
+  font-style: italic;
+}
+
+.editor-pane .cm-lp-strike {
+  text-decoration: line-through;
+}
+
+.editor-pane .cm-lp-code,
+.editor-pane .cm-lp-codeblock,
+.editor-pane .cm-lp-frontmatter {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.9em;
+}
+
+.editor-pane .cm-lp-code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--panel-bg-raised);
+}
+
+.editor-pane .cm-lp-codeblock {
+  background: var(--panel-bg);
+}
+
+.editor-pane .cm-lp-frontmatter {
+  color: var(--text-faint);
+}
+
+.editor-pane .cm-lp-link,
+.editor-pane .cm-lp-wikilink {
+  color: var(--accent-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.editor-pane .cm-lp-url {
+  color: var(--text-faint);
+}
+
+.editor-pane .cm-lp-tag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: var(--color-lavender);
+  background: color-mix(in srgb, var(--color-amethyst) 20%, transparent);
+  font-size: 0.85em;
+}
+
+.editor-pane .cm-lp-quote {
+  padding-left: 12px;
+  border-left: 3px solid var(--accent);
+  color: var(--text-secondary);
+}
+
+.editor-pane .cm-lp-bullet {
+  display: inline-block;
+  width: 1ch;
+  color: var(--accent-muted);
+}
+
+.editor-pane .cm-lp-task {
+  margin-right: 6px;
+  vertical-align: middle;
+  accent-color: var(--accent);
+}
+
+.editor-pane .cm-lp-hr {
+  display: inline-block;
+  width: 100%;
+  height: 2px;
+  vertical-align: middle;
+  background: var(--divider);
 }
 
 .editor-pane .cm-tooltip-autocomplete ul {

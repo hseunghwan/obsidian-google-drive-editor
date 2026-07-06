@@ -1,20 +1,24 @@
 import { autocompletion } from '@codemirror/autocomplete';
-import { markdown } from '@codemirror/lang-markdown';
-import { EditorState } from '@codemirror/state';
+import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
+import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { useEffect, useRef } from 'react';
 
 import type { VaultIndex } from '../../domain/vault/vaultIndex';
 import { useI18n } from '../../i18n/I18nProvider';
 import { messages } from '../../i18n/messages';
+import { livePreview } from './livePreview';
 import { slashCommandAutocomplete } from './slashCommandAutocomplete';
 import { wikiLinkAutocomplete } from './wikiLinkAutocomplete';
+
+export type EditorMode = 'live' | 'source';
 
 export interface MarkdownEditorProps {
   value: string;
   index: VaultIndex;
   onChange(value: string): void;
   scrollTarget?: MarkdownEditorScrollTarget | null;
+  mode?: EditorMode;
 }
 
 export interface MarkdownEditorScrollTarget {
@@ -22,11 +26,17 @@ export interface MarkdownEditorScrollTarget {
   requestId: number;
 }
 
-export function MarkdownEditor({ value, index, onChange, scrollTarget }: MarkdownEditorProps) {
+function modeExtension(mode: EditorMode) {
+  return mode === 'live' ? livePreview() : [];
+}
+
+export function MarkdownEditor({ value, index, onChange, scrollTarget, mode = 'live' }: MarkdownEditorProps) {
   const { locale } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
+  const modeRef = useRef(mode);
+  const modeCompartmentRef = useRef(new Compartment());
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -40,9 +50,10 @@ export function MarkdownEditor({ value, index, onChange, scrollTarget }: Markdow
     const state = EditorState.create({
       doc: value,
       extensions: [
-        markdown(),
+        markdown({ base: markdownLanguage }),
         keymap.of([]),
         autocompletion({ override: [wikiLinkAutocomplete(index), slashCommandAutocomplete(messages[locale])] }),
+        modeCompartmentRef.current.of(modeExtension(modeRef.current)),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChangeRef.current(update.state.doc.toString());
@@ -59,6 +70,13 @@ export function MarkdownEditor({ value, index, onChange, scrollTarget }: Markdow
       viewRef.current = null;
     };
   }, [index, locale]);
+
+  useEffect(() => {
+    modeRef.current = mode;
+    viewRef.current?.dispatch({
+      effects: modeCompartmentRef.current.reconfigure(modeExtension(mode))
+    });
+  }, [mode]);
 
   useEffect(() => {
     const view = viewRef.current;

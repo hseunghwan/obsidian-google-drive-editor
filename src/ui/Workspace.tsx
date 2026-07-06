@@ -12,7 +12,7 @@ import { MetadataPanel } from './components/MetadataPanel';
 import { ReviewRequestToast } from './components/ReviewRequestToast';
 import { SaveStatus } from './components/SaveStatus';
 import { SettingsDialog } from './components/SettingsDialog';
-import { MarkdownEditor, type MarkdownEditorProps } from './editor/MarkdownEditor';
+import { MarkdownEditor, type EditorMode, type MarkdownEditorProps } from './editor/MarkdownEditor';
 import { createInitialWorkspaceState, workspaceReducer } from './state/workspaceReducer';
 
 interface WorkspaceProps {
@@ -79,6 +79,15 @@ export function Workspace({
   const sidebarDragState = useRef<{ pointerId: number; startX: number; startWidth: number } | null>(null);
   const [recentFiles, setRecentFiles] = useState<VaultFile[]>(() => readStoredRecentFiles(root.id));
   const [reviewRequestDismissed, setReviewRequestDismissed] = useState(false);
+  const [editorMode, setEditorMode] = useState<EditorMode>(() => readStoredEditorMode());
+
+  useEffect(() => {
+    try {
+      window.localStorage?.setItem(EDITOR_MODE_STORAGE_KEY, editorMode);
+    } catch {
+      // ignore storage failures
+    }
+  }, [editorMode]);
 
   useEffect(() => {
     try {
@@ -519,11 +528,24 @@ export function Workspace({
           ) : null}
           {activeDocument ? (
             <>
-              <Breadcrumb path={activeDocument.file.path} />
+              <div className="editor-header">
+                <Breadcrumb path={activeDocument.file.path} />
+                <button
+                  aria-pressed={editorMode === 'source'}
+                  aria-label={t('workspace.toggleSourceMode')}
+                  className={`editor-mode-toggle${editorMode === 'source' ? ' active' : ''}`}
+                  title={t('workspace.toggleSourceMode')}
+                  type="button"
+                  onClick={() => setEditorMode((mode) => (mode === 'source' ? 'live' : 'source'))}
+                >
+                  <Icon name="code" />
+                </button>
+              </div>
               <EditorComponent
                 value={activeDocument.content}
                 index={index}
                 scrollTarget={scrollTarget}
+                mode={editorMode}
                 onChange={(content) => dispatch({ type: 'documentEdited', content })}
               />
               <SaveStatus
@@ -571,8 +593,17 @@ const SIDEBAR_DEFAULT_WIDTH = 260;
 const SIDEBAR_MIN_WIDTH = 180;
 const SIDEBAR_MAX_WIDTH = 520;
 const RECENT_FILES_STORAGE_PREFIX = 'workspace:recent-files:';
+const EDITOR_MODE_STORAGE_KEY = 'workspace:editor-mode';
 const RECENT_FILES_LIMIT = 8;
 export const CHROME_WEB_STORE_REVIEW_URL = 'https://chromewebstore.google.com/detail/obsidian-vault-editor-for/fegekndlnlkbnkopphbokolacfemldge/reviews?hl=en-US&utm_source=ext_sidebar';
+
+function readStoredEditorMode(): EditorMode {
+  try {
+    return window.localStorage?.getItem(EDITOR_MODE_STORAGE_KEY) === 'source' ? 'source' : 'live';
+  } catch {
+    return 'live';
+  }
+}
 
 function recentFilesStorageKey(rootId: string) {
   return `${RECENT_FILES_STORAGE_PREFIX}${rootId}`;
