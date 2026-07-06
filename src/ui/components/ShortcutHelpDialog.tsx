@@ -38,6 +38,8 @@ const workspaceShortcuts: ShortcutEntry[] = [
   { labelKey: 'shortcutHelp.newNote', keys: 'Alt-N' },
   { labelKey: 'shortcutHelp.historyBack', keys: 'Mod-[' },
   { labelKey: 'shortcutHelp.historyForward', keys: 'Mod-]' },
+  { labelKey: 'shortcutHelp.insertTemplate', keys: 'Alt-T' },
+  { labelKey: 'shortcutHelp.dailyNote', keys: 'Alt-D' },
   { labelKey: 'shortcutHelp.recentTabs', keys: 'Alt-1~9' }
 ];
 

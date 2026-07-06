@@ -14,6 +14,7 @@ import { ReviewRequestToast } from './components/ReviewRequestToast';
 import { SaveStatus } from './components/SaveStatus';
 import { SettingsDialog } from './components/SettingsDialog';
 import { MarkdownEditor, type EditorMode, type MarkdownEditorProps } from './editor/MarkdownEditor';
+import { applyTemplateVariables, formatDailyNoteTitle } from './editor/templates';
 import { createInitialWorkspaceState, workspaceReducer } from './state/workspaceReducer';
 
 interface WorkspaceProps {
@@ -86,6 +87,9 @@ export function Workspace({
   const [reviewRequestDismissed, setReviewRequestDismissed] = useState(false);
   const [editorMode, setEditorMode] = useState<EditorMode>(() => readStoredEditorMode());
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [insertRequest, setInsertRequest] = useState<MarkdownEditorProps['insertRequest']>(null);
+  const insertRequestId = useRef(0);
 
   useEffect(() => {
     try {
@@ -134,6 +138,16 @@ export function Workspace({
       if (event.altKey && !mod && event.code === 'KeyN') {
         event.preventDefault();
         void createMarkdownFile();
+        return;
+      }
+      if (event.altKey && !mod && event.code === 'KeyT') {
+        event.preventDefault();
+        openTemplatePicker();
+        return;
+      }
+      if (event.altKey && !mod && event.code === 'KeyD') {
+        event.preventDefault();
+        void openDailyNote();
         return;
       }
       if (event.altKey && !mod && /^Digit[1-9]$/.test(event.code)) {
@@ -421,11 +435,12 @@ export function Workspace({
     await createMarkdownFileNamed(parentFolderId, title);
   }
 
-  async function createMarkdownFileNamed(parentFolderId: string, title: string) {
+  async function createMarkdownFileNamed(parentFolderId: string, title: string, content?: string) {
     const name = normalizeMarkdownName(title);
+    const fileContent = content ?? `# ${name.replace(/\.md$/i, '')}\n`;
     const parentPath = parentPathForFolderId(parentFolderId, root.id, visibleEntries);
     const nextFile = applyParentPath(
-      await createFile(parentFolderId, name, `# ${name.replace(/\.md$/i, '')}\n`),
+      await createFile(parentFolderId, name, fileContent),
       parentFolderId,
       parentPath
     );
@@ -440,7 +455,7 @@ export function Workspace({
       files: nextFiles,
       document: {
         file: nextFile,
-        content: `# ${nextFile.title}\n`,
+        content: fileContent,
         baselineModifiedTime: nextFile.modifiedTime
       }
     });
@@ -499,6 +514,53 @@ export function Workspace({
   function scrollToHeading(heading: MarkdownHeading) {
     scrollRequestId.current += 1;
     setScrollTarget({ lineNumber: heading.lineNumber, requestId: scrollRequestId.current });
+  }
+
+  const templateFiles = useMemo(
+    () => workspaceFiles.filter((file) => /^templates\//i.test(file.path)),
+    [workspaceFiles]
+  );
+
+  function openTemplatePicker() {
+    if (!activeDocument) {
+      return;
+    }
+    const templatesFolder = workspaceEntries.find(
+      (entry): entry is VaultFolder => entry.kind === 'folder' && entry.path.toLocaleLowerCase() === 'templates'
+    );
+    if (templatesFolder) {
+      void loadFolderChildren(templatesFolder.id, templatesFolder.path);
+    }
+    setTemplatePickerOpen(true);
+  }
+
+  async function insertTemplate(file: VaultFile) {
+    setTemplatePickerOpen(false);
+    if (!activeDocument) {
+      return;
+    }
+    const document = await loadFile(file);
+    insertRequestId.current += 1;
+    setInsertRequest({
+      text: applyTemplateVariables(document.content, { title: activeDocument.file.title }),
+      requestId: insertRequestId.current
+    });
+  }
+
+  async function openDailyNote() {
+    const title = formatDailyNoteTitle();
+    const existing = workspaceFiles.find((file) => file.title === title);
+    if (existing) {
+      await openFile(existing);
+      return;
+    }
+    const dailyTemplate = templateFiles.find((file) => file.title.toLocaleLowerCase() === 'daily');
+    let content = `# ${title}\n`;
+    if (dailyTemplate) {
+      const document = await loadFile(dailyTemplate);
+      content = applyTemplateVariables(document.content, { title });
+    }
+    await createMarkdownFileNamed(root.id, title, content);
   }
 
   async function navigateHistory(direction: 'back' | 'forward') {
@@ -716,6 +778,7 @@ export function Workspace({
                 index={index}
                 scrollTarget={scrollTarget}
                 mode={editorMode}
+                insertRequest={insertRequest}
                 onChange={(content) => dispatch({ type: 'documentEdited', content })}
                 onOpenWikiLink={openWikiLink}
                 resolveWikiLink={(target) => Boolean(findWikiLinkFile(target))}
@@ -764,6 +827,14 @@ export function Workspace({
           void openFile(file);
         }}
         onClose={() => setQuickSwitcherOpen(false)}
+      />
+      <QuickSwitcher
+        open={templatePickerOpen}
+        files={templateFiles}
+        recentFiles={[]}
+        label={t('templatePicker.title')}
+        onSelect={(file) => void insertTemplate(file)}
+        onClose={() => setTemplatePickerOpen(false)}
       />
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} onSwitchGoogleAccount={onSwitchGoogleAccount} />
     </div>

@@ -9,6 +9,7 @@ interface QuickSwitcherProps {
   recentFiles: VaultFile[];
   onSelect(file: VaultFile): void;
   onClose(): void;
+  label?: string;
 }
 
 const resultLimit = 50;
@@ -40,8 +41,9 @@ export function rankQuickSwitcherFiles(
     .slice(0, resultLimit);
 }
 
-export function QuickSwitcher({ open, files, recentFiles, onSelect, onClose }: QuickSwitcherProps) {
+export function QuickSwitcher({ open, files, recentFiles, onSelect, onClose, label }: QuickSwitcherProps) {
   const { t } = useI18n();
+  const dialogLabel = label ?? t('quickSwitcher.title');
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -95,14 +97,14 @@ export function QuickSwitcher({ open, files, recentFiles, onSelect, onClose }: Q
   return (
     <div className="settings-overlay quick-switcher-overlay" onMouseDown={onClose}>
       <section
-        aria-label={t('quickSwitcher.title')}
+        aria-label={dialogLabel}
         aria-modal="true"
         className="quick-switcher"
         role="dialog"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <input
-          aria-label={t('quickSwitcher.title')}
+          aria-label={dialogLabel}
           placeholder={t('quickSwitcher.placeholder')}
           ref={inputRef}
           type="text"

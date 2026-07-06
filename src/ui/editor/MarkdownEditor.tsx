@@ -28,10 +28,16 @@ export interface MarkdownEditorProps {
   mode?: EditorMode;
   onOpenWikiLink?(target: string): void;
   resolveWikiLink?(target: string): boolean;
+  insertRequest?: MarkdownEditorInsertRequest | null;
 }
 
 export interface MarkdownEditorScrollTarget {
   lineNumber: number;
+  requestId: number;
+}
+
+export interface MarkdownEditorInsertRequest {
+  text: string;
   requestId: number;
 }
 
@@ -46,7 +52,8 @@ export function MarkdownEditor({
   scrollTarget,
   mode = 'live',
   onOpenWikiLink,
-  resolveWikiLink
+  resolveWikiLink,
+  insertRequest
 }: MarkdownEditorProps) {
   const { locale } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -126,6 +133,16 @@ export function MarkdownEditor({
       }
     });
   }, [value]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || !insertRequest) {
+      return;
+    }
+
+    view.dispatch(view.state.replaceSelection(insertRequest.text));
+    view.focus();
+  }, [insertRequest]);
 
   useEffect(() => {
     const view = viewRef.current;

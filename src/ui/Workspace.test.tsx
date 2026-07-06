@@ -538,6 +538,67 @@ describe('Workspace', () => {
     expect(tab).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('inserts a template with variables through the template picker', async () => {
+    const user = userEvent.setup();
+    const templateFolder = {
+      id: 'folder-templates',
+      name: 'templates',
+      path: 'templates',
+      parentId: fixtureVaultRoot.id,
+      kind: 'folder' as const,
+      mimeType: 'application/vnd.google-apps.folder',
+      modifiedTime: '2026-07-01T00:00:00.000Z'
+    };
+    const templateFile = {
+      id: 'file-meeting-template',
+      name: 'Meeting.md',
+      title: 'Meeting',
+      path: 'templates/Meeting.md',
+      parentId: templateFolder.id,
+      kind: 'markdown' as const,
+      mimeType: 'text/markdown',
+      modifiedTime: '2026-07-01T00:00:00.000Z'
+    };
+
+    renderWorkspace({
+      entries: [fixtureFolder, templateFolder, templateFile, ...fixtureFiles],
+      loadFile: async (file) => ({
+        file,
+        content: file.id === templateFile.id ? '## {{title}} 회의\n날짜: {{date}}' : '# Home',
+        baselineModifiedTime: file.modifiedTime
+      }),
+      EditorComponent: TestEditor
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+    fireEvent.keyDown(window, { code: 'KeyT', altKey: true });
+
+    const input = await screen.findByRole('textbox', { name: '템플릿 삽입' });
+    await user.type(input, 'Meeting');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      const inserted = screen.getByTestId('insert-request').textContent ?? '';
+      expect(inserted).toContain('## Home 회의');
+      expect(inserted).toMatch(/날짜: \d{4}-\d{2}-\d{2}/);
+    });
+  });
+
+  it('opens or creates the daily note with alt+d', async () => {
+    vi.spyOn(window, 'prompt').mockReturnValue(null);
+
+    renderWorkspace({ EditorComponent: TestEditor });
+    await screen.findByRole('button', { name: 'Home' });
+
+    fireEvent.keyDown(window, { code: 'KeyD', altKey: true });
+
+    const today = new Date();
+    const title = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    await waitFor(() => {
+      expect(createFile).toHaveBeenCalledWith(fixtureVaultRoot.id, `${title}.md`, `# ${title}\n`);
+    });
+  });
+
   it('flags a conflict when the remote file changes while a document is open', async () => {
     const user = userEvent.setup();
     const getRemoteModifiedTime = vi.fn().mockResolvedValue('2026-07-08T00:00:00.000Z');
@@ -732,7 +793,7 @@ describe('Workspace', () => {
   });
 });
 
-function TestEditor({ value, onChange, scrollTarget, mode }: MarkdownEditorProps) {
+function TestEditor({ value, onChange, scrollTarget, mode, insertRequest }: MarkdownEditorProps) {
   return (
     <>
       <textarea
@@ -742,6 +803,7 @@ function TestEditor({ value, onChange, scrollTarget, mode }: MarkdownEditorProps
       />
       <output data-testid="scroll-target">{scrollTarget?.lineNumber ?? ''}</output>
       <output data-testid="editor-mode">{mode}</output>
+      <output data-testid="insert-request">{insertRequest?.text ?? ''}</output>
     </>
   );
 }
