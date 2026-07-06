@@ -12,8 +12,10 @@ import type { SyntaxNode } from '@lezer/common';
 
 const frontmatterPattern = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/;
 const wikiLinkPattern = /\[\[([^[\]\n]+)\]\]/g;
+const highlightPattern = /==([^=\n]+)==/g;
 const tagPattern = /(^|[\s(])(#[\p{L}\p{N}/_-]*\p{L}[\p{L}\p{N}/_-]*)/gu;
 const taskLinePattern = /^(\s*(?:[-*+]|\d+[.)])\s+\[)( |x|X)(\])/;
+const calloutLinePattern = /^>\s*\[!(\w+)\][+-]?/;
 
 const hideDecoration = Decoration.replace({});
 
@@ -72,6 +74,23 @@ class HorizontalRuleWidget extends WidgetType {
     const rule = document.createElement('span');
     rule.className = 'cm-lp-hr';
     return rule;
+  }
+}
+
+class CalloutLabelWidget extends WidgetType {
+  constructor(readonly calloutType: string) {
+    super();
+  }
+
+  eq(other: CalloutLabelWidget) {
+    return other.calloutType === this.calloutType;
+  }
+
+  toDOM() {
+    const label = document.createElement('span');
+    label.className = 'cm-lp-callout-label';
+    label.textContent = this.calloutType;
+    return label;
   }
 }
 
@@ -256,6 +275,27 @@ export function buildLivePreviewDecorations(
           return;
         }
 
+        if (name === 'Blockquote') {
+          const firstLine = state.doc.lineAt(node.from);
+          const callout = firstLine.text.match(calloutLinePattern);
+          if (callout) {
+            const type = callout[1].toLowerCase();
+            for (let position = node.from; position <= node.to; position = state.doc.lineAt(position).to + 1) {
+              addLineClass(position, `cm-lp-callout cm-lp-callout-${type}`);
+            }
+            const markerFrom = firstLine.from + callout[0].indexOf('[!');
+            const markerTo = firstLine.from + callout[0].length;
+            if (!touchesLines(state, firstLine.from, firstLine.to)) {
+              add(
+                markerFrom,
+                markerTo + (isSpaceAt(state, markerTo) ? 1 : 0),
+                Decoration.replace({ widget: new CalloutLabelWidget(type) })
+              );
+            }
+          }
+          return;
+        }
+
         if (name === 'QuoteMark') {
           addLineClass(node.from, 'cm-lp-quote');
           if (!touchesLines(state, node.from, node.to)) {
@@ -335,6 +375,19 @@ export function buildLivePreviewDecorations(
       );
       if (rendered) {
         add(from, labelFrom, hideDecoration);
+        add(to - 2, to, hideDecoration);
+      }
+    }
+
+    for (const match of text.matchAll(highlightPattern)) {
+      const from = range.from + match.index;
+      const to = from + match[0].length;
+      if (from < skipBefore || insideCodeOrLink(state, from)) {
+        continue;
+      }
+      add(from + 2, to - 2, Decoration.mark({ class: 'cm-lp-highlight' }));
+      if (!touchesRange(state, from, to)) {
+        add(from, from + 2, hideDecoration);
         add(to - 2, to, hideDecoration);
       }
     }

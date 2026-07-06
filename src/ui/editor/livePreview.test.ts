@@ -123,6 +123,22 @@ describe('buildLivePreviewDecorations', () => {
     expect(summary.some((entry) => entry.kind === 'cm-lp-code')).toBe(true);
   });
 
+  it('hides highlight markers and styles the content', () => {
+    const doc = 'a ==marked text== b';
+    const summary = summarize(createState(doc, 0));
+
+    expect(summary).toContainEqual({ from: 4, to: 15, kind: 'cm-lp-highlight' });
+    expect(summary).toContainEqual({ from: 2, to: 4, kind: 'hide' });
+    expect(summary).toContainEqual({ from: 15, to: 17, kind: 'hide' });
+  });
+
+  it('reveals highlight markers when the cursor touches them', () => {
+    const summary = summarize(createState('a ==marked== b', 6));
+
+    expect(summary.some((entry) => entry.kind === 'cm-lp-highlight')).toBe(true);
+    expect(summary.filter((entry) => entry.kind === 'hide')).toEqual([]);
+  });
+
   it('styles tags without hiding them', () => {
     const doc = 'note #project/alpha done';
     const summary = summarize(createState(doc, 0));
@@ -147,6 +163,23 @@ describe('buildLivePreviewDecorations', () => {
 
     expect(summary).toContainEqual({ from: 0, to: 6, kind: 'widget:CheckboxWidget:false' });
     expect(summary).toContainEqual({ from: 11, to: 17, kind: 'widget:CheckboxWidget:true' });
+  });
+
+  it('renders callouts with a type class and label widget', () => {
+    const doc = '> [!warning] 조심\n> 내용\n\nafter';
+    const summary = summarize(createState(doc, doc.length));
+
+    expect(summary).toContainEqual({ from: 0, to: 0, kind: 'cm-lp-callout cm-lp-callout-warning' });
+    expect(summary).toContainEqual({ from: 16, to: 16, kind: 'cm-lp-callout cm-lp-callout-warning' });
+    expect(summary).toContainEqual({ from: 2, to: 13, kind: 'widget:CalloutLabelWidget' });
+  });
+
+  it('reveals the callout marker when the cursor is on its line', () => {
+    const doc = '> [!note] 제목\n> 내용';
+    const summary = summarize(createState(doc, 4));
+
+    expect(summary.some((entry) => entry.kind.startsWith('widget:CalloutLabelWidget'))).toBe(false);
+    expect(summary.some((entry) => entry.kind.includes('cm-lp-callout-note'))).toBe(true);
   });
 
   it('hides quote marks and styles quote lines', () => {

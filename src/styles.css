@@ -1371,6 +1371,13 @@ button.sidebar-folder-row:hover {
   color: var(--text-faint);
 }
 
+.editor-pane .cm-lp-highlight {
+  padding: 1px 2px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-warning-yellow) 32%, transparent);
+  color: var(--text-primary);
+}
+
 .editor-pane .cm-lp-tag {
   padding: 1px 7px;
   border-radius: 999px;
@@ -1383,6 +1390,47 @@ button.sidebar-folder-row:hover {
   padding-left: 12px;
   border-left: 3px solid var(--accent);
   color: var(--text-secondary);
+}
+
+.editor-pane .cm-lp-callout {
+  --callout-color: var(--accent);
+  border-left-color: var(--callout-color);
+  background: color-mix(in srgb, var(--callout-color) 8%, transparent);
+}
+
+.editor-pane .cm-lp-callout-tip,
+.editor-pane .cm-lp-callout-success,
+.editor-pane .cm-lp-callout-done,
+.editor-pane .cm-lp-callout-check {
+  --callout-color: var(--color-success-green);
+}
+
+.editor-pane .cm-lp-callout-warning,
+.editor-pane .cm-lp-callout-caution,
+.editor-pane .cm-lp-callout-question,
+.editor-pane .cm-lp-callout-help,
+.editor-pane .cm-lp-callout-attention {
+  --callout-color: var(--color-warning-yellow);
+}
+
+.editor-pane .cm-lp-callout-danger,
+.editor-pane .cm-lp-callout-error,
+.editor-pane .cm-lp-callout-failure,
+.editor-pane .cm-lp-callout-fail,
+.editor-pane .cm-lp-callout-bug {
+  --callout-color: var(--color-error-red);
+}
+
+.editor-pane .cm-lp-callout-label {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--callout-color, var(--accent)) 24%, transparent);
+  color: var(--text-primary);
+  font-size: 0.8em;
+  font-weight: var(--font-weight-semibold);
+  text-transform: capitalize;
 }
 
 .editor-pane .cm-lp-bullet {
