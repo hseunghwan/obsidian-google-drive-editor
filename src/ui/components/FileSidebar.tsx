@@ -214,7 +214,7 @@ interface SidebarItemMenuProps {
   onDelete(entry: VaultEntry): void;
 }
 
-type SidebarMenuAction = '' | 'create-file' | 'create-folder' | 'rename' | 'delete';
+type SidebarMenuAction = '' | 'create-file' | 'create-folder' | 'rename' | 'delete' | 'copy-path' | 'open-drive';
 
 function SidebarItemMenu({
   entry,
@@ -246,6 +246,16 @@ function SidebarItemMenu({
       return;
     }
 
+    if (action === 'copy-path') {
+      void navigator.clipboard?.writeText(entry.path);
+      return;
+    }
+
+    if (action === 'open-drive') {
+      window.open(driveEntryUrl(entry), '_blank', 'noopener');
+      return;
+    }
+
     if (action === 'delete') {
       onDelete(entry);
     }
@@ -261,9 +271,17 @@ function SidebarItemMenu({
         </>
       ) : null}
       <option value="rename">{t('sidebar.menu.rename')}</option>
+      <option value="copy-path">{t('sidebar.menu.copyPath')}</option>
+      <option value="open-drive">{t('sidebar.menu.openInDrive')}</option>
       <option value="delete">{t('sidebar.menu.delete')}</option>
     </select>
   );
+}
+
+function driveEntryUrl(entry: VaultEntry) {
+  return entry.kind === 'folder'
+    ? `https://drive.google.com/drive/folders/${entry.id}`
+    : `https://drive.google.com/file/d/${entry.id}/view`;
 }
 
 interface RenderEntryChildrenOptions {

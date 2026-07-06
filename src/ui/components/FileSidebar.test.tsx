@@ -122,6 +122,42 @@ describe('FileSidebar', () => {
     expect(onOpen).not.toHaveBeenCalled();
   });
 
+  it('copies the vault path from the item menu', async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true
+    });
+
+    renderSidebar([fixtureFiles[0]]);
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Home 더보기' }), 'copy-path');
+
+    expect(writeText).toHaveBeenCalledWith('Home.md');
+  });
+
+  it('opens the entry in Google Drive from the item menu', async () => {
+    const user = userEvent.setup();
+    const open = vi.spyOn(window, 'open').mockReturnValue(null);
+
+    renderSidebar([fixtureFiles[0], fixtureFolder]);
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Home 더보기' }), 'open-drive');
+    expect(open).toHaveBeenCalledWith(
+      'https://drive.google.com/file/d/file-home/view',
+      '_blank',
+      'noopener'
+    );
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Projects 더보기' }), 'open-drive');
+    expect(open).toHaveBeenCalledWith(
+      `https://drive.google.com/drive/folders/${fixtureFolder.id}`,
+      '_blank',
+      'noopener'
+    );
+  });
+
   it('moves the root folder name to the sidebar footer beside the settings button', async () => {
     const user = userEvent.setup();
     const onOpenSettings = vi.fn();
