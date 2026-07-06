@@ -184,6 +184,51 @@ describe('buildLivePreviewDecorations', () => {
     expect(summary).toContainEqual({ from: 33, to: 33, kind: 'cm-lp-heading cm-lp-h1' });
   });
 
+  it('attaches the wiki link target for click navigation when rendered', () => {
+    const doc = 'go to [[Daily note|today]] now';
+    const state = createState(doc, 0);
+    const set = buildLivePreviewDecorations(state, [{ from: 0, to: doc.length }]);
+
+    let target: string | undefined;
+    set.between(0, doc.length, (_from, _to, decoration) => {
+      const attributes = (decoration.spec as { attributes?: Record<string, string> }).attributes;
+      if (attributes?.['data-wikilink']) {
+        target = attributes['data-wikilink'];
+      }
+    });
+    expect(target).toBe('Daily note');
+  });
+
+  it('omits click attributes while the wiki link is being edited', () => {
+    const doc = 'go to [[Daily note]] now';
+    const state = createState(doc, 10);
+    const set = buildLivePreviewDecorations(state, [{ from: 0, to: doc.length }]);
+
+    let found = false;
+    set.between(0, doc.length, (_from, _to, decoration) => {
+      const attributes = (decoration.spec as { attributes?: Record<string, string> }).attributes;
+      if (attributes?.['data-wikilink']) {
+        found = true;
+      }
+    });
+    expect(found).toBe(false);
+  });
+
+  it('attaches the external url for rendered markdown links', () => {
+    const doc = 'see [docs](https://example.com) now';
+    const state = createState(doc, 0);
+    const set = buildLivePreviewDecorations(state, [{ from: 0, to: doc.length }]);
+
+    let url: string | undefined;
+    set.between(0, doc.length, (_from, _to, decoration) => {
+      const attributes = (decoration.spec as { attributes?: Record<string, string> }).attributes;
+      if (attributes?.['data-link-url']) {
+        url = attributes['data-link-url'];
+      }
+    });
+    expect(url).toBe('https://example.com');
+  });
+
   it('replaces tables with a block widget when the cursor is outside', () => {
     const doc = 'before\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\nafter';
     const state = createState(doc, 0);

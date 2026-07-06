@@ -1,5 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
-import { type EditorState, type Extension, StateField } from '@codemirror/state';
+import { type EditorState, type Extension, Facet, StateField } from '@codemirror/state';
 import {
   Decoration,
   type DecorationSet,
@@ -16,6 +16,10 @@ const tagPattern = /(^|[\s(])(#[\p{L}\p{N}/_-]*\p{L}[\p{L}\p{N}/_-]*)/gu;
 const taskLinePattern = /^(\s*(?:[-*+]|\d+[.)])\s+\[)( |x|X)(\])/;
 
 const hideDecoration = Decoration.replace({});
+
+export const wikiLinkOpener = Facet.define<(target: string) => void, ((target: string) => void) | null>({
+  combine: (values) => values[0] ?? null
+});
 
 const inlineMarkClasses: Record<string, string> = {
   Emphasis: 'cm-lp-em',
@@ -226,13 +230,23 @@ export function buildLivePreviewDecorations(
         }
 
         if (name === 'Link' || name === 'Image') {
-          add(node.from, node.to, Decoration.mark({ class: 'cm-lp-link' }));
           const marks = node.node.getChildren('LinkMark');
           const url = node.node.getChild('URL');
+          const rendered = !touchesRange(state, node.from, node.to) && marks.length >= 2;
+          const urlText = url ? state.sliceDoc(url.from, url.to) : '';
+          add(
+            node.from,
+            node.to,
+            Decoration.mark(
+              rendered && /^https?:\/\//.test(urlText)
+                ? { class: 'cm-lp-link', attributes: { 'data-link-url': urlText } }
+                : { class: 'cm-lp-link' }
+            )
+          );
           if (url) {
             add(url.from, url.to, Decoration.mark({ class: 'cm-lp-url' }));
           }
-          if (!touchesRange(state, node.from, node.to) && marks.length >= 2) {
+          if (rendered) {
             const closingBracket = marks.find((mark) => state.sliceDoc(mark.from, mark.to) === ']');
             add(marks[0].from, marks[0].to, hideDecoration);
             if (closingBracket) {
@@ -308,8 +322,18 @@ export function buildLivePreviewDecorations(
       }
       const pipeIndex = match[1].indexOf('|');
       const labelFrom = pipeIndex === -1 ? from + 2 : from + 2 + pipeIndex + 1;
-      add(labelFrom, to - 2, Decoration.mark({ class: 'cm-lp-wikilink' }));
-      if (!touchesRange(state, from, to)) {
+      const target = (pipeIndex === -1 ? match[1] : match[1].slice(0, pipeIndex)).trim();
+      const rendered = !touchesRange(state, from, to);
+      add(
+        labelFrom,
+        to - 2,
+        Decoration.mark(
+          rendered
+            ? { class: 'cm-lp-wikilink', attributes: { 'data-wikilink': target } }
+            : { class: 'cm-lp-wikilink' }
+        )
+      );
+      if (rendered) {
         add(from, labelFrom, hideDecoration);
         add(to - 2, to, hideDecoration);
       }
@@ -419,6 +443,18 @@ function livePreviewPlugin() {
           if (target.classList?.contains('cm-lp-task')) {
             event.preventDefault();
             return toggleTaskAt(view, view.posAtDOM(target));
+          }
+          const wikiLink = target.closest?.('[data-wikilink]');
+          if (wikiLink) {
+            event.preventDefault();
+            view.state.facet(wikiLinkOpener)?.(wikiLink.getAttribute('data-wikilink') ?? '');
+            return true;
+          }
+          const externalLink = target.closest?.('[data-link-url]');
+          if (externalLink) {
+            event.preventDefault();
+            window.open(externalLink.getAttribute('data-link-url') ?? '', '_blank', 'noopener');
+            return true;
           }
           return false;
         }

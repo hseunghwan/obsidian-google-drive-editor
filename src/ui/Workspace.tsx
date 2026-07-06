@@ -411,6 +411,20 @@ export function Workspace({
     setScrollTarget({ lineNumber: heading.lineNumber, requestId: scrollRequestId.current });
   }
 
+  function openWikiLink(target: string) {
+    const normalized = target.trim().toLocaleLowerCase();
+    const file = workspaceFiles.find(
+      (entry) =>
+        entry.title.toLocaleLowerCase() === normalized ||
+        entry.path.toLocaleLowerCase().replace(/\.md$/, '') === normalized
+    );
+    if (file) {
+      void openFile(file);
+      return;
+    }
+    setNotice(t('workspace.wikiLinkNotFound'));
+  }
+
   const workspaceClassNames = [
     'workspace',
     sidebarOpen ? 'has-sidebar' : '',
@@ -587,6 +601,7 @@ export function Workspace({
                 scrollTarget={scrollTarget}
                 mode={editorMode}
                 onChange={(content) => dispatch({ type: 'documentEdited', content })}
+                onOpenWikiLink={openWikiLink}
               />
               <SaveStatus
                 status={state.saveState.status}

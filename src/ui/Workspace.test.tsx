@@ -497,6 +497,26 @@ describe('Workspace', () => {
     expect(window.prompt).toHaveBeenCalledWith('새 Markdown 파일 이름');
   });
 
+  it('opens the linked note when a rendered wiki link is clicked', async () => {
+    const user = userEvent.setup();
+
+    renderWorkspace({
+      loadFile: async (file) => ({
+        file,
+        content: file.id === 'file-home' ? 'See [[Project Note]].' : '# Project',
+        baselineModifiedTime: file.modifiedTime
+      })
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+
+    const link = await screen.findByText('Project Note');
+    fireEvent.mouseDown(link);
+
+    const tab = await screen.findByRole('tab', { name: /Project Note/ });
+    expect(tab).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('switches recent tabs with alt+digit', async () => {
     const user = userEvent.setup();
 
