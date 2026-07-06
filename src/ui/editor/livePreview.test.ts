@@ -3,7 +3,7 @@ import { syntaxTreeAvailable } from '@codemirror/language';
 import { EditorSelection, EditorState } from '@codemirror/state';
 import { describe, expect, it } from 'vitest';
 
-import { buildLivePreviewDecorations } from './livePreview';
+import { buildLivePreviewDecorations, buildTableDecorations } from './livePreview';
 
 interface DecorationSummary {
   from: number;
@@ -182,6 +182,27 @@ describe('buildLivePreviewDecorations', () => {
     expect(nonFrontmatter).toEqual([]);
     expect(summary.filter((entry) => entry.kind === 'cm-lp-frontmatter')).toHaveLength(5);
     expect(summary).toContainEqual({ from: 33, to: 33, kind: 'cm-lp-heading cm-lp-h1' });
+  });
+
+  it('replaces tables with a block widget when the cursor is outside', () => {
+    const doc = 'before\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\nafter';
+    const state = createState(doc, 0);
+    const set = buildTableDecorations(state);
+
+    const ranges: { from: number; to: number }[] = [];
+    const cursor = set.iter();
+    while (cursor.value) {
+      ranges.push({ from: cursor.from, to: cursor.to });
+      cursor.next();
+    }
+    expect(ranges).toEqual([{ from: 8, to: doc.indexOf('\n\nafter') }]);
+  });
+
+  it('reveals the raw table when the cursor is inside it', () => {
+    const doc = 'before\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\nafter';
+    const state = createState(doc, doc.indexOf('| 1'));
+
+    expect(buildTableDecorations(state).size).toBe(0);
   });
 
   it('handles multiple cursors by revealing each touched region', () => {

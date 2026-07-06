@@ -1305,6 +1305,24 @@ button.sidebar-folder-row:hover {
   accent-color: var(--accent);
 }
 
+.editor-pane .cm-lp-table {
+  margin: 4px 0;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.editor-pane .cm-lp-table th,
+.editor-pane .cm-lp-table td {
+  padding: 4px 10px;
+  border: 1px solid var(--divider);
+  text-align: left;
+}
+
+.editor-pane .cm-lp-table th {
+  font-weight: var(--font-weight-semibold);
+  background: var(--panel-bg);
+}
+
 .editor-pane .cm-lp-hr {
   display: inline-block;
   width: 100%;

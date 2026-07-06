@@ -1,5 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
-import type { EditorState, Extension } from '@codemirror/state';
+import { type EditorState, type Extension, StateField } from '@codemirror/state';
 import {
   Decoration,
   type DecorationSet,
@@ -69,6 +69,44 @@ class HorizontalRuleWidget extends WidgetType {
     rule.className = 'cm-lp-hr';
     return rule;
   }
+}
+
+class TableWidget extends WidgetType {
+  constructor(readonly source: string) {
+    super();
+  }
+
+  eq(other: TableWidget) {
+    return other.source === this.source;
+  }
+
+  toDOM(view: EditorView) {
+    const table = document.createElement('table');
+    table.className = 'cm-lp-table';
+    const rows = this.source.trim().split('\n');
+    rows.forEach((row, rowIndex) => {
+      const cells = splitTableRow(row);
+      if (rowIndex === 1 && cells.every((cell) => /^\s*:?-+:?\s*$/.test(cell))) {
+        return;
+      }
+      const rowElement = table.insertRow();
+      for (const cell of cells) {
+        const cellElement = document.createElement(rowIndex === 0 ? 'th' : 'td');
+        cellElement.textContent = cell.trim();
+        rowElement.appendChild(cellElement);
+      }
+    });
+    table.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      view.dispatch({ selection: { anchor: view.posAtDOM(table) } });
+      view.focus();
+    });
+    return table;
+  }
+}
+
+function splitTableRow(row: string) {
+  return row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|');
 }
 
 const bulletWidget = new BulletWidget();
@@ -293,6 +331,46 @@ export function buildLivePreviewDecorations(
   );
 }
 
+export function buildTableDecorations(state: EditorState): DecorationSet {
+  const decorations: { from: number; to: number; decoration: Decoration }[] = [];
+
+  syntaxTree(state).iterate({
+    enter: (node) => {
+      if (node.type.name !== 'Table') {
+        return;
+      }
+      if (!touchesLines(state, node.from, node.to)) {
+        decorations.push({
+          from: node.from,
+          to: node.to,
+          decoration: Decoration.replace({
+            widget: new TableWidget(state.sliceDoc(node.from, node.to)),
+            block: true
+          })
+        });
+      }
+      return false;
+    }
+  });
+
+  return Decoration.set(
+    decorations.map(({ from, to, decoration }) => decoration.range(from, to)),
+    true
+  );
+}
+
+// ponytail: 표는 문서 전체를 훑는 StateField로 처리 — block widget은 ViewPlugin에서 만들 수 없다
+const tableField = StateField.define<DecorationSet>({
+  create: buildTableDecorations,
+  update(value, transaction) {
+    if (transaction.docChanged || transaction.selection) {
+      return buildTableDecorations(transaction.state);
+    }
+    return value;
+  },
+  provide: (field) => EditorView.decorations.from(field)
+});
+
 function toggleTaskAt(view: EditorView, position: number) {
   const line = view.state.doc.lineAt(position);
   const match = line.text.match(taskLinePattern);
@@ -311,6 +389,10 @@ function toggleTaskAt(view: EditorView, position: number) {
 }
 
 export function livePreview(): Extension {
+  return [tableField, livePreviewPlugin()];
+}
+
+function livePreviewPlugin() {
   return ViewPlugin.fromClass(
     class {
       decorations: DecorationSet;
