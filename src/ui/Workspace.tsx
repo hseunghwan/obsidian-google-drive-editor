@@ -30,6 +30,7 @@ interface WorkspaceProps {
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
   renameEntry?(entry: VaultEntry, name: string): Promise<VaultEntry>;
+  moveEntry?(entry: VaultEntry, targetFolderId: string, targetFolderPath: string): Promise<VaultEntry>;
   deleteEntry?(entry: VaultEntry): Promise<void>;
   onSwitchGoogleAccount?(): void;
   onChangeRootFolder?(): void;
@@ -55,6 +56,7 @@ export function Workspace({
   createFile,
   createFolder,
   renameEntry = renameEntryLocally,
+  moveEntry,
   deleteEntry = async () => undefined,
   onSwitchGoogleAccount,
   onChangeRootFolder = () => undefined,
@@ -88,6 +90,7 @@ export function Workspace({
   const [editorMode, setEditorMode] = useState<EditorMode>(() => readStoredEditorMode());
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [moveTarget, setMoveTarget] = useState<VaultEntry | null>(null);
   const [insertRequest, setInsertRequest] = useState<MarkdownEditorProps['insertRequest']>(null);
   const insertRequestId = useRef(0);
 
@@ -563,6 +566,44 @@ export function Workspace({
     await createMarkdownFileNamed(root.id, title, content);
   }
 
+  const moveDestinations = useMemo(() => {
+    if (!moveTarget) {
+      return [];
+    }
+    const folders = workspaceEntries
+      .filter((entry): entry is VaultFolder => entry.kind === 'folder')
+      .filter(
+        (folder) =>
+          folder.id !== moveTarget.id &&
+          folder.id !== moveTarget.parentId &&
+          !(moveTarget.kind === 'folder' &&
+            (folder.path === moveTarget.path || folder.path.startsWith(`${moveTarget.path}/`)))
+      )
+      .map((folder) => ({ id: folder.id, title: folder.name, path: folder.path }));
+    if (moveTarget.parentId === root.id) {
+      return folders;
+    }
+    return [{ id: root.id, title: root.name, path: '' }, ...folders];
+  }, [moveTarget, root.id, root.name, workspaceEntries]);
+
+  async function moveEntryTo(destination: { id: string; title: string; path: string }) {
+    const target = moveTarget;
+    setMoveTarget(null);
+    if (!moveEntry || !target) {
+      return;
+    }
+    try {
+      const moved = await moveEntry(target, destination.id, destination.path);
+      setWorkspaceEntries((current) => replaceRenamedEntry(current, target, moved));
+      setDriveSearchEntries((current) => replaceRenamedEntry(current, target, moved));
+      setRecentFiles((current) => syncRecentFilesAfterRename(current, target, moved));
+      dispatch({ type: 'entryRenamed', previous: target, entry: moved });
+      setNotice(null);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : t('errors.driveConnectFailed'));
+    }
+  }
+
   async function navigateHistory(direction: 'back' | 'forward') {
     const fromStack = direction === 'back' ? backStackRef.current : forwardStackRef.current;
     const toStack = direction === 'back' ? forwardStackRef.current : backStackRef.current;
@@ -698,6 +739,7 @@ export function Workspace({
               onCreateFile={(parentFolderId) => void createMarkdownFile(parentFolderId)}
               onCreateFolder={(parentFolderId) => void createVaultFolderIn(parentFolderId)}
               onRename={(entry) => void renameVaultEntry(entry)}
+              onMove={moveEntry ? (entry) => setMoveTarget(entry) : undefined}
               onDelete={(entry) => void deleteVaultEntry(entry)}
               onChangeRootFolder={onChangeRootFolder}
               onOpenSettings={() => setSettingsOpen(true)}
@@ -835,6 +877,14 @@ export function Workspace({
         label={t('templatePicker.title')}
         onSelect={(file) => void insertTemplate(file)}
         onClose={() => setTemplatePickerOpen(false)}
+      />
+      <QuickSwitcher
+        open={Boolean(moveTarget)}
+        files={moveDestinations}
+        recentFiles={[]}
+        label={t('folderPicker.title')}
+        onSelect={(destination) => void moveEntryTo(destination)}
+        onClose={() => setMoveTarget(null)}
       />
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} onSwitchGoogleAccount={onSwitchGoogleAccount} />
     </div>

@@ -138,6 +138,20 @@ export class DriveVaultAdapter {
     return toVaultFile(renamed, entry.parentId, parentPath);
   }
 
+  async moveEntry(entry: VaultEntry, targetFolderId: string, targetFolderPath: string): Promise<VaultEntry> {
+    if (!entry.parentId) {
+      throw new VaultError('NetworkFailed', `Cannot move an entry without a parent: ${entry.name}`);
+    }
+
+    await this.assertNameAvailable(targetFolderId, entry.name, entry.id);
+    const moved = await this.drive.moveFile(entry.id, targetFolderId, entry.parentId);
+
+    if (entry.kind === 'folder') {
+      return toVaultFolder(moved, targetFolderId, targetFolderPath);
+    }
+    return toVaultFile(moved, targetFolderId, targetFolderPath);
+  }
+
   async deleteEntry(vaultRootId: string, entry: VaultEntry): Promise<void> {
     await this.drive.trashFile(entry.id);
     if (entry.kind === 'markdown') {

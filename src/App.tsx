@@ -193,6 +193,12 @@ See [[Project Note]].`,
         mimeType: 'application/vnd.google-apps.folder',
         modifiedTime: new Date().toISOString()
       }),
+      moveEntry: async (entry, targetFolderId, targetFolderPath) => ({
+        ...entry,
+        parentId: targetFolderId,
+        path: targetFolderPath ? `${targetFolderPath}/${entry.name}` : entry.name,
+        modifiedTime: new Date().toISOString()
+      }),
       renameEntry: async (entry, name) => ({
         ...entry,
         name,
@@ -238,6 +244,7 @@ See [[Project Note]].`,
       loadFile={workspace.loadFile}
       prefetchFile={workspace.prefetchFile}
       getRemoteModifiedTime={workspace.getRemoteModifiedTime}
+      moveEntry={workspace.moveEntry}
       saveDocument={workspace.saveDocument}
       createFile={workspace.createFile}
       createFolder={workspace.createFolder}

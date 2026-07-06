@@ -20,6 +20,7 @@ interface FileSidebarProps {
   onCreateFile(parentFolderId: string): void;
   onCreateFolder(parentFolderId: string): void;
   onRename(entry: VaultEntry): void;
+  onMove?(entry: VaultEntry): void;
   onDelete(entry: VaultEntry): void;
   onChangeRootFolder(): void;
   onOpenSettings(): void;
@@ -40,6 +41,7 @@ export function FileSidebar({
   onCreateFile,
   onCreateFolder,
   onRename,
+  onMove,
   onDelete,
   onChangeRootFolder,
   onOpenSettings
@@ -80,7 +82,7 @@ export function FileSidebar({
       </div>
       <div className="sidebar-tree">
         {searchTree
-          ? renderSearchTree(searchTree, activeFileId, onOpen, onPrefetch, onToggleFolder, onCreateFile, onCreateFolder, onRename, onDelete)
+          ? renderSearchTree(searchTree, activeFileId, onOpen, onPrefetch, onToggleFolder, onCreateFile, onCreateFolder, onRename, onDelete, onMove)
           : renderEntryChildren({
             parentId: rootId,
             depth: 0,
@@ -95,6 +97,7 @@ export function FileSidebar({
             onCreateFile,
             onCreateFolder,
             onRename,
+            onMove,
             onDelete
           })}
       </div>
@@ -147,10 +150,11 @@ interface SidebarFileButtonProps {
   onOpen(file: VaultFile): void;
   onPrefetch?(file: VaultFile): void;
   onRename(entry: VaultEntry): void;
+  onMove?(entry: VaultEntry): void;
   onDelete(entry: VaultEntry): void;
 }
 
-function SidebarFileButton({ activeFileId, depth, file, onOpen, onPrefetch, onRename, onDelete }: SidebarFileButtonProps) {
+function SidebarFileButton({ activeFileId, depth, file, onOpen, onPrefetch, onRename, onMove, onDelete }: SidebarFileButtonProps) {
   return (
     <div className="sidebar-tree-row">
       <button
@@ -163,7 +167,7 @@ function SidebarFileButton({ activeFileId, depth, file, onOpen, onPrefetch, onRe
         <Icon name="file-text" />
         <span>{file.title}</span>
       </button>
-      <SidebarItemMenu entry={file} label={file.title} onRename={onRename} onDelete={onDelete} />
+      <SidebarItemMenu entry={file} label={file.title} onRename={onRename} onMove={onMove} onDelete={onDelete} />
     </div>
   );
 }
@@ -176,6 +180,7 @@ interface SidebarFolderButtonProps {
   onCreateFile(parentFolderId: string): void;
   onCreateFolder(parentFolderId: string): void;
   onRename(entry: VaultEntry): void;
+  onMove?(entry: VaultEntry): void;
   onDelete(entry: VaultEntry): void;
 }
 
@@ -187,6 +192,7 @@ function SidebarFolderButton({
   onCreateFile,
   onCreateFolder,
   onRename,
+  onMove,
   onDelete
 }: SidebarFolderButtonProps) {
   return (
@@ -208,6 +214,7 @@ function SidebarFolderButton({
         onCreateFile={onCreateFile}
         onCreateFolder={onCreateFolder}
         onRename={onRename}
+        onMove={onMove}
         onDelete={onDelete}
       />
     </div>
@@ -220,10 +227,11 @@ interface SidebarItemMenuProps {
   onCreateFile?(parentFolderId: string): void;
   onCreateFolder?(parentFolderId: string): void;
   onRename(entry: VaultEntry): void;
+  onMove?(entry: VaultEntry): void;
   onDelete(entry: VaultEntry): void;
 }
 
-type SidebarMenuAction = '' | 'create-file' | 'create-folder' | 'rename' | 'delete' | 'copy-path' | 'open-drive';
+type SidebarMenuAction = '' | 'create-file' | 'create-folder' | 'rename' | 'move' | 'delete' | 'copy-path' | 'open-drive';
 
 function SidebarItemMenu({
   entry,
@@ -231,6 +239,7 @@ function SidebarItemMenu({
   onCreateFile,
   onCreateFolder,
   onRename,
+  onMove,
   onDelete
 }: SidebarItemMenuProps) {
   const { t } = useI18n();
@@ -252,6 +261,11 @@ function SidebarItemMenu({
 
     if (action === 'rename') {
       onRename(entry);
+      return;
+    }
+
+    if (action === 'move') {
+      onMove?.(entry);
       return;
     }
 
@@ -280,6 +294,7 @@ function SidebarItemMenu({
         </>
       ) : null}
       <option value="rename">{t('sidebar.menu.rename')}</option>
+      {onMove ? <option value="move">{t('sidebar.menu.move')}</option> : null}
       <option value="copy-path">{t('sidebar.menu.copyPath')}</option>
       <option value="open-drive">{t('sidebar.menu.openInDrive')}</option>
       <option value="delete">{t('sidebar.menu.delete')}</option>
@@ -307,6 +322,7 @@ interface RenderEntryChildrenOptions {
   onCreateFile(parentFolderId: string): void;
   onCreateFolder(parentFolderId: string): void;
   onRename(entry: VaultEntry): void;
+  onMove?(entry: VaultEntry): void;
   onDelete(entry: VaultEntry): void;
 }
 
@@ -324,6 +340,7 @@ function renderEntryChildren({
   onCreateFile,
   onCreateFolder,
   onRename,
+  onMove,
   onDelete
 }: RenderEntryChildrenOptions): ReactNode {
   const children = childrenByParentId.get(parentId) ?? [];
@@ -339,6 +356,7 @@ function renderEntryChildren({
           onOpen={onOpen}
           onPrefetch={onPrefetch}
           onRename={onRename}
+          onMove={onMove}
           onDelete={onDelete}
         />
       );
@@ -356,6 +374,7 @@ function renderEntryChildren({
           onCreateFile={onCreateFile}
           onCreateFolder={onCreateFolder}
           onRename={onRename}
+          onMove={onMove}
           onDelete={onDelete}
         />
         {loading || expanded ? (
@@ -376,6 +395,7 @@ function renderEntryChildren({
                 onCreateFile,
                 onCreateFolder,
                 onRename,
+                onMove,
                 onDelete
               })
               : null}
@@ -395,7 +415,8 @@ function renderSearchTree(
   onCreateFile: (parentFolderId: string) => void,
   onCreateFolder: (parentFolderId: string) => void,
   onRename: (entry: VaultEntry) => void,
-  onDelete: (entry: VaultEntry) => void
+  onDelete: (entry: VaultEntry) => void,
+  onMove?: (entry: VaultEntry) => void
 ) {
   return (
     <>
@@ -409,6 +430,7 @@ function renderSearchTree(
             onCreateFile={onCreateFile}
             onCreateFolder={onCreateFolder}
             onRename={onRename}
+            onMove={onMove}
             onDelete={onDelete}
           />
         </div>
@@ -422,6 +444,7 @@ function renderSearchTree(
           onOpen={onOpen}
           onPrefetch={onPrefetch}
           onRename={onRename}
+          onMove={onMove}
           onDelete={onDelete}
         />
       ))}
@@ -442,6 +465,7 @@ function renderSearchTree(
                 onOpen={onOpen}
                 onPrefetch={onPrefetch}
                 onRename={onRename}
+                onMove={onMove}
                 onDelete={onDelete}
               />
             ))}

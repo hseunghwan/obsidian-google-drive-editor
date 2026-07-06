@@ -18,6 +18,7 @@ export interface DriveWorkspace {
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
   renameEntry(entry: VaultEntry, name: string): Promise<VaultEntry>;
+  moveEntry(entry: VaultEntry, targetFolderId: string, targetFolderPath: string): Promise<VaultEntry>;
   deleteEntry(entry: VaultEntry): Promise<void>;
 }
 
@@ -107,6 +108,8 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
     createFile: (parentFolderId, name, content) => adapter.createFile(parentFolderId, name, content),
     createFolder: (parentFolderId, name) => adapter.createFolder(parentFolderId, name),
     renameEntry: (entry, name) => adapter.renameEntry(entry, name),
+    moveEntry: (entry, targetFolderId, targetFolderPath) =>
+      adapter.moveEntry(entry, targetFolderId, targetFolderPath),
     deleteEntry: (entry) => adapter.deleteEntry(root.id, entry)
   };
 }

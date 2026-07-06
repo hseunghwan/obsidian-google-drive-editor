@@ -21,6 +21,7 @@ function client(overrides: Partial<GoogleDriveClient> = {}): GoogleDriveClient {
     createFolder: vi.fn(),
     renameFile: vi.fn(),
     trashFile: vi.fn(),
+    moveFile: vi.fn(),
     getMetadata: vi.fn().mockResolvedValue({
       id: 'file-home',
       name: 'Home.md',

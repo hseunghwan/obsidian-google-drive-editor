@@ -16,6 +16,7 @@ describe('loadDriveWorkspace', () => {
       createFolder: vi.fn(),
       renameFile: vi.fn(),
       trashFile: vi.fn(),
+      moveFile: vi.fn(),
       getMetadata: vi.fn()
     };
 
@@ -69,6 +70,7 @@ describe('loadDriveWorkspace', () => {
         createFolder: vi.fn(),
         renameFile: vi.fn(),
         trashFile: vi.fn(),
+        moveFile: vi.fn(),
         getMetadata: vi.fn()
       }),
       drafts
@@ -166,6 +168,7 @@ async function cachedWorkspace() {
     createFolder: vi.fn(),
     renameFile: vi.fn(),
     trashFile: vi.fn(),
+    moveFile: vi.fn(),
     getMetadata: vi.fn()
   };
 

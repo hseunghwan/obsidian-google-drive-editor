@@ -538,6 +538,30 @@ describe('Workspace', () => {
     expect(tab).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('moves a file to another folder through the move picker', async () => {
+    const user = userEvent.setup();
+    const moveEntry = vi.fn(async (entry: VaultEntry, targetFolderId: string, targetFolderPath: string) => ({
+      ...entry,
+      parentId: targetFolderId,
+      path: targetFolderPath ? `${targetFolderPath}/${entry.name}` : entry.name
+    }));
+
+    renderWorkspace({ EditorComponent: TestEditor, moveEntry });
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Home 더보기' }), 'move');
+
+    const picker = await screen.findByRole('dialog', { name: '이동할 폴더 선택' });
+    await user.click(within(picker).getByRole('option', { name: /Projects/ }));
+
+    await waitFor(() => {
+      expect(moveEntry).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'file-home' }),
+        fixtureFolder.id,
+        fixtureFolder.path
+      );
+    });
+  });
+
   it('inserts a template with variables through the template picker', async () => {
     const user = userEvent.setup();
     const templateFolder = {

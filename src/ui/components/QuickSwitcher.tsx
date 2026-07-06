@@ -1,24 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type { VaultFile } from '../../domain/vault/types';
 import { useI18n } from '../../i18n/I18nProvider';
 
-interface QuickSwitcherProps {
+export interface QuickSwitcherItem {
+  id: string;
+  title: string;
+  path: string;
+}
+
+interface QuickSwitcherProps<T extends QuickSwitcherItem> {
   open: boolean;
-  files: VaultFile[];
-  recentFiles: VaultFile[];
-  onSelect(file: VaultFile): void;
+  files: T[];
+  recentFiles: T[];
+  onSelect(file: T): void;
   onClose(): void;
   label?: string;
 }
 
 const resultLimit = 50;
 
-export function rankQuickSwitcherFiles(
-  files: VaultFile[],
-  recentFiles: VaultFile[],
+export function rankQuickSwitcherFiles<T extends QuickSwitcherItem>(
+  files: T[],
+  recentFiles: T[],
   query: string
-): VaultFile[] {
+): T[] {
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const recentIds = recentFiles.map((file) => file.id);
   const matches = files.filter((file) => {
@@ -41,7 +46,14 @@ export function rankQuickSwitcherFiles(
     .slice(0, resultLimit);
 }
 
-export function QuickSwitcher({ open, files, recentFiles, onSelect, onClose, label }: QuickSwitcherProps) {
+export function QuickSwitcher<T extends QuickSwitcherItem>({
+  open,
+  files,
+  recentFiles,
+  onSelect,
+  onClose,
+  label
+}: QuickSwitcherProps<T>) {
   const { t } = useI18n();
   const dialogLabel = label ?? t('quickSwitcher.title');
   const [query, setQuery] = useState('');

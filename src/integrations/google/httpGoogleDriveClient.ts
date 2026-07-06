@@ -128,6 +128,22 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
     });
   }
 
+  async moveFile(fileId: string, targetFolderId: string, currentParentId: string): Promise<GoogleDriveFile> {
+    const params = new URLSearchParams({
+      addParents: targetFolderId,
+      removeParents: currentParentId,
+      fields: 'id,name,mimeType,modifiedTime,parents'
+    });
+    return this.request(`${driveBaseUrl}/${fileId}?${params.toString()}`, {
+      method: 'PATCH',
+      headers: {
+        ...this.headers(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+  }
+
   async trashFile(fileId: string): Promise<void> {
     await this.request(`${driveBaseUrl}/${fileId}?fields=id`, {
       method: 'PATCH',
