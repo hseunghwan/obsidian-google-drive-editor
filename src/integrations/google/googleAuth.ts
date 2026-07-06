@@ -32,6 +32,18 @@ export class ChromeIdentityAuthClient implements GoogleAuthClient {
     return result.token;
   }
 
+  async refreshAccessToken(staleToken: string): Promise<string> {
+    const identity = getChromeIdentity();
+    if (!identity) {
+      throw new Error(this.unavailableMessage);
+    }
+
+    if (typeof identity.removeCachedAuthToken === 'function') {
+      await identity.removeCachedAuthToken({ token: staleToken });
+    }
+    return this.getAccessToken(false);
+  }
+
   async clearCachedAccessToken(): Promise<void> {
     const identity = getChromeIdentity();
     if (!identity) {

@@ -103,6 +103,57 @@ describe('HttpGoogleDriveClient', () => {
       })
     );
   });
+
+  it('refreshes the access token once on 401 and retries the request', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(errorResponse(401))
+      .mockResolvedValueOnce(jsonResponse({ files: [] }));
+    const refreshAccessToken = vi.fn().mockResolvedValue('fresh-token');
+    vi.stubGlobal('fetch', fetchMock);
+
+    await new HttpGoogleDriveClient('stale-token', { refreshAccessToken }).listFolders('root');
+
+    expect(refreshAccessToken).toHaveBeenCalledWith('stale-token');
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({
+      headers: expect.objectContaining({ Authorization: 'Bearer fresh-token' })
+    });
+  });
+
+  it('retries with backoff on 429 and honors Retry-After', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(errorResponse(429, 0))
+      .mockResolvedValueOnce(errorResponse(500))
+      .mockResolvedValueOnce(jsonResponse({ files: [] }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await new HttpGoogleDriveClient('access-token', { retryBaseDelayMs: 0 }).listFolders('root');
+
+    expect(result).toEqual({ files: [] });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('gives up after exhausting retries on persistent server errors', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(errorResponse(503));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      new HttpGoogleDriveClient('access-token', { retryBaseDelayMs: 0 }).listFolders('root')
+    ).rejects.toThrow('Drive request failed: 503');
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('does not refresh the token twice for repeated 401 responses', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(errorResponse(401));
+    const refreshAccessToken = vi.fn().mockResolvedValue('fresh-token');
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      new HttpGoogleDriveClient('stale-token', { refreshAccessToken }).listFolders('root')
+    ).rejects.toThrow('Drive request failed: 401');
+    expect(refreshAccessToken).toHaveBeenCalledTimes(1);
+  });
 });
 
 function jsonResponse(body: unknown): Response {
@@ -111,4 +162,16 @@ function jsonResponse(body: unknown): Response {
     status: 200,
     json: async () => body
   } as Response;
+}
+
+function errorResponse(status: number, retryAfterSeconds?: number): Response {
+  return {
+    ok: false,
+    status,
+    headers: {
+      get: (name: string) =>
+        name === 'Retry-After' && retryAfterSeconds !== undefined ? String(retryAfterSeconds) : null
+    },
+    json: async () => ({})
+  } as unknown as Response;
 }

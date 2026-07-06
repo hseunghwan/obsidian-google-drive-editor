@@ -82,8 +82,9 @@ function AppContent() {
   }, []);
 
   async function openDriveWorkspace(savedRoot?: VaultRoot) {
+    const auth = new ChromeIdentityAuthClient(t('errors.chromeIdentityUnavailable'));
     const nextWorkspace = await loadDriveWorkspace({
-      auth: new ChromeIdentityAuthClient(t('errors.chromeIdentityUnavailable')),
+      auth,
       picker: new BrowserGooglePickerClient({
         title: t('picker.title'),
         rootName: t('picker.rootName'),
@@ -97,7 +98,10 @@ function AppContent() {
         cancelledMessage: t('picker.cancelled'),
         loadFailedMessage: t('picker.loadFailed')
       }),
-      createDriveClient: (accessToken) => new HttpGoogleDriveClient(accessToken),
+      createDriveClient: (accessToken) =>
+        new HttpGoogleDriveClient(accessToken, {
+          refreshAccessToken: (staleToken) => auth.refreshAccessToken(staleToken)
+        }),
       drafts: new IndexedDbDraftStore(),
       savedRoot
     });

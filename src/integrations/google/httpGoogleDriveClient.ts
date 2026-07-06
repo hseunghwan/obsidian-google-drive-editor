@@ -2,9 +2,18 @@ import type { GoogleDriveClient, GoogleDriveFile, GoogleDriveListResponse } from
 
 const driveBaseUrl = 'https://www.googleapis.com/drive/v3/files';
 const uploadBaseUrl = 'https://www.googleapis.com/upload/drive/v3/files';
+const maxRetries = 3;
+
+export interface HttpGoogleDriveClientOptions {
+  refreshAccessToken?(staleToken: string): Promise<string>;
+  retryBaseDelayMs?: number;
+}
 
 export class HttpGoogleDriveClient implements GoogleDriveClient {
-  constructor(private readonly accessToken: string) {}
+  constructor(
+    private accessToken: string,
+    private readonly options: HttpGoogleDriveClientOptions = {}
+  ) {}
 
   async listFolders(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse> {
     const params = new URLSearchParams({
@@ -49,9 +58,7 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
   }
 
   async downloadText(fileId: string): Promise<string> {
-    const response = await fetch(`${driveBaseUrl}/${fileId}?alt=media`, {
-      headers: this.headers()
-    });
+    const response = await this.fetchWithRetry(`${driveBaseUrl}/${fileId}?alt=media`, {});
     if (!response.ok) {
       throw new Error(`Drive download failed: ${response.status}`);
     }
@@ -137,17 +144,46 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
   }
 
   private async request<T>(url: string, init: RequestInit = {}): Promise<T> {
-    const response = await fetch(url, {
-      ...init,
-      headers: {
-        ...this.headers(),
-        ...init.headers
-      }
-    });
+    const response = await this.fetchWithRetry(url, init);
     if (!response.ok) {
       throw new Error(`Drive request failed: ${response.status}`);
     }
     return response.json();
+  }
+
+  private async fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+    let refreshed = false;
+    for (let attempt = 0; ; attempt += 1) {
+      const response = await fetch(url, {
+        ...init,
+        headers: {
+          ...this.headers(),
+          ...init.headers
+        }
+      });
+
+      if (response.status === 401 && !refreshed && this.options.refreshAccessToken) {
+        refreshed = true;
+        this.accessToken = await this.options.refreshAccessToken(this.accessToken);
+        continue;
+      }
+
+      const retryable = response.status === 429 || response.status >= 500;
+      if (retryable && attempt < maxRetries && !init.signal?.aborted) {
+        await delay(this.retryDelayMs(response, attempt));
+        continue;
+      }
+
+      return response;
+    }
+  }
+
+  private retryDelayMs(response: Response, attempt: number) {
+    const retryAfterSeconds = Number(response.headers.get('Retry-After'));
+    if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+      return retryAfterSeconds * 1000;
+    }
+    return (this.options.retryBaseDelayMs ?? 500) * 2 ** attempt;
   }
 
   private headers() {
@@ -159,4 +195,8 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
 
 function escapeDriveQueryValue(value: string) {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
