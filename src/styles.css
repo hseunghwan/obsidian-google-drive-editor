@@ -1189,8 +1189,13 @@ button.sidebar-folder-row:hover {
   font-family: var(--font-ui-sans-serif-system-ui);
 }
 
+.editor-pane .cm-scroller {
+  justify-content: center;
+}
+
 .editor-pane .cm-content {
   min-height: 100%;
+  max-width: 46em;
   padding: 36px 32px;
   caret-color: var(--editor-caret);
 }
