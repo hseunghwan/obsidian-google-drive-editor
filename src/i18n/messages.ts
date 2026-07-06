@@ -86,7 +86,18 @@ const ko = {
   'slashCommand.link': '마크다운 링크',
   'slashCommand.wikilink': '위키 링크',
   'slashCommand.tag': '태그',
-  'slashCommand.property': '프로퍼티'
+  'slashCommand.property': '프로퍼티',
+  'slashCommand.heading1': '제목 1',
+  'slashCommand.heading2': '제목 2',
+  'slashCommand.heading3': '제목 3',
+  'slashCommand.bullet': '글머리 목록',
+  'slashCommand.numbered': '숫자 목록',
+  'slashCommand.checkbox': '체크박스',
+  'slashCommand.quote': '인용구',
+  'slashCommand.codeblock': '코드 블록',
+  'slashCommand.hr': '수평선',
+  'slashCommand.table': '표',
+  'slashCommand.callout': '콜아웃'
 };
 
 const en: Record<keyof typeof ko, string> = {
@@ -177,7 +188,18 @@ const en: Record<keyof typeof ko, string> = {
   'slashCommand.link': 'Markdown link',
   'slashCommand.wikilink': 'Wiki link',
   'slashCommand.tag': 'Tag',
-  'slashCommand.property': 'Property'
+  'slashCommand.property': 'Property',
+  'slashCommand.heading1': 'Heading 1',
+  'slashCommand.heading2': 'Heading 2',
+  'slashCommand.heading3': 'Heading 3',
+  'slashCommand.bullet': 'Bullet list',
+  'slashCommand.numbered': 'Numbered list',
+  'slashCommand.checkbox': 'Checkbox',
+  'slashCommand.quote': 'Quote',
+  'slashCommand.codeblock': 'Code block',
+  'slashCommand.hr': 'Horizontal rule',
+  'slashCommand.table': 'Table',
+  'slashCommand.callout': 'Callout'
 };
 
 export const messages = { ko, en } as const;

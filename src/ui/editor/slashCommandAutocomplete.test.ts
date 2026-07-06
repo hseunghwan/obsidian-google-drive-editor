@@ -32,6 +32,34 @@ describe('buildSlashCommandOptions', () => {
     ]);
   });
 
+  it('exposes block insertion commands', () => {
+    const ids = buildSlashCommandOptions('', messages.ko).map((option) => option.detail);
+
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        '/heading1',
+        '/heading2',
+        '/heading3',
+        '/bullet',
+        '/numbered',
+        '/checkbox',
+        '/quote',
+        '/codeblock',
+        '/hr',
+        '/table',
+        '/callout'
+      ])
+    );
+  });
+
+  it('matches block commands by localized label', () => {
+    const options = buildSlashCommandOptions('체크', messages.ko);
+
+    expect(options).toEqual([
+      expect.objectContaining({ detail: '/checkbox', apply: '- [ ] ' })
+    ]);
+  });
+
   it('matches localized slash command queries', () => {
     expect('/위키'.match(slashCommandPattern)?.[0]).toBe('/위키');
   });
