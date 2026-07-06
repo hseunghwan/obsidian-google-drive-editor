@@ -1,10 +1,12 @@
 import { autocompletion } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
-import { codeFolding, foldGutter, foldKeymap } from '@codemirror/language';
+import { codeFolding, foldGutter, foldKeymap, syntaxHighlighting } from '@codemirror/language';
+import { languages } from '@codemirror/language-data';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
 import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
+import { classHighlighter } from '@lezer/highlight';
 import { useEffect, useRef } from 'react';
 
 import type { VaultIndex } from '../../domain/vault/vaultIndex';
@@ -57,7 +59,8 @@ export function MarkdownEditor({ value, index, onChange, scrollTarget, mode = 'l
     const state = EditorState.create({
       doc: value,
       extensions: [
-        markdown({ base: markdownLanguage }),
+        markdown({ base: markdownLanguage, codeLanguages: languages }),
+        syntaxHighlighting(classHighlighter),
         history(),
         codeFolding(),
         foldGutter({

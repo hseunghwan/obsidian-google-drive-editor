@@ -12,6 +12,14 @@
   --color-success-green: #4ade80;
   --color-warning-yellow: #facc15;
   --color-error-red: #f87171;
+  --code-keyword: #c678dd;
+  --code-string: #98c379;
+  --code-comment: #7f848e;
+  --code-number: #d19a66;
+  --code-variable: #e06c75;
+  --code-function: #61afef;
+  --code-type: #e5c07b;
+  --code-property: #56b6c2;
   --font-ui-sans-serif-system-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --text-caption: 12px;
   --leading-caption: 1.5;
@@ -112,6 +120,14 @@
 }
 
 html[data-theme='light'] {
+  --code-keyword: #a626a4;
+  --code-string: #50a14f;
+  --code-comment: #a0a1a7;
+  --code-number: #986801;
+  --code-variable: #e45649;
+  --code-function: #4078f2;
+  --code-type: #c18401;
+  --code-property: #0184bc;
   --app-bg: #f5f5f5;
   --editor-bg: #ffffff;
   --panel-bg: #fafafa;
@@ -1358,6 +1374,60 @@ button.sidebar-folder-row:hover {
 
 .editor-pane .cm-lp-frontmatter {
   color: var(--text-faint);
+}
+
+.editor-pane .cm-lp-codeblock .tok-keyword,
+.editor-pane .cm-lp-codeblock .tok-atom,
+.editor-pane .cm-lp-codeblock .tok-bool {
+  color: var(--code-keyword);
+}
+
+.editor-pane .cm-lp-codeblock .tok-string,
+.editor-pane .cm-lp-codeblock .tok-string2,
+.editor-pane .cm-lp-codeblock .tok-inserted {
+  color: var(--code-string);
+}
+
+.editor-pane .cm-lp-codeblock .tok-comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.editor-pane .cm-lp-codeblock .tok-number,
+.editor-pane .cm-lp-codeblock .tok-literal {
+  color: var(--code-number);
+}
+
+.editor-pane .cm-lp-codeblock .tok-variableName,
+.editor-pane .cm-lp-codeblock .tok-deleted {
+  color: var(--code-variable);
+}
+
+.editor-pane .cm-lp-codeblock .tok-variableName2,
+.editor-pane .cm-lp-codeblock .tok-macroName,
+.editor-pane .cm-lp-codeblock .tok-labelName {
+  color: var(--code-function);
+}
+
+.editor-pane .cm-lp-codeblock .tok-typeName,
+.editor-pane .cm-lp-codeblock .tok-className,
+.editor-pane .cm-lp-codeblock .tok-namespace {
+  color: var(--code-type);
+}
+
+.editor-pane .cm-lp-codeblock .tok-propertyName,
+.editor-pane .cm-lp-codeblock .tok-definition {
+  color: var(--code-property);
+}
+
+.editor-pane .cm-lp-codeblock .tok-operator,
+.editor-pane .cm-lp-codeblock .tok-punctuation {
+  color: var(--text-secondary);
+}
+
+.editor-pane .cm-lp-codeblock .tok-meta,
+.editor-pane .cm-lp-codeblock .tok-invalid {
+  color: var(--text-muted);
 }
 
 .editor-pane .cm-lp-link,
