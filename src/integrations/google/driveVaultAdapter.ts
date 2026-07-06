@@ -69,6 +69,15 @@ export class DriveVaultAdapter {
     return this.drive.getMetadata(fileId);
   }
 
+  async listRevisions(fileId: string) {
+    const revisions = await this.drive.listRevisions(fileId);
+    return [...revisions].sort((left, right) => right.modifiedTime.localeCompare(left.modifiedTime));
+  }
+
+  async getRevisionContent(fileId: string, revisionId: string) {
+    return this.drive.downloadRevisionText(fileId, revisionId);
+  }
+
   async saveFile(
     vaultRootId: string,
     fileId: string,

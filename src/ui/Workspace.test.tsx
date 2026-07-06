@@ -538,6 +538,25 @@ describe('Workspace', () => {
     expect(tab).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('restores a previous revision from the version history dialog', async () => {
+    const user = userEvent.setup();
+    const listRevisions = vi.fn().mockResolvedValue([
+      { id: 'rev-1', modifiedTime: '2026-07-01T00:00:00.000Z' }
+    ]);
+    const getRevisionContent = vi.fn().mockResolvedValue('# 이전 버전');
+
+    renderWorkspace({ EditorComponent: TestEditor, listRevisions, getRevisionContent });
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+
+    await user.click(screen.getByRole('button', { name: '버전 기록 열기' }));
+    await user.click(await screen.findByRole('button', { name: /2026/ }));
+    await user.click(await screen.findByRole('button', { name: '이 버전으로 복원' }));
+
+    expect(getRevisionContent).toHaveBeenCalledWith('file-home', 'rev-1');
+    const editor = screen.getByRole('textbox', { name: 'Markdown editor' });
+    expect(editor).toHaveValue('# 이전 버전');
+  });
+
   it('moves a file to another folder through the move picker', async () => {
     const user = userEvent.setup();
     const moveEntry = vi.fn(async (entry: VaultEntry, targetFolderId: string, targetFolderPath: string) => ({

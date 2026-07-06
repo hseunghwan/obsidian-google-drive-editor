@@ -170,6 +170,8 @@ See [[Project Note]].`,
       }),
       prefetchFile: () => undefined,
       getRemoteModifiedTime: async () => '1970-01-01T00:00:00.000Z',
+      listRevisions: async () => [],
+      getRevisionContent: async () => '',
       saveDocument: async (document) => ({
         fileId: document.file.id,
         modifiedTime: new Date().toISOString()
@@ -245,6 +247,8 @@ See [[Project Note]].`,
       prefetchFile={workspace.prefetchFile}
       getRemoteModifiedTime={workspace.getRemoteModifiedTime}
       moveEntry={workspace.moveEntry}
+      listRevisions={workspace.listRevisions}
+      getRevisionContent={workspace.getRevisionContent}
       saveDocument={workspace.saveDocument}
       createFile={workspace.createFile}
       createFolder={workspace.createFolder}

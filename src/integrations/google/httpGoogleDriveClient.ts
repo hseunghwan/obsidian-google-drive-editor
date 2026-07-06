@@ -1,4 +1,9 @@
-import type { GoogleDriveClient, GoogleDriveFile, GoogleDriveListResponse } from './googleDriveClient';
+import type {
+  GoogleDriveClient,
+  GoogleDriveFile,
+  GoogleDriveListResponse,
+  GoogleDriveRevision
+} from './googleDriveClient';
 
 const driveBaseUrl = 'https://www.googleapis.com/drive/v3/files';
 const uploadBaseUrl = 'https://www.googleapis.com/upload/drive/v3/files';
@@ -157,6 +162,28 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
 
   async getMetadata(fileId: string, signal?: AbortSignal): Promise<GoogleDriveFile> {
     return this.request(`${driveBaseUrl}/${fileId}?fields=id,name,mimeType,modifiedTime,parents`, { signal });
+  }
+
+  async listRevisions(fileId: string): Promise<GoogleDriveRevision[]> {
+    const params = new URLSearchParams({
+      fields: 'revisions(id,modifiedTime)',
+      pageSize: '100'
+    });
+    const response = await this.request<{ revisions?: GoogleDriveRevision[] }>(
+      `${driveBaseUrl}/${fileId}/revisions?${params.toString()}`
+    );
+    return response.revisions ?? [];
+  }
+
+  async downloadRevisionText(fileId: string, revisionId: string): Promise<string> {
+    const response = await this.fetchWithRetry(
+      `${driveBaseUrl}/${fileId}/revisions/${revisionId}?alt=media`,
+      {}
+    );
+    if (!response.ok) {
+      throw new Error(`Drive revision download failed: ${response.status}`);
+    }
+    return response.text();
   }
 
   private async request<T>(url: string, init: RequestInit = {}): Promise<T> {

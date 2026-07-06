@@ -17,6 +17,8 @@ describe('loadDriveWorkspace', () => {
       renameFile: vi.fn(),
       trashFile: vi.fn(),
       moveFile: vi.fn(),
+      listRevisions: vi.fn(),
+      downloadRevisionText: vi.fn(),
       getMetadata: vi.fn()
     };
 
@@ -71,6 +73,8 @@ describe('loadDriveWorkspace', () => {
         renameFile: vi.fn(),
         trashFile: vi.fn(),
         moveFile: vi.fn(),
+        listRevisions: vi.fn(),
+        downloadRevisionText: vi.fn(),
         getMetadata: vi.fn()
       }),
       drafts
@@ -169,6 +173,8 @@ async function cachedWorkspace() {
     renameFile: vi.fn(),
     trashFile: vi.fn(),
     moveFile: vi.fn(),
+    listRevisions: vi.fn(),
+    downloadRevisionText: vi.fn(),
     getMetadata: vi.fn()
   };
 

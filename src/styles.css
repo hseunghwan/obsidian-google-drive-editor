@@ -1602,6 +1602,97 @@ button.sidebar-folder-row:hover {
   font-size: 13px;
 }
 
+.revision-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(720px, calc(100vw - 32px));
+  max-height: min(600px, calc(100vh - 64px));
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-inputs);
+  background: var(--settings-card-bg);
+  box-shadow: var(--shadow-subtle-3);
+}
+
+.revision-dialog-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.revision-list {
+  margin: 0;
+  padding: 0;
+  width: 200px;
+  flex: 0 0 auto;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.revision-list button {
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-align: left;
+}
+
+.revision-list button:hover {
+  background: var(--panel-bg-hover);
+}
+
+.revision-list button.active {
+  background: var(--panel-bg-active);
+  color: var(--text-primary);
+}
+
+.revision-preview {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.revision-preview pre {
+  margin: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.revision-restore {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-end;
+  padding: 6px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  background: var(--control-bg);
+  color: var(--text-primary);
+}
+
+.revision-restore:hover {
+  background: var(--panel-bg-hover);
+}
+
+.revision-meta {
+  padding: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .shortcut-dialog {
   display: flex;
   flex-direction: column;

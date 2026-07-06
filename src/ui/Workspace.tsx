@@ -10,6 +10,7 @@ import { FileSidebar } from './components/FileSidebar';
 import { Icon } from './components/Icon';
 import { MetadataPanel } from './components/MetadataPanel';
 import { QuickSwitcher } from './components/QuickSwitcher';
+import { RevisionHistoryDialog, type RevisionSummary } from './components/RevisionHistoryDialog';
 import { ReviewRequestToast } from './components/ReviewRequestToast';
 import { SaveStatus } from './components/SaveStatus';
 import { SettingsDialog } from './components/SettingsDialog';
@@ -26,6 +27,8 @@ interface WorkspaceProps {
   loadFile(file: VaultFile): Promise<OpenDocument>;
   prefetchFile?(file: VaultFile): void;
   getRemoteModifiedTime?(fileId: string): Promise<string>;
+  listRevisions?(fileId: string): Promise<RevisionSummary[]>;
+  getRevisionContent?(fileId: string, revisionId: string): Promise<string>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
@@ -52,6 +55,8 @@ export function Workspace({
   loadFile,
   prefetchFile,
   getRemoteModifiedTime,
+  listRevisions,
+  getRevisionContent,
   saveDocument,
   createFile,
   createFolder,
@@ -91,6 +96,7 @@ export function Workspace({
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [moveTarget, setMoveTarget] = useState<VaultEntry | null>(null);
+  const [revisionsOpen, setRevisionsOpen] = useState(false);
   const [insertRequest, setInsertRequest] = useState<MarkdownEditorProps['insertRequest']>(null);
   const insertRequestId = useRef(0);
 
@@ -804,6 +810,17 @@ export function Workspace({
             <>
               <div className="editor-header">
                 <Breadcrumb path={activeDocument.file.path} />
+                {listRevisions && getRevisionContent ? (
+                  <button
+                    aria-label={t('revisions.open')}
+                    className="editor-mode-toggle"
+                    title={t('revisions.open')}
+                    type="button"
+                    onClick={() => setRevisionsOpen(true)}
+                  >
+                    <Icon name="history" />
+                  </button>
+                ) : null}
                 <button
                   aria-pressed={editorMode === 'source'}
                   aria-label={t('workspace.toggleSourceMode')}
@@ -878,6 +895,19 @@ export function Workspace({
         onSelect={(file) => void insertTemplate(file)}
         onClose={() => setTemplatePickerOpen(false)}
       />
+      {activeDocument && listRevisions && getRevisionContent ? (
+        <RevisionHistoryDialog
+          open={revisionsOpen}
+          fileId={activeDocument.file.id}
+          listRevisions={listRevisions}
+          getRevisionContent={getRevisionContent}
+          onRestore={(content) => {
+            setRevisionsOpen(false);
+            dispatch({ type: 'documentEdited', content });
+          }}
+          onClose={() => setRevisionsOpen(false)}
+        />
+      ) : null}
       <QuickSwitcher
         open={Boolean(moveTarget)}
         files={moveDestinations}

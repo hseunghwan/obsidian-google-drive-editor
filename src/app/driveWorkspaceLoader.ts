@@ -14,6 +14,8 @@ export interface DriveWorkspace {
   loadFile(file: VaultFile): Promise<OpenDocument>;
   prefetchFile(file: VaultFile): void;
   getRemoteModifiedTime(fileId: string): Promise<string>;
+  listRevisions(fileId: string): Promise<Array<{ id: string; modifiedTime: string }>>;
+  getRevisionContent(fileId: string, revisionId: string): Promise<string>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
@@ -92,6 +94,8 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
       const metadata = await adapter.getRemoteMetadata(fileId);
       return metadata.modifiedTime;
     },
+    listRevisions: (fileId) => adapter.listRevisions(fileId),
+    getRevisionContent: (fileId, revisionId) => adapter.getRevisionContent(fileId, revisionId),
     saveDocument: async (document) => {
       const result = await adapter.saveFile(
         root.id,

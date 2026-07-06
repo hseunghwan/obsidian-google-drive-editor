@@ -104,6 +104,34 @@ describe('HttpGoogleDriveClient', () => {
     );
   });
 
+  it('lists file revisions with id and modified time', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ revisions: [{ id: 'rev-1', modifiedTime: '2026-07-01T00:00:00.000Z' }] })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const revisions = await new HttpGoogleDriveClient('access-token').listRevisions('file-home');
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/files/file-home/revisions?');
+    expect(revisions).toEqual([{ id: 'rev-1', modifiedTime: '2026-07-01T00:00:00.000Z' }]);
+  });
+
+  it('downloads revision content as text', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => '# old content'
+    } as Response);
+    vi.stubGlobal('fetch', fetchMock);
+
+    const content = await new HttpGoogleDriveClient('access-token').downloadRevisionText('file-home', 'rev-1');
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://www.googleapis.com/drive/v3/files/file-home/revisions/rev-1?alt=media'
+    );
+    expect(content).toBe('# old content');
+  });
+
   it('refreshes the access token once on 401 and retries the request', async () => {
     const fetchMock = vi
       .fn()

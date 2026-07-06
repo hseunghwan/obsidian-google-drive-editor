@@ -23,4 +23,11 @@ export interface GoogleDriveClient {
   moveFile(fileId: string, targetFolderId: string, currentParentId: string): Promise<GoogleDriveFile>;
   trashFile(fileId: string): Promise<void>;
   getMetadata(fileId: string, signal?: AbortSignal): Promise<GoogleDriveFile>;
+  listRevisions(fileId: string): Promise<GoogleDriveRevision[]>;
+  downloadRevisionText(fileId: string, revisionId: string): Promise<string>;
+}
+
+export interface GoogleDriveRevision {
+  id: string;
+  modifiedTime: string;
 }
