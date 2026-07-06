@@ -538,6 +538,33 @@ describe('Workspace', () => {
     expect(tab).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('creates a note when an unresolved wiki link is clicked', async () => {
+    const user = userEvent.setup();
+
+    renderWorkspace({
+      loadFile: async (file) => ({
+        file,
+        content: file.id === 'file-home' ? 'See [[Brand New Note]].' : '# note',
+        baselineModifiedTime: file.modifiedTime
+      })
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+
+    const link = await screen.findByText('Brand New Note');
+    expect(link.closest('.cm-lp-wikilink')?.className).toContain('cm-lp-unresolved');
+
+    fireEvent.mouseDown(link);
+
+    await waitFor(() => {
+      expect(createFile).toHaveBeenCalledWith(
+        fixtureVaultRoot.id,
+        'Brand New Note.md',
+        '# Brand New Note\n'
+      );
+    });
+  });
+
   it('switches recent tabs with alt+digit', async () => {
     const user = userEvent.setup();
 

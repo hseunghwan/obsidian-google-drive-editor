@@ -12,7 +12,7 @@ import { useEffect, useRef } from 'react';
 import type { VaultIndex } from '../../domain/vault/vaultIndex';
 import { useI18n } from '../../i18n/I18nProvider';
 import { messages } from '../../i18n/messages';
-import { livePreview, wikiLinkOpener } from './livePreview';
+import { livePreview, wikiLinkOpener, wikiLinkResolver } from './livePreview';
 import { markdownKeymap } from './markdownCommands';
 import { slashCommandAutocomplete } from './slashCommandAutocomplete';
 import { tagAutocomplete } from './tagAutocomplete';
@@ -27,6 +27,7 @@ export interface MarkdownEditorProps {
   scrollTarget?: MarkdownEditorScrollTarget | null;
   mode?: EditorMode;
   onOpenWikiLink?(target: string): void;
+  resolveWikiLink?(target: string): boolean;
 }
 
 export interface MarkdownEditorScrollTarget {
@@ -38,19 +39,29 @@ function modeExtension(mode: EditorMode) {
   return mode === 'live' ? livePreview() : [];
 }
 
-export function MarkdownEditor({ value, index, onChange, scrollTarget, mode = 'live', onOpenWikiLink }: MarkdownEditorProps) {
+export function MarkdownEditor({
+  value,
+  index,
+  onChange,
+  scrollTarget,
+  mode = 'live',
+  onOpenWikiLink,
+  resolveWikiLink
+}: MarkdownEditorProps) {
   const { locale } = useI18n();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
   const onOpenWikiLinkRef = useRef(onOpenWikiLink);
+  const resolveWikiLinkRef = useRef(resolveWikiLink);
   const modeRef = useRef(mode);
   const modeCompartmentRef = useRef(new Compartment());
 
   useEffect(() => {
     onChangeRef.current = onChange;
     onOpenWikiLinkRef.current = onOpenWikiLink;
-  }, [onChange, onOpenWikiLink]);
+    resolveWikiLinkRef.current = resolveWikiLink;
+  }, [onChange, onOpenWikiLink, resolveWikiLink]);
 
   useEffect(() => {
     if (!hostRef.current) {
@@ -76,6 +87,7 @@ export function MarkdownEditor({ value, index, onChange, scrollTarget, mode = 'l
         }),
         modeCompartmentRef.current.of(modeExtension(modeRef.current)),
         wikiLinkOpener.of((target) => onOpenWikiLinkRef.current?.(target)),
+        wikiLinkResolver.of((target) => resolveWikiLinkRef.current?.(target) ?? true),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChangeRef.current(update.state.doc.toString());

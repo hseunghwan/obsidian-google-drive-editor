@@ -23,6 +23,10 @@ export const wikiLinkOpener = Facet.define<(target: string) => void, ((target: s
   combine: (values) => values[0] ?? null
 });
 
+export const wikiLinkResolver = Facet.define<(target: string) => boolean, ((target: string) => boolean) | null>({
+  combine: (values) => values[0] ?? null
+});
+
 const inlineMarkClasses: Record<string, string> = {
   Emphasis: 'cm-lp-em',
   StrongEmphasis: 'cm-lp-strong',
@@ -364,13 +368,13 @@ export function buildLivePreviewDecorations(
       const labelFrom = pipeIndex === -1 ? from + 2 : from + 2 + pipeIndex + 1;
       const target = (pipeIndex === -1 ? match[1] : match[1].slice(0, pipeIndex)).trim();
       const rendered = !touchesRange(state, from, to);
+      const resolver = state.facet(wikiLinkResolver);
+      const className = resolver && !resolver(target) ? 'cm-lp-wikilink cm-lp-unresolved' : 'cm-lp-wikilink';
       add(
         labelFrom,
         to - 2,
         Decoration.mark(
-          rendered
-            ? { class: 'cm-lp-wikilink', attributes: { 'data-wikilink': target } }
-            : { class: 'cm-lp-wikilink' }
+          rendered ? { class: className, attributes: { 'data-wikilink': target } } : { class: className }
         )
       );
       if (rendered) {

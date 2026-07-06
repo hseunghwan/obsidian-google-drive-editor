@@ -366,6 +366,10 @@ export function Workspace({
       return;
     }
 
+    await createMarkdownFileNamed(parentFolderId, title);
+  }
+
+  async function createMarkdownFileNamed(parentFolderId: string, title: string) {
     const name = normalizeMarkdownName(title);
     const parentPath = parentPathForFolderId(parentFolderId, root.id, visibleEntries);
     const nextFile = applyParentPath(
@@ -445,18 +449,25 @@ export function Workspace({
     setScrollTarget({ lineNumber: heading.lineNumber, requestId: scrollRequestId.current });
   }
 
-  function openWikiLink(target: string) {
+  function findWikiLinkFile(target: string) {
     const normalized = target.trim().toLocaleLowerCase();
-    const file = workspaceFiles.find(
+    return workspaceFiles.find(
       (entry) =>
         entry.title.toLocaleLowerCase() === normalized ||
         entry.path.toLocaleLowerCase().replace(/\.md$/, '') === normalized
     );
+  }
+
+  function openWikiLink(target: string) {
+    const file = findWikiLinkFile(target);
     if (file) {
       void openFile(file);
       return;
     }
-    setNotice(t('workspace.wikiLinkNotFound'));
+    const title = target.split('/').pop()?.trim();
+    if (title) {
+      void createMarkdownFileNamed(root.id, title);
+    }
   }
 
   const workspaceClassNames = [
@@ -636,6 +647,7 @@ export function Workspace({
                 mode={editorMode}
                 onChange={(content) => dispatch({ type: 'documentEdited', content })}
                 onOpenWikiLink={openWikiLink}
+                resolveWikiLink={(target) => Boolean(findWikiLinkFile(target))}
               />
               <SaveStatus
                 status={state.saveState.status}

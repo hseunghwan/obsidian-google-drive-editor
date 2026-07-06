@@ -1441,6 +1441,11 @@ button.sidebar-folder-row:hover {
   color: var(--text-faint);
 }
 
+.editor-pane .cm-lp-unresolved {
+  color: color-mix(in srgb, var(--accent-muted) 55%, var(--text-muted));
+  text-decoration-style: dashed;
+}
+
 .editor-pane .cm-lp-highlight {
   padding: 1px 2px;
   border-radius: 3px;

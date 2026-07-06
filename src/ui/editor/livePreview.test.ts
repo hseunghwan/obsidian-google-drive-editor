@@ -3,7 +3,7 @@ import { syntaxTreeAvailable } from '@codemirror/language';
 import { EditorSelection, EditorState } from '@codemirror/state';
 import { describe, expect, it } from 'vitest';
 
-import { buildLivePreviewDecorations, buildTableDecorations } from './livePreview';
+import { buildLivePreviewDecorations, buildTableDecorations, wikiLinkResolver } from './livePreview';
 
 interface DecorationSummary {
   from: number;
@@ -215,6 +215,18 @@ describe('buildLivePreviewDecorations', () => {
     expect(nonFrontmatter).toEqual([]);
     expect(summary.filter((entry) => entry.kind === 'cm-lp-frontmatter')).toHaveLength(5);
     expect(summary).toContainEqual({ from: 33, to: 33, kind: 'cm-lp-heading cm-lp-h1' });
+  });
+
+  it('marks wiki links without a matching note as unresolved', () => {
+    const doc = 'see [[Missing Note]] here';
+    const state = EditorState.create({
+      doc,
+      selection: { anchor: 0 },
+      extensions: [markdown({ base: markdownLanguage }), wikiLinkResolver.of(() => false)]
+    });
+    expect(syntaxTreeAvailable(state)).toBe(true);
+
+    expect(kinds(state)).toContain('cm-lp-wikilink cm-lp-unresolved');
   });
 
   it('attaches the wiki link target for click navigation when rendered', () => {
