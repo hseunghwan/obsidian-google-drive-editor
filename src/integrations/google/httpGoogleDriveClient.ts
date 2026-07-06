@@ -45,7 +45,7 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
 
   async searchByName(query: string, pageToken?: string, signal?: AbortSignal): Promise<GoogleDriveListResponse> {
     const params = new URLSearchParams({
-      q: `name contains '${escapeDriveQueryValue(query)}' and (mimeType = 'application/vnd.google-apps.folder' or (mimeType != 'application/vnd.google-apps.folder' and name contains '.md')) and trashed = false`,
+      q: `(name contains '${escapeDriveQueryValue(query)}' or fullText contains '${escapeDriveQueryValue(query)}') and (mimeType = 'application/vnd.google-apps.folder' or (mimeType != 'application/vnd.google-apps.folder' and name contains '.md')) and trashed = false`,
       fields: 'nextPageToken, files(id, name, mimeType, modifiedTime, parents)',
       orderBy: 'name',
       pageSize: '100'

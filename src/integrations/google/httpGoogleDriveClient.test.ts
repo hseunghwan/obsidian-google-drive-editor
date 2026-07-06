@@ -39,7 +39,7 @@ describe('HttpGoogleDriveClient', () => {
 
     const requestUrl = new URL(fetchMock.mock.calls[0][0] as string);
     expect(requestUrl.searchParams.get('q')).toBe(
-      "name contains 'project plan' and (mimeType = 'application/vnd.google-apps.folder' or (mimeType != 'application/vnd.google-apps.folder' and name contains '.md')) and trashed = false"
+      "(name contains 'project plan' or fullText contains 'project plan') and (mimeType = 'application/vnd.google-apps.folder' or (mimeType != 'application/vnd.google-apps.folder' and name contains '.md')) and trashed = false"
     );
   });
 
