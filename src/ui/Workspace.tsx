@@ -117,6 +117,16 @@ export function Workspace({
         });
         return;
       }
+      if (mod && !event.shiftKey && !event.altKey && event.key === '[') {
+        event.preventDefault();
+        void navigateHistory('back');
+        return;
+      }
+      if (mod && !event.shiftKey && !event.altKey && event.key === ']') {
+        event.preventDefault();
+        void navigateHistory('forward');
+        return;
+      }
       if (event.altKey && !mod && event.code === 'KeyN') {
         event.preventDefault();
         void createMarkdownFile();
@@ -266,7 +276,16 @@ export function Workspace({
     }
   }
 
+  const backStackRef = useRef<VaultFile[]>([]);
+  const forwardStackRef = useRef<VaultFile[]>([]);
+  const historyNavigationRef = useRef(false);
+
   async function openFile(file: VaultFile) {
+    const previousFile = state.activeDocument?.file;
+    if (!historyNavigationRef.current && previousFile && previousFile.id !== file.id) {
+      backStackRef.current.push(previousFile);
+      forwardStackRef.current = [];
+    }
     setWorkspaceEntries((current) => mergeEntries(current, [file]));
     const document = await loadFile(file);
     setRecentFiles((current) => pushRecentFile(current, document.file));
@@ -454,6 +473,25 @@ export function Workspace({
   function scrollToHeading(heading: MarkdownHeading) {
     scrollRequestId.current += 1;
     setScrollTarget({ lineNumber: heading.lineNumber, requestId: scrollRequestId.current });
+  }
+
+  async function navigateHistory(direction: 'back' | 'forward') {
+    const fromStack = direction === 'back' ? backStackRef.current : forwardStackRef.current;
+    const toStack = direction === 'back' ? forwardStackRef.current : backStackRef.current;
+    const nextFile = fromStack.pop();
+    if (!nextFile) {
+      return;
+    }
+    const currentFile = state.activeDocument?.file;
+    if (currentFile) {
+      toStack.push(currentFile);
+    }
+    historyNavigationRef.current = true;
+    try {
+      await openFile(nextFile);
+    } finally {
+      historyNavigationRef.current = false;
+    }
   }
 
   function findWikiLinkFile(target: string) {

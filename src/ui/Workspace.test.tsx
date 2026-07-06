@@ -538,6 +538,25 @@ describe('Workspace', () => {
     expect(tab).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('navigates document history with mod+bracket shortcuts', async () => {
+    const user = userEvent.setup();
+
+    renderWorkspace({ EditorComponent: TestEditor });
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+    await user.click(screen.getByRole('button', { name: 'Projects' }));
+    await user.click(await screen.findByRole('button', { name: 'Project Note' }));
+
+    fireEvent.keyDown(window, { key: '[', metaKey: true });
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: /Home/ })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    fireEvent.keyDown(window, { key: ']', metaKey: true });
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: /Project Note/ })).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
   it('opens files from the quick switcher with keyboard navigation', async () => {
     const user = userEvent.setup();
 
