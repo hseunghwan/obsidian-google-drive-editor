@@ -1,4 +1,6 @@
 import { history, undo } from '@codemirror/commands';
+import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
+import { foldable } from '@codemirror/language';
 import { EditorSelection, EditorState, type StateCommand } from '@codemirror/state';
 import { describe, expect, it } from 'vitest';
 
@@ -84,6 +86,18 @@ describe('cycleListMarker', () => {
   it('keeps indentation while cycling', () => {
     const state = run(cycleListMarker, '  - item', 5);
     expect(state.doc.toString()).toBe('  - [ ] item');
+  });
+});
+
+describe('heading folding', () => {
+  it('marks heading sections as foldable', () => {
+    const doc = '# Section\nbody line\nmore\n\n# Next\ntail';
+    const state = EditorState.create({ doc, extensions: [markdown({ base: markdownLanguage })] });
+    const firstLine = state.doc.line(1);
+
+    const range = foldable(state, firstLine.from, firstLine.to);
+    expect(range).not.toBeNull();
+    expect(state.doc.lineAt(range!.to).number).toBe(3);
   });
 });
 

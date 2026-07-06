@@ -1197,6 +1197,34 @@ button.sidebar-folder-row:hover {
   background: transparent;
 }
 
+.editor-pane .cm-gutters {
+  border-right: 0;
+  background: transparent;
+  color: var(--text-faint);
+}
+
+.editor-pane .cm-foldGutter .cm-gutterElement {
+  padding: 0 2px 0 8px;
+  cursor: pointer;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.editor-pane .cm-gutters:hover .cm-foldGutter .cm-gutterElement,
+.editor-pane .cm-line:hover ~ * .cm-gutterElement {
+  opacity: 1;
+}
+
+.editor-pane .cm-foldPlaceholder {
+  margin: 0 4px;
+  padding: 0 6px;
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  background: var(--panel-bg-raised);
+  color: var(--text-muted);
+}
+
 .editor-pane .cm-tooltip {
   overflow: hidden;
   border: 1px solid var(--control-border);

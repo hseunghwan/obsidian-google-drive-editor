@@ -1,6 +1,7 @@
 import { autocompletion } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
+import { codeFolding, foldGutter, foldKeymap } from '@codemirror/language';
 import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { useEffect, useRef } from 'react';
@@ -54,7 +55,12 @@ export function MarkdownEditor({ value, index, onChange, scrollTarget, mode = 'l
       extensions: [
         markdown({ base: markdownLanguage }),
         history(),
-        keymap.of([...markdownKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab]),
+        codeFolding(),
+        foldGutter({
+          openText: '▾',
+          closedText: '▸'
+        }),
+        keymap.of([...markdownKeymap, ...defaultKeymap, ...historyKeymap, ...foldKeymap, indentWithTab]),
         autocompletion({ override: [wikiLinkAutocomplete(index), slashCommandAutocomplete(messages[locale])] }),
         modeCompartmentRef.current.of(modeExtension(modeRef.current)),
         EditorView.updateListener.of((update) => {
