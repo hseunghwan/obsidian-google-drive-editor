@@ -497,6 +497,27 @@ describe('Workspace', () => {
     expect(window.prompt).toHaveBeenCalledWith('새 Markdown 파일 이름');
   });
 
+  it('restores the last active document on mount and persists the choice', async () => {
+    window.localStorage.setItem(
+      `workspace:last-file:${fixtureVaultRoot.id}`,
+      JSON.stringify(fixtureFiles[0])
+    );
+
+    renderWorkspace({ EditorComponent: TestEditor });
+
+    const tab = await screen.findByRole('tab', { name: /Home/ });
+    expect(tab).toHaveAttribute('aria-selected', 'true');
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Projects' }));
+    await user.click(await screen.findByRole('button', { name: 'Project Note' }));
+
+    await waitFor(() => {
+      const stored = window.localStorage.getItem(`workspace:last-file:${fixtureVaultRoot.id}`);
+      expect(JSON.parse(stored ?? '{}')).toMatchObject({ id: fixtureFiles[1].id });
+    });
+  });
+
   it('opens the linked note when a rendered wiki link is clicked', async () => {
     const user = userEvent.setup();
 

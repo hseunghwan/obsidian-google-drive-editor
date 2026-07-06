@@ -158,6 +158,40 @@ export function Workspace({
     void loadFolderChildren(root.id, '');
   }, [root.id]);
 
+  const restoredRootRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (restoredRootRef.current === root.id) {
+      return;
+    }
+    restoredRootRef.current = root.id;
+    if (state.activeDocument) {
+      return;
+    }
+    const storedFile = readStoredLastFile(root.id);
+    if (storedFile) {
+      openFile(storedFile).catch(() => {
+        try {
+          window.localStorage?.removeItem(lastFileStorageKey(root.id));
+        } catch {
+          // ignore storage failures
+        }
+      });
+    }
+  }, [root.id]);
+
+  useEffect(() => {
+    try {
+      if (state.activeDocument) {
+        window.localStorage?.setItem(lastFileStorageKey(root.id), JSON.stringify(state.activeDocument.file));
+      } else {
+        window.localStorage?.removeItem(lastFileStorageKey(root.id));
+      }
+    } catch {
+      // ignore storage failures
+    }
+  }, [state.activeDocument, root.id]);
+
   const workspaceFiles = useMemo(() => markdownEntries(workspaceEntries), [workspaceEntries]);
 
   const index = useMemo(() => {
@@ -649,6 +683,7 @@ const SIDEBAR_MIN_WIDTH = 180;
 const SIDEBAR_MAX_WIDTH = 520;
 const RECENT_FILES_STORAGE_PREFIX = 'workspace:recent-files:';
 const EDITOR_MODE_STORAGE_KEY = 'workspace:editor-mode';
+const LAST_FILE_STORAGE_PREFIX = 'workspace:last-file:';
 const RECENT_FILES_LIMIT = 8;
 export const CHROME_WEB_STORE_REVIEW_URL = 'https://chromewebstore.google.com/detail/obsidian-vault-editor-for/fegekndlnlkbnkopphbokolacfemldge/reviews?hl=en-US&utm_source=ext_sidebar';
 
@@ -657,6 +692,26 @@ function readStoredEditorMode(): EditorMode {
     return window.localStorage?.getItem(EDITOR_MODE_STORAGE_KEY) === 'source' ? 'source' : 'live';
   } catch {
     return 'live';
+  }
+}
+
+function lastFileStorageKey(rootId: string) {
+  return `${LAST_FILE_STORAGE_PREFIX}${rootId}`;
+}
+
+function readStoredLastFile(rootId: string): VaultFile | null {
+  try {
+    const stored = window.localStorage?.getItem(lastFileStorageKey(rootId));
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored) as VaultFile;
+    if (typeof parsed === 'object' && parsed !== null && typeof parsed.id === 'string' && parsed.kind === 'markdown') {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
   }
 }
 
