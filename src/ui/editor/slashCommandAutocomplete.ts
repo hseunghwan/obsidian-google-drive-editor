@@ -24,9 +24,23 @@ export function buildSlashCommandOptions(query: string, messages: MessageLookup)
     })
     .map(({ command, label }) => ({
       label,
-      detail: `/${command.id}`,
+      detail: command.shortcut ? formatShortcut(command.shortcut) : undefined,
       apply: command.insertText
     }));
+}
+
+export function formatShortcut(key: string) {
+  const isMac = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform);
+  const parts = key.split('-').map((part) => {
+    if (part === 'Mod') {
+      return isMac ? '⌘' : 'Ctrl';
+    }
+    if (part === 'Shift') {
+      return isMac ? '⇧' : 'Shift';
+    }
+    return part.toUpperCase();
+  });
+  return parts.join(isMac ? '' : '+');
 }
 
 export function slashCommandAutocomplete(messages: MessageLookup): CompletionSource {

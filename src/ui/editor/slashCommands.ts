@@ -21,19 +21,20 @@ export interface SlashCommand {
   id: SlashCommandId;
   labelKey: MessageKey;
   insertText: string;
+  shortcut?: string;
 }
 
 export const slashCommands: SlashCommand[] = [
-  { id: 'link', labelKey: 'slashCommand.link', insertText: '[text](https://example.com)' },
+  { id: 'link', labelKey: 'slashCommand.link', insertText: '[text](https://example.com)', shortcut: 'Mod-k' },
   { id: 'wikilink', labelKey: 'slashCommand.wikilink', insertText: '[[Home]]' },
   { id: 'tag', labelKey: 'slashCommand.tag', insertText: '#tag' },
   { id: 'property', labelKey: 'slashCommand.property', insertText: 'property: value' },
-  { id: 'heading1', labelKey: 'slashCommand.heading1', insertText: '# ' },
-  { id: 'heading2', labelKey: 'slashCommand.heading2', insertText: '## ' },
-  { id: 'heading3', labelKey: 'slashCommand.heading3', insertText: '### ' },
-  { id: 'bullet', labelKey: 'slashCommand.bullet', insertText: '- ' },
+  { id: 'heading1', labelKey: 'slashCommand.heading1', insertText: '# ', shortcut: 'Mod-Shift-1' },
+  { id: 'heading2', labelKey: 'slashCommand.heading2', insertText: '## ', shortcut: 'Mod-Shift-2' },
+  { id: 'heading3', labelKey: 'slashCommand.heading3', insertText: '### ', shortcut: 'Mod-Shift-3' },
+  { id: 'bullet', labelKey: 'slashCommand.bullet', insertText: '- ', shortcut: 'Mod-l' },
   { id: 'numbered', labelKey: 'slashCommand.numbered', insertText: '1. ' },
-  { id: 'checkbox', labelKey: 'slashCommand.checkbox', insertText: '- [ ] ' },
+  { id: 'checkbox', labelKey: 'slashCommand.checkbox', insertText: '- [ ] ', shortcut: 'Mod-l' },
   { id: 'quote', labelKey: 'slashCommand.quote', insertText: '> ' },
   { id: 'codeblock', labelKey: 'slashCommand.codeblock', insertText: '```\n\n```' },
   { id: 'hr', labelKey: 'slashCommand.hr', insertText: '---\n' },

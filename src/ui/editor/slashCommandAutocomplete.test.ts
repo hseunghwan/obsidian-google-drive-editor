@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { messages } from '../../i18n/messages';
-import { slashCommandAutocomplete, buildSlashCommandOptions, slashCommandPattern } from './slashCommandAutocomplete';
+import { slashCommandAutocomplete, buildSlashCommandOptions, formatShortcut, slashCommandPattern } from './slashCommandAutocomplete';
 
 describe('buildSlashCommandOptions', () => {
   it('localizes slash command labels to Korean', () => {
@@ -11,11 +11,11 @@ describe('buildSlashCommandOptions', () => {
       expect.arrayContaining([
         expect.objectContaining({
           label: '마크다운 링크',
-          detail: '/link'
+          detail: formatShortcut('Mod-k')
         }),
         expect.objectContaining({
           label: '프로퍼티',
-          detail: '/property'
+          detail: undefined
         })
       ])
     );
@@ -26,28 +26,27 @@ describe('buildSlashCommandOptions', () => {
 
     expect(options).toEqual([
       expect.objectContaining({
-        label: 'Wiki link',
-        detail: '/wikilink'
+        label: 'Wiki link'
       })
     ]);
   });
 
   it('exposes block insertion commands', () => {
-    const ids = buildSlashCommandOptions('', messages.ko).map((option) => option.detail);
+    const labels = buildSlashCommandOptions('', messages.ko).map((option) => option.label);
 
-    expect(ids).toEqual(
+    expect(labels).toEqual(
       expect.arrayContaining([
-        '/heading1',
-        '/heading2',
-        '/heading3',
-        '/bullet',
-        '/numbered',
-        '/checkbox',
-        '/quote',
-        '/codeblock',
-        '/hr',
-        '/table',
-        '/callout'
+        '제목 1',
+        '제목 2',
+        '제목 3',
+        '글머리 목록',
+        '숫자 목록',
+        '체크박스',
+        '인용구',
+        '코드 블록',
+        '수평선',
+        '표',
+        '콜아웃'
       ])
     );
   });
@@ -56,7 +55,15 @@ describe('buildSlashCommandOptions', () => {
     const options = buildSlashCommandOptions('체크', messages.ko);
 
     expect(options).toEqual([
-      expect.objectContaining({ detail: '/checkbox', apply: '- [ ] ' })
+      expect.objectContaining({ label: '체크박스', apply: '- [ ] ' })
+    ]);
+  });
+
+  it('shows keyboard shortcuts as option details', () => {
+    const options = buildSlashCommandOptions('제목 1', messages.ko);
+
+    expect(options).toEqual([
+      expect.objectContaining({ label: '제목 1', detail: formatShortcut('Mod-Shift-1') })
     ]);
   });
 
@@ -76,8 +83,7 @@ describe('buildSlashCommandOptions', () => {
       filter: false,
       options: expect.arrayContaining([
         expect.objectContaining({
-          label: '마크다운 링크',
-          detail: '/link'
+          label: '마크다운 링크'
         })
       ])
     });
