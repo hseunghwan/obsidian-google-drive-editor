@@ -65,6 +65,10 @@ export class DriveVaultAdapter {
     return this.drive.downloadText(fileId);
   }
 
+  async getRemoteMetadata(fileId: string) {
+    return this.drive.getMetadata(fileId);
+  }
+
   async saveFile(
     vaultRootId: string,
     fileId: string,

@@ -24,6 +24,7 @@ interface WorkspaceProps {
   searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
   prefetchFile?(file: VaultFile): void;
+  getRemoteModifiedTime?(fileId: string): Promise<string>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
@@ -33,6 +34,7 @@ interface WorkspaceProps {
   onChangeRootFolder?(): void;
   autosaveDelayMs?: number;
   searchDebounceMs?: number;
+  remotePollIntervalMs?: number;
   showReviewRequestToast?: boolean;
   reviewRequestUrl?: string;
   onReviewRequestAccepted?(): void;
@@ -47,6 +49,7 @@ export function Workspace({
   searchEntries,
   loadFile,
   prefetchFile,
+  getRemoteModifiedTime,
   saveDocument,
   createFile,
   createFolder,
@@ -56,6 +59,7 @@ export function Workspace({
   onChangeRootFolder = () => undefined,
   autosaveDelayMs = 1200,
   searchDebounceMs = 350,
+  remotePollIntervalMs = 30000,
   showReviewRequestToast = true,
   reviewRequestUrl = CHROME_WEB_STORE_REVIEW_URL,
   onReviewRequestAccepted,
@@ -372,6 +376,28 @@ export function Workspace({
 
     await saveDocumentWithState(state.activeDocument);
   }
+
+  useEffect(() => {
+    if (!getRemoteModifiedTime || !activeDocument || state.saveState.status === 'conflict') {
+      return;
+    }
+
+    const fileId = activeDocument.file.id;
+    const baseline = activeDocument.baselineModifiedTime;
+    const timer = window.setInterval(() => {
+      getRemoteModifiedTime(fileId)
+        .then((remoteModifiedTime) => {
+          if (remoteModifiedTime > baseline) {
+            dispatch({ type: 'remoteConflict' });
+          }
+        })
+        .catch(() => {
+          // 폴링 실패는 조용히 무시 — 저장 시점의 충돌 감지가 최종 안전망
+        });
+    }, remotePollIntervalMs);
+
+    return () => window.clearInterval(timer);
+  }, [activeDocument, getRemoteModifiedTime, remotePollIntervalMs, state.saveState.status]);
 
   useEffect(() => {
     if (state.saveState.status !== 'dirty' || !activeDocument) {

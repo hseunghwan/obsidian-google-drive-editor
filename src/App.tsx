@@ -169,6 +169,7 @@ See [[Project Note]].`,
         baselineModifiedTime: file.modifiedTime
       }),
       prefetchFile: () => undefined,
+      getRemoteModifiedTime: async () => '1970-01-01T00:00:00.000Z',
       saveDocument: async (document) => ({
         fileId: document.file.id,
         modifiedTime: new Date().toISOString()
@@ -236,6 +237,7 @@ See [[Project Note]].`,
       searchEntries={workspace.searchEntries}
       loadFile={workspace.loadFile}
       prefetchFile={workspace.prefetchFile}
+      getRemoteModifiedTime={workspace.getRemoteModifiedTime}
       saveDocument={workspace.saveDocument}
       createFile={workspace.createFile}
       createFolder={workspace.createFolder}

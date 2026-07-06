@@ -13,6 +13,7 @@ export interface DriveWorkspace {
   searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
   prefetchFile(file: VaultFile): void;
+  getRemoteModifiedTime(fileId: string): Promise<string>;
   saveDocument(document: OpenDocument): Promise<SaveResult>;
   createFile(parentFolderId: string, name: string, content: string): Promise<VaultFile>;
   createFolder(parentFolderId: string, name: string): Promise<VaultFolder>;
@@ -85,6 +86,10 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
     },
     prefetchFile: (file) => {
       readFileWithCache(file);
+    },
+    getRemoteModifiedTime: async (fileId) => {
+      const metadata = await adapter.getRemoteMetadata(fileId);
+      return metadata.modifiedTime;
     },
     saveDocument: async (document) => {
       const result = await adapter.saveFile(

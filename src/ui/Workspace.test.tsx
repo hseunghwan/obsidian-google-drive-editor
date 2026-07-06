@@ -538,6 +538,22 @@ describe('Workspace', () => {
     expect(tab).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('flags a conflict when the remote file changes while a document is open', async () => {
+    const user = userEvent.setup();
+    const getRemoteModifiedTime = vi.fn().mockResolvedValue('2026-07-08T00:00:00.000Z');
+
+    renderWorkspace({
+      EditorComponent: TestEditor,
+      getRemoteModifiedTime,
+      remotePollIntervalMs: 15
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+
+    expect(await screen.findByText('원격 변경이 감지되었습니다.')).toBeInTheDocument();
+    expect(getRemoteModifiedTime).toHaveBeenCalledWith('file-home');
+  });
+
   it('navigates document history with mod+bracket shortcuts', async () => {
     const user = userEvent.setup();
 
