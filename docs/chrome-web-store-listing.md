@@ -25,7 +25,7 @@ Name:
 Obsidian for Google Drive
 
 Short description:
-Edit Google Drive Markdown vaults with an Obsidian-like workspace.
+Edit Google Drive Markdown vaults with live preview, wiki links, and slash commands — an Obsidian-style workspace in Chrome.
 
 Category:
 Productivity
@@ -35,24 +35,40 @@ English
 
 Detailed description:
 
-Obsidian for Google Drive turns a Google Drive folder full of Markdown files into a focused browser workspace. Open a Drive folder like a vault, browse your existing note structure, edit Markdown, review properties and tags, and save changes back to Drive without installing a desktop note app.
+Obsidian for Google Drive turns a Google Drive folder full of Markdown files into a focused browser workspace. Open a Drive folder like a vault, write in a live-preview Markdown editor, jump between notes with wiki links, and save everything back to Drive — no desktop app required, and your files never change format.
 
-It is built for people who already keep notes, meeting records, project docs, personal knowledge bases, or technical writing in Markdown. The extension keeps your files in Google Drive and gives you a calm, Obsidian-inspired interface inside Chrome.
+Live preview editing:
 
-Key features:
+- Live preview that hides Markdown syntax while you write — headings, bold, quotes, tables, callouts, highlights, checklists, and images render in place, and the raw text reappears where your cursor is
+- One-click toggle (Cmd/Ctrl+E) between live preview and raw source mode
+- Syntax highlighting for fenced code blocks in dozens of languages
+- Clickable checkboxes, foldable headings, and a readable centered line length
+- Your files stay plain Markdown — nothing is reformatted or converted
 
-- Connect a Google Drive folder as a Markdown vault
-- Browse nested folders and Markdown files without moving your files
-- Search notes by file name and path
-- Edit Markdown in a focused editor
-- Create new Markdown files and folders
-- Save manually or rely on autosave status feedback
-- Preserve local drafts when Drive saving fails
-- Detect remote changes to reduce accidental overwrites
-- View YAML frontmatter properties, tags, and document outline
-- Use slash-command helpers for Markdown links, wiki links, tags, and properties
-- Switch between English and Korean UI
-- Use a dark, compact workspace designed for writing
+Navigate like a vault:
+
+- Click wiki links to jump between notes; unresolved links create the note in place
+- Quick switcher (Cmd/Ctrl+O) with recent-file ranking
+- Back/forward history (Cmd/Ctrl+[ and ]), recent tabs with Alt+1–9
+- Full-text search across your vault, powered by Drive search
+- Outline, YAML frontmatter properties, and tags in a side panel
+
+Write faster:
+
+- 15 slash commands: headings, lists, checkboxes, quotes, code blocks, tables, callouts, links, and more
+- Editing shortcuts: bold, italic, link, heading levels, list/checkbox cycling, undo history, find and replace (Cmd/Ctrl+F)
+- Auto-continued lists and checkboxes, tag autocompletion, wiki-link autocompletion
+- Templates with {{title}}, {{date}}, {{time}} variables (Alt+T) and daily notes (Alt+D)
+- Built-in shortcut reference from the sidebar help button
+
+Built on Google Drive:
+
+- Version history: browse and restore previous Drive revisions of any note
+- Remote change detection warns you before two devices overwrite each other
+- Local drafts preserve your writing when saving fails
+- Move files between folders, open items directly in Drive, trash-based delete
+- Automatic token refresh and request retry for long sessions
+- Reopens your last note when you come back
 
 Why install it:
 
@@ -70,7 +86,7 @@ This extension is not affiliated with Google LLC or Obsidian.
 Obsidian for Google Drive
 
 짧은 설명:
-Google Drive Markdown vault를 Obsidian처럼 편집합니다.
+라이브 프리뷰, 위키 링크, 슬래시 커맨드로 Google Drive Markdown vault를 편집하는 Obsidian 스타일 작업 공간.
 
 카테고리:
 Productivity
@@ -80,24 +96,40 @@ Productivity
 
 상세 설명:
 
-Obsidian for Google Drive는 Google Drive에 보관한 Markdown 폴더를 Chrome 안에서 바로 편집할 수 있는 작업 공간으로 바꿔 줍니다. Drive 폴더를 vault처럼 열고, 기존 폴더 구조를 그대로 탐색하며, Markdown 문서를 작성하고, 프로퍼티와 태그를 확인한 뒤 다시 Drive에 저장할 수 있습니다.
+Obsidian for Google Drive는 Google Drive에 보관한 Markdown 폴더를 Chrome 안의 노트 작업 공간으로 바꿔 줍니다. Drive 폴더를 vault처럼 열고, 문법 기호가 사라지는 라이브 프리뷰 편집기로 글을 쓰고, 위키 링크로 노트 사이를 오가며, 그대로 Drive에 저장합니다. 파일 포맷은 절대 바뀌지 않습니다.
 
-이미 Google Drive에 개인 노트, 업무 메모, 회의록, 프로젝트 문서, 기술 문서를 Markdown으로 관리하고 있다면 특히 잘 맞습니다. 파일을 다른 서비스로 옮기지 않고 Drive에 그대로 두면서, Chrome 안에서 Obsidian에 익숙한 밀도 있는 편집 환경을 사용할 수 있습니다.
+라이브 프리뷰 편집:
 
-주요 기능:
+- 쓰는 동안 Markdown 문법이 숨고 서식이 바로 보이는 라이브 프리뷰 — 제목, 볼드, 인용, 표, 콜아웃, 하이라이트, 체크리스트, 이미지가 제자리에서 렌더링되고 커서를 올리면 원문이 나타납니다
+- Cmd/Ctrl+E로 라이브 프리뷰 ↔ 원본 텍스트 모드 전환
+- 코드블록 언어별 구문 하이라이팅
+- 클릭으로 완료하는 체크박스, 헤딩 접기, 읽기 좋은 중앙 정렬 본문
+- 파일은 항상 순수 Markdown 그대로 — 재포맷이나 변환 없음
 
-- Google Drive 폴더를 Markdown vault로 연결
-- 기존 폴더와 Markdown 파일 구조를 유지한 채 탐색
-- 파일 이름과 경로 기반 검색
-- 집중형 Markdown 편집기
-- 새 Markdown 파일과 폴더 생성
-- 수동 저장과 자동 저장 상태 표시
-- Drive 저장 실패 시 로컬 초안 보존
-- 원격 변경 감지로 덮어쓰기 위험 완화
-- YAML frontmatter 프로퍼티, 태그, 문서 목차 확인
-- Markdown 링크, 위키 링크, 태그, 프로퍼티 입력을 돕는 slash command
-- 한국어와 영어 UI 전환
-- 글쓰기에 집중하기 좋은 어두운 작업 공간
+vault처럼 탐색:
+
+- 위키 링크 클릭으로 노트 이동, 없는 노트는 클릭 즉시 생성
+- 빠른 전환기(Cmd/Ctrl+O) — 최근 파일 우선 파일명 점프
+- 문서 이동 히스토리(Cmd/Ctrl+[ / ]), 최근 탭 이동(Alt+1~9)
+- Drive 검색 기반 vault 전체 본문 검색
+- 문서 목차, YAML frontmatter 프로퍼티, 태그 패널
+
+더 빠른 작성:
+
+- 슬래시 커맨드 15종: 제목, 목록, 체크박스, 인용구, 코드 블록, 표, 콜아웃, 링크 등
+- 편집 단축키: 볼드, 이탤릭, 링크, 제목 설정, 목록↔체크박스 순환, 실행 취소, 찾기/바꾸기(Cmd/Ctrl+F)
+- Enter 시 목록·체크박스 자동 이어가기, 태그·위키링크 자동완성
+- {{title}} {{date}} {{time}} 변수를 지원하는 템플릿(Alt+T)과 일일 노트(Alt+D)
+- 사이드바 도움말 버튼에서 전체 단축키 확인
+
+Google Drive 위에서:
+
+- 버전 기록 — 노트의 이전 Drive 버전을 열람하고 복원
+- 원격 변경 감지 — 다른 기기에서 수정되면 덮어쓰기 전에 경고
+- 저장 실패 시 로컬 초안 보존
+- 폴더 간 파일 이동, Drive 웹에서 바로 열기, 휴지통 기반 삭제
+- 토큰 자동 갱신과 요청 재시도로 긴 세션에도 안정적
+- 다음 실행 때 마지막 문서 자동 복원
 
 설치하면 좋은 경우:
 
