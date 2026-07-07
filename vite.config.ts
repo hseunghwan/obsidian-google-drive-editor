@@ -22,6 +22,15 @@ export default defineConfig(({ mode }) => {
           chunkFileNames: 'assets/[name]-[hash].js',
           assetFileNames: 'assets/[name]-[hash][extname]',
           manualChunks(id) {
+            if (
+              id.includes('/node_modules/@codemirror/lang-') ||
+              id.includes('/node_modules/@codemirror/language-data') ||
+              id.includes('/node_modules/@codemirror/legacy-modes') ||
+              id.includes('/node_modules/@lezer/')
+            ) {
+              // 언어 파서는 language-data가 dynamic import로 lazy-load하므로 기본 분할에 맡긴다
+              return undefined;
+            }
             if (id.includes('/node_modules/@codemirror/')) {
               return 'codemirror';
             }
