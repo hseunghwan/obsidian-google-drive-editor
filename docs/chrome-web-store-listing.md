@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Draft
 
-Product: Obsidian Vault Editor for Google Drive
+Product: Obsidian for Google Drive
 
 Chrome Web Store URL:
 https://chromewebstore.google.com/detail/obsidian-vault-editor-for/fegekndlnlkbnkopphbokolacfemldge
@@ -22,7 +22,7 @@ Sources:
 ## English Product Details
 
 Name:
-Obsidian Vault Editor for Google Drive
+Obsidian for Google Drive
 
 Short description:
 Edit Google Drive Markdown vaults with an Obsidian-like workspace.
@@ -35,7 +35,7 @@ English
 
 Detailed description:
 
-Obsidian Vault Editor for Google Drive turns a Google Drive folder full of Markdown files into a focused browser workspace. Open a Drive folder like a vault, browse your existing note structure, edit Markdown, review properties and tags, and save changes back to Drive without installing a desktop note app.
+Obsidian for Google Drive turns a Google Drive folder full of Markdown files into a focused browser workspace. Open a Drive folder like a vault, browse your existing note structure, edit Markdown, review properties and tags, and save changes back to Drive without installing a desktop note app.
 
 It is built for people who already keep notes, meeting records, project docs, personal knowledge bases, or technical writing in Markdown. The extension keeps your files in Google Drive and gives you a calm, Obsidian-inspired interface inside Chrome.
 
@@ -67,7 +67,7 @@ This extension is not affiliated with Google LLC or Obsidian.
 ## Korean Product Details
 
 이름:
-Obsidian Vault Editor for Google Drive
+Obsidian for Google Drive
 
 짧은 설명:
 Google Drive Markdown vault를 Obsidian처럼 편집합니다.
@@ -80,7 +80,7 @@ Productivity
 
 상세 설명:
 
-Obsidian Vault Editor for Google Drive는 Google Drive에 보관한 Markdown 폴더를 Chrome 안에서 바로 편집할 수 있는 작업 공간으로 바꿔 줍니다. Drive 폴더를 vault처럼 열고, 기존 폴더 구조를 그대로 탐색하며, Markdown 문서를 작성하고, 프로퍼티와 태그를 확인한 뒤 다시 Drive에 저장할 수 있습니다.
+Obsidian for Google Drive는 Google Drive에 보관한 Markdown 폴더를 Chrome 안에서 바로 편집할 수 있는 작업 공간으로 바꿔 줍니다. Drive 폴더를 vault처럼 열고, 기존 폴더 구조를 그대로 탐색하며, Markdown 문서를 작성하고, 프로퍼티와 태그를 확인한 뒤 다시 Drive에 저장할 수 있습니다.
 
 이미 Google Drive에 개인 노트, 업무 메모, 회의록, 프로젝트 문서, 기술 문서를 Markdown으로 관리하고 있다면 특히 잘 맞습니다. 파일을 다른 서비스로 옮기지 않고 Drive에 그대로 두면서, Chrome 안에서 Obsidian에 익숙한 밀도 있는 편집 환경을 사용할 수 있습니다.
 
