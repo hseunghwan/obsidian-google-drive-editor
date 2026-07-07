@@ -96,8 +96,14 @@ export function RevisionHistoryDialog({
   }
 
   return (
-    <div className="settings-overlay">
-      <section aria-labelledby="revision-history-title" aria-modal="true" className="revision-dialog" role="dialog">
+    <div className="settings-overlay" onMouseDown={onClose}>
+      <section
+        aria-labelledby="revision-history-title"
+        aria-modal="true"
+        className="revision-dialog"
+        role="dialog"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
         <header className="shortcut-dialog-header">
           <h2 id="revision-history-title">{t('revisions.title')}</h2>
           <button aria-label={t('revisions.close')} className="settings-close" title={t('revisions.close')} type="button" onClick={onClose}>

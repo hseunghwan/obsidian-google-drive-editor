@@ -35,8 +35,14 @@ export function SettingsDialog({ open, onClose, onSwitchGoogleAccount }: Setting
   }
 
   return (
-    <div className="settings-overlay">
-      <section aria-labelledby="settings-title" aria-modal="true" className="settings-dialog" role="dialog">
+    <div className="settings-overlay" onMouseDown={onClose}>
+      <section
+        aria-labelledby="settings-title"
+        aria-modal="true"
+        className="settings-dialog"
+        role="dialog"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
         <aside className="settings-sidebar" aria-label={t('settings.label')}>
           <h2 id="settings-title">{t('settings.label')}</h2>
           <button className="settings-sidebar-item active" type="button">

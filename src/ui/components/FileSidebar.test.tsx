@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -172,6 +172,22 @@ describe('FileSidebar', () => {
 
     await user.click(screen.getByRole('button', { name: '단축키 닫기' }));
     expect(screen.queryByRole('dialog', { name: '단축키' })).not.toBeInTheDocument();
+  });
+
+  it('closes the shortcut dialog when the backdrop is clicked', async () => {
+    const user = userEvent.setup();
+
+    renderSidebar([fixtureFiles[0]]);
+
+    await user.click(screen.getByRole('button', { name: '단축키 보기' }));
+    const dialog = screen.getByRole('dialog', { name: '단축키' });
+
+    fireEvent.mouseDown(dialog.parentElement as HTMLElement);
+    expect(screen.queryByRole('dialog', { name: '단축키' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '단축키 보기' }));
+    fireEvent.mouseDown(screen.getByRole('dialog', { name: '단축키' }));
+    expect(screen.getByRole('dialog', { name: '단축키' })).toBeInTheDocument();
   });
 
   it('moves the root folder name to the sidebar footer beside the settings button', async () => {

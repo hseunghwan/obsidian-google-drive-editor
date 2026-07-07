@@ -66,8 +66,14 @@ export function ShortcutHelpDialog({ open, onClose }: ShortcutHelpDialogProps) {
   }
 
   return (
-    <div className="settings-overlay">
-      <section aria-labelledby="shortcut-help-title" aria-modal="true" className="shortcut-dialog" role="dialog">
+    <div className="settings-overlay" onMouseDown={onClose}>
+      <section
+        aria-labelledby="shortcut-help-title"
+        aria-modal="true"
+        className="shortcut-dialog"
+        role="dialog"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
         <header className="shortcut-dialog-header">
           <h2 id="shortcut-help-title">{t('shortcutHelp.title')}</h2>
           <button aria-label={t('shortcutHelp.close')} className="settings-close" title={t('shortcutHelp.close')} type="button" onClick={onClose}>
