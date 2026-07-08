@@ -1,3 +1,5 @@
+import 'fake-indexeddb/auto';
+
 import type { ComponentProps } from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,6 +9,10 @@ import type { VaultEntry, VaultRoot } from '../domain/vault/types';
 import { fixtureFiles, fixtureFolder, fixtureVaultRoot } from '../test/fixtures';
 import type { MarkdownEditorProps } from './editor/MarkdownEditor';
 import { CHROME_WEB_STORE_REVIEW_URL, Workspace } from './Workspace';
+
+vi.mock('./graph/graphRenderer', () => ({
+  createGraphRenderer: vi.fn(async () => ({ setForces: vi.fn(), setSearch: vi.fn(), destroy: vi.fn() }))
+}));
 
 const saveDocument = vi.fn().mockResolvedValue({
   fileId: 'file-home',
@@ -792,6 +798,16 @@ describe('Workspace', () => {
     renderWorkspace({ showReviewRequestToast: false });
 
     expect(screen.queryByLabelText('Chrome Web Store 리뷰 요청')).not.toBeInTheDocument();
+  });
+
+  it('⌘G로 그래프 뷰를 켜고 다시 눌러 끈다', async () => {
+    renderWorkspace({ readFileContent: async () => '' });
+
+    fireEvent.keyDown(window, { key: 'g', metaKey: true });
+    expect(await screen.findByTestId('graph-view')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'g', metaKey: true });
+    await waitFor(() => expect(screen.queryByTestId('graph-view')).not.toBeInTheDocument());
   });
 
   it('clears the active document when the vault root changes', async () => {

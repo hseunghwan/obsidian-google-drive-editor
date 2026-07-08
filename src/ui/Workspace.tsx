@@ -8,6 +8,7 @@ import type { OpenDocument, SaveResult, VaultEntry, VaultFile, VaultFolder, Vaul
 import { useI18n } from '../i18n/I18nProvider';
 import { Breadcrumb } from './components/Breadcrumb';
 import { FileSidebar } from './components/FileSidebar';
+import { GraphView } from './graph/GraphView';
 import { Icon } from './components/Icon';
 import { MetadataPanel } from './components/MetadataPanel';
 import { QuickSwitcher } from './components/QuickSwitcher';
@@ -27,6 +28,8 @@ interface WorkspaceProps {
   searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
   prefetchFile?(file: VaultFile): void;
+  readFileContent?(fileId: string): Promise<string>;
+  loadGraphSettings?(): Promise<unknown>;
   getRemoteModifiedTime?(fileId: string): Promise<string>;
   listRevisions?(fileId: string): Promise<RevisionSummary[]>;
   getRevisionContent?(fileId: string, revisionId: string): Promise<string>;
@@ -55,6 +58,8 @@ export function Workspace({
   searchEntries,
   loadFile,
   prefetchFile,
+  readFileContent,
+  loadGraphSettings,
   getRemoteModifiedTime,
   listRevisions,
   getRevisionContent,
@@ -125,6 +130,11 @@ export function Workspace({
       if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'e') {
         event.preventDefault();
         setEditorMode((mode) => (mode === 'source' ? 'live' : 'source'));
+        return;
+      }
+      if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'g' && readFileContent) {
+        event.preventDefault();
+        dispatch({ type: 'viewModeChanged', viewMode: state.viewMode === 'graph' ? 'editor' : 'graph' });
         return;
       }
       if (mod && event.shiftKey && !event.altKey && event.key.toLowerCase() === 'f') {
@@ -764,110 +774,125 @@ export function Workspace({
           </>
         ) : null}
         <main className="workspace-main">
-          {recentFiles.length > 0 ? (
-            <div className="workspace-tabs" role="tablist" aria-label={t('workspace.recentTabs')}>
-              {recentFiles.map((file) => {
-                const isActive = activeDocument?.file.id === file.id;
-                return (
-                  <div
-                    key={file.id}
-                    className={`workspace-tab${isActive ? ' active' : ''}`}
-                    role="tab"
-                    aria-selected={isActive}
-                    tabIndex={0}
-                    title={file.path}
-                    onClick={() => void openFile(file)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        void openFile(file);
-                      }
-                    }}
-                  >
-                    <span className="workspace-tab-label">{file.title}</span>
+          {state.viewMode === 'graph' && readFileContent ? (
+            <GraphView
+              root={root}
+              loadFolders={loadFolders}
+              loadMarkdownFiles={loadMarkdownFiles}
+              readFileContent={readFileContent}
+              loadGraphSettings={loadGraphSettings}
+              onOpenFile={(file) => {
+                void openFile(file);
+              }}
+            />
+          ) : (
+            <>
+              {recentFiles.length > 0 ? (
+                <div className="workspace-tabs" role="tablist" aria-label={t('workspace.recentTabs')}>
+                  {recentFiles.map((file) => {
+                    const isActive = activeDocument?.file.id === file.id;
+                    return (
+                      <div
+                        key={file.id}
+                        className={`workspace-tab${isActive ? ' active' : ''}`}
+                        role="tab"
+                        aria-selected={isActive}
+                        tabIndex={0}
+                        title={file.path}
+                        onClick={() => void openFile(file)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            void openFile(file);
+                          }
+                        }}
+                      >
+                        <span className="workspace-tab-label">{file.title}</span>
+                        <button
+                          type="button"
+                          className="workspace-tab-close"
+                          aria-label={t('workspace.closeRecentTab')}
+                          title={t('workspace.closeRecentTab')}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void closeRecentFile(file.id);
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+              {activeDocument ? (
+                <>
+                  <div className="editor-header">
+                    <Breadcrumb path={activeDocument.file.path} />
+                    {listRevisions && getRevisionContent ? (
+                      <button
+                        aria-label={t('revisions.open')}
+                        className="editor-mode-toggle"
+                        title={t('revisions.open')}
+                        type="button"
+                        onClick={() => setRevisionsOpen(true)}
+                      >
+                        <Icon name="history" />
+                      </button>
+                    ) : null}
                     <button
+                      aria-pressed={editorMode === 'source'}
+                      aria-label={t('workspace.toggleSourceMode')}
+                      className={`editor-mode-toggle${editorMode === 'source' ? ' active' : ''}`}
+                      title={t('workspace.toggleSourceMode')}
                       type="button"
-                      className="workspace-tab-close"
-                      aria-label={t('workspace.closeRecentTab')}
-                      title={t('workspace.closeRecentTab')}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void closeRecentFile(file.id);
-                      }}
+                      onClick={() => setEditorMode((mode) => (mode === 'source' ? 'live' : 'source'))}
                     >
-                      ×
+                      <Icon name="code" />
                     </button>
                   </div>
-                );
-              })}
-            </div>
-          ) : null}
-          {activeDocument ? (
-            <>
-              <div className="editor-header">
-                <Breadcrumb path={activeDocument.file.path} />
-                {listRevisions && getRevisionContent ? (
-                  <button
-                    aria-label={t('revisions.open')}
-                    className="editor-mode-toggle"
-                    title={t('revisions.open')}
-                    type="button"
-                    onClick={() => setRevisionsOpen(true)}
-                  >
-                    <Icon name="history" />
+                  <EditorComponent
+                    value={activeDocument.content}
+                    index={index}
+                    scrollTarget={scrollTarget}
+                    mode={editorMode}
+                    insertRequest={insertRequest}
+                    onChange={(content) => dispatch({ type: 'documentEdited', content })}
+                    onOpenWikiLink={openWikiLink}
+                    resolveWikiLink={(target) => Boolean(findWikiLinkFile(target))}
+                  />
+                  <SaveStatus
+                    status={state.saveState.status}
+                    onSave={() => void saveActiveDocument()}
+                  />
+                </>
+              ) : workspaceFiles.length === 0 ? (
+                <div className="empty-vault">
+                  <p>{loadingFolderIds.has(root.id) ? t('workspace.loadingFolder') : t('workspace.emptyVault')}</p>
+                  <button type="button" onClick={() => void createMarkdownFile()}>
+                    {t('workspace.createFile')}
                   </button>
-                ) : null}
-                <button
-                  aria-pressed={editorMode === 'source'}
-                  aria-label={t('workspace.toggleSourceMode')}
-                  className={`editor-mode-toggle${editorMode === 'source' ? ' active' : ''}`}
-                  title={t('workspace.toggleSourceMode')}
-                  type="button"
-                  onClick={() => setEditorMode((mode) => (mode === 'source' ? 'live' : 'source'))}
-                >
-                  <Icon name="code" />
+                </div>
+              ) : (
+                <button className="open-first-file" type="button" onClick={() => void openFile(visibleFiles[0] ?? workspaceFiles[0])}>
+                  {t('workspace.openFirstFile')}
                 </button>
+              )}
+              <div className="workspace-toasts">
+                {notice ? <p className="workspace-notice">{notice}</p> : null}
+                {showReviewRequestToast && !reviewRequestDismissed ? (
+                  <ReviewRequestToast
+                    reviewUrl={reviewRequestUrl}
+                    onDismiss={() => setReviewRequestDismissed(true)}
+                    onReviewLinkClick={() => {
+                      setReviewRequestDismissed(true);
+                      onReviewRequestAccepted?.();
+                    }}
+                  />
+                ) : null}
               </div>
-              <EditorComponent
-                value={activeDocument.content}
-                index={index}
-                scrollTarget={scrollTarget}
-                mode={editorMode}
-                insertRequest={insertRequest}
-                onChange={(content) => dispatch({ type: 'documentEdited', content })}
-                onOpenWikiLink={openWikiLink}
-                resolveWikiLink={(target) => Boolean(findWikiLinkFile(target))}
-              />
-              <SaveStatus
-                status={state.saveState.status}
-                onSave={() => void saveActiveDocument()}
-              />
             </>
-          ) : workspaceFiles.length === 0 ? (
-            <div className="empty-vault">
-              <p>{loadingFolderIds.has(root.id) ? t('workspace.loadingFolder') : t('workspace.emptyVault')}</p>
-              <button type="button" onClick={() => void createMarkdownFile()}>
-                {t('workspace.createFile')}
-              </button>
-            </div>
-          ) : (
-            <button className="open-first-file" type="button" onClick={() => void openFile(visibleFiles[0] ?? workspaceFiles[0])}>
-              {t('workspace.openFirstFile')}
-            </button>
           )}
-          <div className="workspace-toasts">
-            {notice ? <p className="workspace-notice">{notice}</p> : null}
-            {showReviewRequestToast && !reviewRequestDismissed ? (
-              <ReviewRequestToast
-                reviewUrl={reviewRequestUrl}
-                onDismiss={() => setReviewRequestDismissed(true)}
-                onReviewLinkClick={() => {
-                  setReviewRequestDismissed(true);
-                  onReviewRequestAccepted?.();
-                }}
-              />
-            ) : null}
-          </div>
         </main>
         {activeDocument && metadataOpen ? (
           <MetadataPanel content={activeDocument.content} onSelectHeading={scrollToHeading} />

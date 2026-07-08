@@ -247,6 +247,8 @@ See [[Project Note]].`,
       searchEntries={workspace.searchEntries}
       loadFile={workspace.loadFile}
       prefetchFile={workspace.prefetchFile}
+      readFileContent={workspace.readFileContent}
+      loadGraphSettings={workspace.loadGraphSettings}
       getRemoteModifiedTime={workspace.getRemoteModifiedTime}
       moveEntry={workspace.moveEntry}
       listRevisions={workspace.listRevisions}
