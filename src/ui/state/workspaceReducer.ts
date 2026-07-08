@@ -9,6 +9,7 @@ export interface WorkspaceState {
   saveState: {
     status: SaveStatus;
   };
+  viewMode: 'editor' | 'graph';
 }
 
 export type WorkspaceAction =
@@ -26,7 +27,8 @@ export type WorkspaceAction =
   | { type: 'saveFailed' }
   | { type: 'remoteConflict' }
   | { type: 'entryRenamed'; previous: VaultEntry; entry: VaultEntry }
-  | { type: 'entryDeleted'; entry: VaultEntry };
+  | { type: 'entryDeleted'; entry: VaultEntry }
+  | { type: 'viewModeChanged'; viewMode: 'editor' | 'graph' };
 
 export function createInitialWorkspaceState(): WorkspaceState {
   return {
@@ -35,7 +37,8 @@ export function createInitialWorkspaceState(): WorkspaceState {
     activeDocument: null,
     saveState: {
       status: 'idle'
-    }
+    },
+    viewMode: 'editor'
   };
 }
 
@@ -50,7 +53,8 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         activeDocument: action.document,
         saveState: {
           status: 'saved'
-        }
+        },
+        viewMode: 'editor'
       };
     case 'documentClosed':
       return {
@@ -101,6 +105,8 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
           ? null
           : state.activeDocument
       };
+    case 'viewModeChanged':
+      return { ...state, viewMode: action.viewMode };
   }
 }
 
