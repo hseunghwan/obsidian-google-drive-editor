@@ -139,7 +139,18 @@ const ko = {
   'slashCommand.codeblock': '코드 블록',
   'slashCommand.hr': '수평선',
   'slashCommand.table': '표',
-  'slashCommand.callout': '콜아웃'
+  'slashCommand.callout': '콜아웃',
+  'graph.scanning': '링크 스캔 중',
+  'graph.readFailures': '일부 파일을 읽지 못했습니다',
+  'graph.retry': '다시 시도',
+  'graph.empty': '표시할 노트가 없습니다.',
+  'graph.rendererFailed': '그래프를 그릴 수 없습니다. WebGL을 사용할 수 없는 환경입니다.',
+  'graph.searchPlaceholder': '노트 검색',
+  'graph.forces': '포스',
+  'graph.centerStrength': '중심 강도',
+  'graph.repelStrength': '반발 강도',
+  'graph.linkStrength': '링크 강도',
+  'graph.linkDistance': '링크 거리'
 };
 
 const en: Record<keyof typeof ko, string> = {
@@ -283,7 +294,18 @@ const en: Record<keyof typeof ko, string> = {
   'slashCommand.codeblock': 'Code block',
   'slashCommand.hr': 'Horizontal rule',
   'slashCommand.table': 'Table',
-  'slashCommand.callout': 'Callout'
+  'slashCommand.callout': 'Callout',
+  'graph.scanning': 'Scanning links',
+  'graph.readFailures': 'Some files could not be read',
+  'graph.retry': 'Retry',
+  'graph.empty': 'No notes to show.',
+  'graph.rendererFailed': 'Cannot render the graph. WebGL is unavailable.',
+  'graph.searchPlaceholder': 'Search notes',
+  'graph.forces': 'Forces',
+  'graph.centerStrength': 'Center strength',
+  'graph.repelStrength': 'Repel strength',
+  'graph.linkStrength': 'Link strength',
+  'graph.linkDistance': 'Link distance'
 };
 
 export const messages = { ko, en } as const;
