@@ -34,6 +34,7 @@ const workspaceShortcuts: ShortcutEntry[] = [
   { labelKey: 'shortcutHelp.save', keys: 'Mod-S' },
   { labelKey: 'shortcutHelp.quickSwitcher', keys: 'Mod-O' },
   { labelKey: 'shortcutHelp.toggleMode', keys: 'Mod-E' },
+  { labelKey: 'shortcutHelp.graphView', keys: 'Mod-G' },
   { labelKey: 'shortcutHelp.searchFiles', keys: 'Mod-Shift-F' },
   { labelKey: 'shortcutHelp.newNote', keys: 'Alt-N' },
   { labelKey: 'shortcutHelp.historyBack', keys: 'Mod-[' },

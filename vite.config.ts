@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => {
               // 언어 파서는 language-data가 dynamic import로 lazy-load하므로 기본 분할에 맡긴다
               return undefined;
             }
+            // 이 목록은 pixi.js 의존성 트리를 추적한다 — pixi 업그레이드 시 재점검 필요
             if (
               id.includes('/node_modules/pixi.js/') ||
               id.includes('/node_modules/@pixi/') ||
@@ -41,6 +42,7 @@ export default defineConfig(({ mode }) => {
               id.includes('/node_modules/ismobilejs/') ||
               id.includes('/node_modules/gifuct-js/') ||
               id.includes('/node_modules/parse-svg-path/') ||
+              id.includes('/node_modules/js-binary-schema-parser/') ||
               id.includes('/node_modules/@xmldom/')
             ) {
               // pixi/d3는 GraphView가 dynamic import로만 참조하므로 기본 분할에 맡겨 그래프 청크로 lazy 분리

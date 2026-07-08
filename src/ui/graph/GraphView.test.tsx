@@ -114,4 +114,16 @@ describe('GraphView', () => {
     expect(await screen.findByText('표시할 노트가 없습니다.')).toBeInTheDocument();
     expect(createGraphRenderer).not.toHaveBeenCalled();
   });
+
+  it('스캔 실패 시 실패 문구와 다시 시도 버튼을 보여준다', async () => {
+    renderGraphView({
+      loadMarkdownFiles: async () => {
+        throw new Error('offline');
+      }
+    });
+
+    expect(await screen.findByText('링크 스캔에 실패했습니다.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+    expect(createGraphRenderer).not.toHaveBeenCalled();
+  });
 });

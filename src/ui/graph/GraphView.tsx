@@ -24,7 +24,7 @@ export interface GraphViewProps {
   linkStore?: GraphLinkStore;
 }
 
-type GraphPhase = 'scanning' | 'ready' | 'empty' | 'rendererFailed';
+type GraphPhase = 'scanning' | 'ready' | 'empty' | 'rendererFailed' | 'scanFailed';
 
 interface ForceSliderConfig {
   key: keyof GraphForceSettings;
@@ -68,6 +68,7 @@ export function GraphView({
     async function openGraph() {
       setPhase('scanning');
       setFailedCount(0);
+      setProgress({ done: 0, total: 0 });
 
       const initialForces = await resolveInitialForces(loadGraphSettings);
       if (cancelled) {
@@ -75,19 +76,27 @@ export function GraphView({
       }
       setForces(initialForces);
 
-      const scan = await scanVaultLinks({
-        vaultRootId: root.id,
-        listFolders: loadFolders,
-        listMarkdownFiles: loadMarkdownFiles,
-        readFileContent,
-        store,
-        onProgress: (done, total) => {
-          if (!cancelled) {
-            setProgress({ done, total });
-          }
-        },
-        isCancelled: () => cancelled
-      });
+      let scan;
+      try {
+        scan = await scanVaultLinks({
+          vaultRootId: root.id,
+          listFolders: loadFolders,
+          listMarkdownFiles: loadMarkdownFiles,
+          readFileContent,
+          store,
+          onProgress: (done, total) => {
+            if (!cancelled) {
+              setProgress({ done, total });
+            }
+          },
+          isCancelled: () => cancelled
+        });
+      } catch {
+        if (!cancelled) {
+          setPhase('scanFailed');
+        }
+        return;
+      }
       if (cancelled) {
         return;
       }
@@ -199,6 +208,14 @@ export function GraphView({
         ) : null}
         {phase === 'empty' ? <p className="graph-status">{t('graph.empty')}</p> : null}
         {phase === 'rendererFailed' ? <p className="graph-status">{t('graph.rendererFailed')}</p> : null}
+        {phase === 'scanFailed' ? (
+          <p className="graph-status">
+            {t('graph.scanFailed')}
+            <button type="button" onClick={() => setRetryToken((token) => token + 1)}>
+              {t('graph.retry')}
+            </button>
+          </p>
+        ) : null}
       </div>
     </div>
   );
