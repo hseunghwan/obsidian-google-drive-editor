@@ -65,6 +65,23 @@ export class DriveVaultAdapter {
     return this.drive.downloadText(fileId);
   }
 
+  async readGraphSettings(rootFolderId: string): Promise<unknown> {
+    try {
+      const folders = await this.listFolders(rootFolderId);
+      const obsidianFolder = folders.find((folder) => folder.name === '.obsidian');
+      if (!obsidianFolder) {
+        return null;
+      }
+      const file = await this.drive.findFileInFolder(obsidianFolder.id, 'graph.json');
+      if (!file) {
+        return null;
+      }
+      return JSON.parse(await this.drive.downloadText(file.id));
+    } catch {
+      return null;
+    }
+  }
+
   async getRemoteMetadata(fileId: string) {
     return this.drive.getMetadata(fileId);
   }

@@ -12,6 +12,8 @@ export interface DriveWorkspace {
   loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
   searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
   loadFile(file: VaultFile): Promise<OpenDocument>;
+  readFileContent(fileId: string): Promise<string>;
+  loadGraphSettings(): Promise<unknown>;
   prefetchFile(file: VaultFile): void;
   getRemoteModifiedTime(fileId: string): Promise<string>;
   listRevisions(fileId: string): Promise<Array<{ id: string; modifiedTime: string }>>;
@@ -87,6 +89,8 @@ export async function loadDriveWorkspace(deps: LoadDriveWorkspaceDeps): Promise<
         baselineModifiedTime: cached.modifiedTime
       };
     },
+    readFileContent: (fileId) => adapter.readFile(fileId),
+    loadGraphSettings: () => adapter.readGraphSettings(root.id),
     prefetchFile: (file) => {
       readFileWithCache(file);
     },

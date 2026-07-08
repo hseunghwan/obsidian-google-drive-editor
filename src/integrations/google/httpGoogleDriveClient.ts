@@ -62,6 +62,17 @@ export class HttpGoogleDriveClient implements GoogleDriveClient {
     return this.request(`${driveBaseUrl}?${params.toString()}`, { signal });
   }
 
+  async findFileInFolder(folderId: string, name: string): Promise<GoogleDriveFile | null> {
+    const params = new URLSearchParams({
+      q: `'${escapeDriveQueryValue(folderId)}' in parents and name = '${escapeDriveQueryValue(name)}' and trashed = false`,
+      fields: 'files(id, name, mimeType, modifiedTime, parents)',
+      pageSize: '1'
+    });
+
+    const response = await this.request<GoogleDriveListResponse>(`${driveBaseUrl}?${params.toString()}`);
+    return response.files[0] ?? null;
+  }
+
   async downloadText(fileId: string): Promise<string> {
     const response = await this.fetchWithRetry(`${driveBaseUrl}/${fileId}?alt=media`, {});
     if (!response.ok) {

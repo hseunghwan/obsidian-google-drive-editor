@@ -168,6 +168,8 @@ title: Home
 See [[Project Note]].`,
         baselineModifiedTime: file.modifiedTime
       }),
+      readFileContent: async () => '',
+      loadGraphSettings: async () => null,
       prefetchFile: () => undefined,
       getRemoteModifiedTime: async () => '1970-01-01T00:00:00.000Z',
       listRevisions: async () => [],

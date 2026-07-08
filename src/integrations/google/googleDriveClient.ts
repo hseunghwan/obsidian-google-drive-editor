@@ -15,6 +15,7 @@ export interface GoogleDriveClient {
   listFolders(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse>;
   listMarkdownFiles(folderId: string, pageToken?: string): Promise<GoogleDriveListResponse>;
   searchByName(query: string, pageToken?: string, signal?: AbortSignal): Promise<GoogleDriveListResponse>;
+  findFileInFolder(folderId: string, name: string): Promise<GoogleDriveFile | null>;
   downloadText(fileId: string): Promise<string>;
   updateText(fileId: string, content: string): Promise<GoogleDriveFile>;
   createTextFile(parentFolderId: string, name: string, content: string): Promise<GoogleDriveFile>;

@@ -182,6 +182,29 @@ describe('HttpGoogleDriveClient', () => {
     ).rejects.toThrow('Drive request failed: 401');
     expect(refreshAccessToken).toHaveBeenCalledTimes(1);
   });
+
+  it('폴더 안에서 정확한 이름의 파일을 찾는다', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ files: [{ id: 'file-graph', name: 'graph.json', mimeType: 'application/json', modifiedTime: '2026-07-09T00:00:00.000Z' }] })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const found = await new HttpGoogleDriveClient('access-token').findFileInFolder('folder-obsidian', 'graph.json');
+
+    const requestUrl = new URL(fetchMock.mock.calls[0][0] as string);
+    expect(requestUrl.searchParams.get('q')).toBe(
+      "'folder-obsidian' in parents and name = 'graph.json' and trashed = false"
+    );
+    expect(found?.id).toBe('file-graph');
+  });
+
+  it('폴더에 파일이 없으면 null을 돌려준다', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ files: [] })));
+
+    const found = await new HttpGoogleDriveClient('access-token').findFileInFolder('folder-obsidian', 'graph.json');
+
+    expect(found).toBeNull();
+  });
 });
 
 function jsonResponse(body: unknown): Response {

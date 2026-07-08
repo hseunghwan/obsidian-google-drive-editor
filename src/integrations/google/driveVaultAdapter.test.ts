@@ -10,6 +10,7 @@ function client(overrides: Partial<GoogleDriveClient> = {}): GoogleDriveClient {
     listFolders: vi.fn().mockResolvedValue({ files: [] }),
     listMarkdownFiles: vi.fn().mockResolvedValue({ files: [] }),
     searchByName: vi.fn().mockResolvedValue({ files: [] }),
+    findFileInFolder: vi.fn().mockResolvedValue(null),
     downloadText: vi.fn().mockResolvedValue(''),
     updateText: vi.fn().mockResolvedValue({
       id: 'file-home',
@@ -375,6 +376,61 @@ describe('DriveVaultAdapter', () => {
 
     expect(getMetadata).toHaveBeenCalledTimes(1);
     expect(getMetadata).toHaveBeenCalledWith('folder-projects', undefined);
+  });
+
+  it('.obsidian/graph.json을 읽어 파싱한다', async () => {
+    const drive = client({
+      listFolders: vi.fn().mockResolvedValue({
+        files: [
+          {
+            id: 'folder-obsidian',
+            name: '.obsidian',
+            mimeType: 'application/vnd.google-apps.folder',
+            modifiedTime: '2026-07-09T00:00:00.000Z'
+          }
+        ]
+      }),
+      findFileInFolder: vi.fn().mockResolvedValue({
+        id: 'file-graph',
+        name: 'graph.json',
+        mimeType: 'application/json',
+        modifiedTime: '2026-07-09T00:00:00.000Z'
+      }),
+      downloadText: vi.fn().mockResolvedValue('{"repelStrength": 12}')
+    });
+    const adapter = new DriveVaultAdapter(drive, new IndexedDbDraftStore('adapter-graph-settings'));
+
+    expect(await adapter.readGraphSettings('root-1')).toEqual({ repelStrength: 12 });
+  });
+
+  it('.obsidian 폴더가 없으면 null', async () => {
+    const adapter = new DriveVaultAdapter(client(), new IndexedDbDraftStore('adapter-graph-settings-missing'));
+    expect(await adapter.readGraphSettings('root-1')).toBeNull();
+  });
+
+  it('graph.json이 깨진 JSON이면 null', async () => {
+    const drive = client({
+      listFolders: vi.fn().mockResolvedValue({
+        files: [
+          {
+            id: 'folder-obsidian',
+            name: '.obsidian',
+            mimeType: 'application/vnd.google-apps.folder',
+            modifiedTime: '2026-07-09T00:00:00.000Z'
+          }
+        ]
+      }),
+      findFileInFolder: vi.fn().mockResolvedValue({
+        id: 'file-graph',
+        name: 'graph.json',
+        mimeType: 'application/json',
+        modifiedTime: '2026-07-09T00:00:00.000Z'
+      }),
+      downloadText: vi.fn().mockResolvedValue('not json')
+    });
+    const adapter = new DriveVaultAdapter(drive, new IndexedDbDraftStore('adapter-graph-settings-broken'));
+
+    expect(await adapter.readGraphSettings('root-1')).toBeNull();
   });
 });
 
