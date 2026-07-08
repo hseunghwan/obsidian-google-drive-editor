@@ -2,6 +2,7 @@ import React, { type ComponentType, useEffect, useMemo, useReducer, useRef, useS
 
 import { isVaultError } from '../domain/vault/errors';
 import { VaultIndex } from '../domain/vault/vaultIndex';
+import { findWikiLinkTarget } from '../domain/vault/wikiLinkResolution';
 import type { MarkdownHeading } from '../domain/markdown/markdownMetadata';
 import type { OpenDocument, SaveResult, VaultEntry, VaultFile, VaultFolder, VaultRoot } from '../domain/vault/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -630,12 +631,7 @@ export function Workspace({
   }
 
   function findWikiLinkFile(target: string) {
-    const normalized = target.trim().toLocaleLowerCase();
-    return workspaceFiles.find(
-      (entry) =>
-        entry.title.toLocaleLowerCase() === normalized ||
-        entry.path.toLocaleLowerCase().replace(/\.md$/, '') === normalized
-    );
+    return findWikiLinkTarget(workspaceFiles, target);
   }
 
   function openWikiLink(target: string) {
