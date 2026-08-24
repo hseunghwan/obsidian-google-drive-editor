@@ -89,7 +89,10 @@ export function GraphView({
               setProgress({ done, total });
             }
           },
-          isCancelled: () => cancelled
+          isCancelled: () => cancelled,
+          // ponytail: 첫 스캔은 파일당 다운로드 1회 — 왕복지연 지배라 동시성이 유일한 지렛대.
+          // googleapis.com은 HTTP/2 멀티플렉싱, 429는 클라이언트가 Retry-After로 자가회복. 24면 429 폭주 없이 상한 근처.
+          concurrency: 24
         });
       } catch {
         if (!cancelled) {
