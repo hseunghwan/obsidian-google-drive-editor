@@ -6,7 +6,9 @@ on:
     paths:
       - 'site/**'
       - 'src/**'
+      - 'public/**'
       - 'index.html'
+      - 'tsconfig*.json'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.ts'
