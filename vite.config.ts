@@ -1,16 +1,24 @@
 import { resolve } from 'node:path';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
 import { loadEnv, type Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  // 확장 빌드는 dist, 웹 배포 빌드는 dist-web (npm run build:web)
+  const outDir = env.VITE_OUT_DIR || 'dist';
 
   return {
-    plugins: [react(), chromeOAuthManifestPlugin(env.VITE_GOOGLE_OAUTH_CLIENT_ID)],
+    // 웹 배포는 https://obsidian.cycle1223.com/open/ 처럼 하위 경로에 올라간다
+    base: env.VITE_BASE || '/',
+    plugins: [
+      react(),
+      // manifest 주입은 확장 빌드에만 필요하다
+      ...(outDir === 'dist' ? [chromeOAuthManifestPlugin(env.VITE_GOOGLE_OAUTH_CLIENT_ID, outDir)] : [])
+    ],
     build: {
-      outDir: 'dist',
+      outDir,
       emptyOutDir: true,
       rollupOptions: {
         input: {
@@ -67,7 +75,7 @@ export default defineConfig(({ mode }) => {
   };
 });
 
-function chromeOAuthManifestPlugin(oauthClientId: string | undefined): Plugin {
+function chromeOAuthManifestPlugin(oauthClientId: string | undefined, outDir: string): Plugin {
   const configuredClientId = oauthClientId?.trim();
 
   return {
@@ -81,7 +89,10 @@ function chromeOAuthManifestPlugin(oauthClientId: string | undefined): Plugin {
         return;
       }
 
-      const manifestPath = resolve(__dirname, 'dist/manifest.json');
+      const manifestPath = resolve(__dirname, outDir, 'manifest.json');
+      if (!existsSync(manifestPath)) {
+        return;
+      }
       const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
         oauth2?: { client_id?: string };
       };

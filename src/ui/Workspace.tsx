@@ -23,6 +23,8 @@ import { createInitialWorkspaceState, workspaceReducer } from './state/workspace
 interface WorkspaceProps {
   root: VaultRoot;
   entries: VaultEntry[];
+  /** Drive UI에서 넘어온 파일처럼, 마운트 직후 열어야 하는 문서 */
+  initialFile?: VaultFile;
   loadFolders(parentFolderId: string, parentPath: string): Promise<VaultFolder[]>;
   loadMarkdownFiles(parentFolderId: string, parentPath: string): Promise<VaultFile[]>;
   searchEntries(rootFolderId: string, query: string, signal?: AbortSignal): Promise<VaultEntry[]>;
@@ -53,6 +55,7 @@ interface WorkspaceProps {
 export function Workspace({
   root,
   entries,
+  initialFile,
   loadFolders,
   loadMarkdownFiles,
   searchEntries,
@@ -223,7 +226,7 @@ export function Workspace({
     if (state.activeDocument) {
       return;
     }
-    const storedFile = readStoredLastFile(root.id);
+    const storedFile = initialFile ?? readStoredLastFile(root.id);
     if (storedFile) {
       openFile(storedFile).catch(() => {
         try {
@@ -233,7 +236,7 @@ export function Workspace({
         }
       });
     }
-  }, [root.id]);
+  }, [root.id, initialFile]);
 
   useEffect(() => {
     try {

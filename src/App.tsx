@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { parseDriveUiState, type DriveUiRequest } from './app/driveUiState';
+import { openDriveUiWorkspace, type DriveUiWorkspace } from './app/driveUiWorkspace';
 import { loadDriveWorkspace, type DriveWorkspace } from './app/driveWorkspaceLoader';
 import { hasCompletedReviewRequest, markReviewRequestCompleted } from './app/reviewRequestStore';
 import { clearStoredVaultRoot, readStoredVaultRoot, writeStoredVaultRoot } from './app/vaultConnectionStore';
 import type { VaultRoot } from './domain/vault/types';
 import { I18nProvider, useI18n } from './i18n/I18nProvider';
+import { createDriveAuthClient } from './integrations/google/gisAuth';
 import { ChromeIdentityAuthClient } from './integrations/google/googleAuth';
 import { HttpGoogleDriveClient } from './integrations/google/httpGoogleDriveClient';
 import { BrowserGooglePickerClient } from './integrations/google/googlePicker';
@@ -14,13 +17,131 @@ import { ThemeProvider } from './theme/ThemeProvider';
 import { Workspace } from './ui/Workspace';
 
 export default function App() {
+  const driveUiRequest = useMemo(
+    () => (typeof window === 'undefined' ? null : parseDriveUiState(window.location.search)),
+    []
+  );
+
   return (
     <I18nProvider>
       <ThemeProvider>
-        <AppContent />
+        {driveUiRequest ? <DriveUiContent request={driveUiRequest} /> : <AppContent />}
       </ThemeProvider>
     </I18nProvider>
   );
+}
+
+/**
+ * Google Drive의 "연결 앱으로 열기" / "새로 만들기"로 진입한 화면.
+ * 넘겨받은 파일 하나만 다루므로 vault 탐색 없이 편집기를 바로 띄운다.
+ */
+function DriveUiContent({ request }: { request: DriveUiRequest }) {
+  const { t } = useI18n();
+  const [opened, setOpened] = useState<DriveUiWorkspace | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [needsAuthorization, setNeedsAuthorization] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const openRequest = useCallback(
+    async (interactive: boolean) => {
+      setLoading(true);
+      setError(null);
+      const auth = createDriveAuthClient(t('errors.chromeIdentityUnavailable'));
+
+      try {
+        // 승인이 없으면 팝업이 필요하고, 팝업은 사용자 클릭 안에서만 열 수 있다
+        await auth.getAccessToken(interactive);
+      } catch (authError) {
+        setNeedsAuthorization(true);
+        setError(interactive ? errorMessage(authError, t('driveUi.openFailed')) : null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setOpened(
+          await openDriveUiWorkspace({
+            auth,
+            createDriveClient: (accessToken) =>
+              new HttpGoogleDriveClient(accessToken, {
+                refreshAccessToken: (staleToken) => auth.refreshAccessToken(staleToken)
+              }),
+            drafts: new IndexedDbDraftStore(),
+            request,
+            rootName: t('driveUi.rootName'),
+            newFileName: t('driveUi.newFileName'),
+            interactive: false
+          })
+        );
+        setNeedsAuthorization(false);
+      } catch (openError) {
+        setError(errorMessage(openError, t('driveUi.openFailed')));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [request, t]
+  );
+
+  useEffect(() => {
+    void openRequest(false);
+  }, [openRequest]);
+
+  if (opened) {
+    const { workspace, initialFile } = opened;
+    return (
+      <Workspace
+        root={workspace.root}
+        entries={workspace.entries}
+        initialFile={initialFile}
+        loadFolders={workspace.loadFolders}
+        loadMarkdownFiles={workspace.loadMarkdownFiles}
+        searchEntries={workspace.searchEntries}
+        loadFile={workspace.loadFile}
+        prefetchFile={workspace.prefetchFile}
+        readFileContent={workspace.readFileContent}
+        loadGraphSettings={workspace.loadGraphSettings}
+        getRemoteModifiedTime={workspace.getRemoteModifiedTime}
+        moveEntry={workspace.moveEntry}
+        listRevisions={workspace.listRevisions}
+        getRevisionContent={workspace.getRevisionContent}
+        saveDocument={workspace.saveDocument}
+        createFile={workspace.createFile}
+        createFolder={workspace.createFolder}
+        renameEntry={workspace.renameEntry}
+        deleteEntry={workspace.deleteEntry}
+      />
+    );
+  }
+
+  return (
+    <main className="app-shell">
+      <h1>{t('app.title')}</h1>
+      <p>{needsAuthorization ? t('driveUi.authorizeHelp') : t('driveUi.opening')}</p>
+      {needsAuthorization ? (
+        <div className="app-actions">
+          <button type="button" disabled={loading} onClick={() => void openRequest(true)}>
+            {t('driveUi.authorize')}
+          </button>
+        </div>
+      ) : null}
+      {loading ? <p aria-live="polite">{t('driveUi.opening')}</p> : null}
+      {error ? (
+        <>
+          <p role="alert">{error}</p>
+          <div className="app-actions">
+            <button type="button" disabled={loading} onClick={() => void openRequest(true)}>
+              {t('driveUi.retry')}
+            </button>
+          </div>
+        </>
+      ) : null}
+    </main>
+  );
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 function AppContent() {

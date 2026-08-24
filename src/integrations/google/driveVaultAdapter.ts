@@ -311,7 +311,7 @@ function toVaultFolder(file: GoogleDriveFile, parentId: string, parentPath: stri
   };
 }
 
-function toVaultFile(file: GoogleDriveFile, parentId: string, parentPath: string): VaultFile {
+export function toVaultFile(file: GoogleDriveFile, parentId: string, parentPath: string): VaultFile {
   return {
     id: file.id,
     name: file.name,

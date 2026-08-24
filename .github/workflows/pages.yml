@@ -3,7 +3,14 @@ name: Deploy site
 on:
   push:
     branches: [main]
-    paths: ['site/**', '.github/workflows/pages.yml']
+    paths:
+      - 'site/**'
+      - 'src/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:
@@ -23,9 +30,24 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # Drive UI "연결 앱으로 열기"가 여는 웹 앱. dist-web에 /open/ 기준으로 빌드된다
+      - run: npm run build:web
+        env:
+          VITE_GOOGLE_WEB_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_WEB_OAUTH_CLIENT_ID }}
+      - name: Assemble site
+        run: |
+          mkdir -p _site/open
+          cp -R site/. _site/
+          cp -R dist-web/. _site/open/
+          rm -f _site/open/manifest.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
