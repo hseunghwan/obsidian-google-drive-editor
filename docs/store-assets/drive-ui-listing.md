@@ -1,6 +1,19 @@
 # Drive UI Integration / Marketplace 등록 문구
 
-아이콘: `app-icon-64.png`(Drive UI 앱 아이콘), `app-icon-256.png`(리스팅), `../../public/icons/app-icon-16.png`, `app-icon-32.png`
+이미지 (`public/icons/`)
+- `app-icon-16.png`, `app-icon-32.png`, `app-icon-48.png` — 확장 아이콘
+- `app-icon-64.png` — Drive UI 앱 아이콘
+- `app-icon-96.png` — Marketplace 웹 앱(런처) 아이콘
+- `app-icon-256.png` — 리스팅 아이콘
+
+이미지 (`docs/store-assets/`)
+- `card-banner-220x140.png` — 스토어 카드 배너
+
+URL
+- 홈페이지: https://obsidian.cycle1223.com/
+- 지원: https://obsidian.cycle1223.com/support.html
+- 개인정보처리방침: https://obsidian.cycle1223.com/privacy.html
+- 이용약관: https://obsidian.cycle1223.com/terms.html
 
 ## 짧은 설명 (ko, 49자)
 
