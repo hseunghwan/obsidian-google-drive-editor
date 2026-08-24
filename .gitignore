@@ -10,3 +10,4 @@ coverage
 .superpowers/
 release/
 client_secret.apps.googleusercontent.com.json
+.claude/worktrees
